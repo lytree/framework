@@ -5,13 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace APP.Infrastructure.Helper
+namespace Infrastructure.Helper;
+
+public static class AttributeHelper
 {
-	public static class AttributeHelper
+	public static string GetDisplayName<T>(string propertyName)
 	{
-		public static string GetDisplayName<T>(string propertyName)
-		{
-			return (TypeDescriptor.GetProperties(typeof(T))[propertyName].Attributes[typeof(DisplayNameAttribute)] as DisplayNameAttribute).DisplayName ?? "";
-		}
+		return (TypeDescriptor.GetProperties(typeof(T))[propertyName].Attributes[typeof(DisplayNameAttribute)] as DisplayNameAttribute).DisplayName ?? "";
 	}
 }
