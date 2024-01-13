@@ -13,12 +13,7 @@ public static class DateTimeHelper
 	/// 时间戳起始日期
 	/// </summary>
 	public static readonly DateTime TimestampStart = new(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-	public static long ToMilliseconds(DateTime dateTime)
-	{
-		var chTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Shanghai");
-		var utcDateTime = TimeZoneInfo.ConvertTimeToUtc(TimeZoneInfo.ConvertTime(dateTime, chTimeZone));
-		return (long)(utcDateTime - TimestampStart).TotalMilliseconds;
-	}
+
 	public static DateTime ToDateTime(long timeStamp)
 	{
 		DateTimeOffset utcDateTime = DateTimeOffset.FromUnixTimeMilliseconds(timeStamp);
