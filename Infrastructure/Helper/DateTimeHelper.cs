@@ -9,11 +9,15 @@ namespace Infrastructure.Helper;
 
 public static class DateTimeHelper
 {
+	/// <summary>
+	/// 时间戳起始日期
+	/// </summary>
+	public static readonly DateTime TimestampStart = new(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 	public static long ToMilliseconds(DateTime dateTime)
 	{
 		var chTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Shanghai");
 		var utcDateTime = TimeZoneInfo.ConvertTimeToUtc(TimeZoneInfo.ConvertTime(dateTime, chTimeZone));
-		return (long)(utcDateTime - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+		return (long)(utcDateTime - TimestampStart).TotalMilliseconds;
 	}
 	public static DateTime ToDateTime(long timeStamp)
 	{
@@ -21,6 +25,17 @@ public static class DateTimeHelper
 		var chTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Shanghai");
 
 		return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime.UtcDateTime, chTimeZone); // 当地时区
+	}
+	/// <summary>
+	/// 获取周几
+	/// </summary>
+	/// <param name="datetime"></param>
+	/// <returns></returns>
+	public static string GetWeekName(DateTime datetime)
+	{
+		var day = (int)datetime.DayOfWeek;
+		var week = new string[] { "周日", "周一", "周二", "周三", "周四", "周五", "周六" };
+		return week[day];
 	}
 	public static Dictionary<DateTime, TimeRange> GetDateTimeRanges(DateTime startTime, DateTime endTime, int type)
 	{
