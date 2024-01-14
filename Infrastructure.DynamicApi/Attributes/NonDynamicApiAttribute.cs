@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Infrastructure.DynamicApi.Attributes;
+namespace Infrastructure.DynamicApi;
 
 [Serializable]
 [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class | AttributeTargets.Method)]

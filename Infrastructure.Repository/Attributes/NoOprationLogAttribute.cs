@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace Infrastructure.DynamicApi;
+namespace Infrastructure.Repository;
 
 /// <summary>
-/// 不格式化结果数据
+/// 禁用操作日志
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
-public class NonFormatResultAttribute : Attribute
+public class NoOprationLogAttribute : Attribute
 {
 }

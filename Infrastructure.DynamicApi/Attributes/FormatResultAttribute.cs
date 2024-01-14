@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
-namespace Infrastructure.DynamicApi.Attributes;
+namespace Infrastructure.DynamicApi;
 
 [Serializable]
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]

@@ -30,27 +30,27 @@
             <param name="apiPrefix">Routing prefix for all APIs</param>
             <param name="httpVerb">API HTTP Verb.</param>
         </member>
-        <member name="P:ZhonTai.DynamicApi.Attributes.DynamicApiAttribute.Area">
+        <member name="P:ZhonTai.DynamicApi.DynamicApiAttribute.Area">
             <summary>
             Equivalent to AreaName
             </summary>
         </member>
-        <member name="P:ZhonTai.DynamicApi.Attributes.DynamicApiAttribute.GroupNames">
+        <member name="P:ZhonTai.DynamicApi.DynamicApiAttribute.GroupNames">
             <summary>
             分组名称列表
             </summary>
         </member>
-        <member name="T:ZhonTai.DynamicApi.Attributes.NonFormatResultAttribute">
+        <member name="T:ZhonTai.DynamicApi.NonFormatResultAttribute">
             <summary>
             不格式化结果数据
             </summary>
         </member>
-        <member name="P:ZhonTai.DynamicApi.Attributes.OrderAttribute.Value">
+        <member name="P:ZhonTai.DynamicApi.OrderAttribute.Value">
             <summary>
             排序值
             </summary>
         </member>
-        <member name="M:ZhonTai.DynamicApi.Attributes.OrderAttribute.#ctor(System.Int32)">
+        <member name="M:ZhonTai.DynamicApi.OrderAttribute.#ctor(System.Int32)">
             <summary>
             排序设置
             </summary>

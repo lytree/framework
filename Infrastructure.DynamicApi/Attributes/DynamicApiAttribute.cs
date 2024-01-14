@@ -2,7 +2,7 @@
 using System;
 using System.Reflection;
 
-namespace Infrastructure.DynamicApi.Attributes;
+namespace Infrastructure.DynamicApi;
 
 [Serializable]
 [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class)]

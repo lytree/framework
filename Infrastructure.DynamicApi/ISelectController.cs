@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using Infrastructure.DynamicApi.Helpers;
-using Infrastructure.DynamicApi.Attributes;
+using Infrastructure.DynamicApi;
 
 namespace Infrastructure.DynamicApi;
 

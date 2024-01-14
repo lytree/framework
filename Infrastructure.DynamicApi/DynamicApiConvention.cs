@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Infrastructure.DynamicApi.Attributes;
+using Infrastructure.DynamicApi;
 using Infrastructure.DynamicApi.Enums;
 using Infrastructure.DynamicApi.Extensions;
 using Infrastructure.DynamicApi.Helpers;
