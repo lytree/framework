@@ -15,14 +15,14 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.Http.Extensions;
 
-/* 项目“Infrastructure.ApiUI (net8.0)”的未合并的更改
+/* 项目“Framework.ApiUI (net8.0)”的未合并的更改
 在此之前:
 using System.Linq;
 在此之后:
 using System.Linq;
 using ZhonTai;
 using ZhonTai.ApiUI;
-using Infrastructure.ApiUI;
+using Framework.ApiUI;
 */
 
 /* 项目“Framework.ApiUI (net8.0)”的未合并的更改
@@ -30,8 +30,8 @@ using Infrastructure.ApiUI;
 using System.Linq;
 在此之后:
 using System.Linq;
-using Infrastructure;
-using Infrastructure.ApiUI;
+using Framework;
+using Framework.ApiUI;
 using Framework.ApiUI;
 */
 using System.Linq;

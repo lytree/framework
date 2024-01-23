@@ -4,14 +4,14 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 
-/* 项目“Infrastructure.ApiUI (net8.0)”的未合并的更改
+/* 项目“Framework.ApiUI (net8.0)”的未合并的更改
 在此之前:
 using System.Text.Json.Serialization;
 在此之后:
 using System.Text.Json.Serialization;
 using ZhonTai;
 using ZhonTai.ApiUI;
-using Infrastructure.ApiUI;
+using Framework.ApiUI;
 */
 
 /* 项目“Framework.ApiUI (net8.0)”的未合并的更改
@@ -19,8 +19,8 @@ using Infrastructure.ApiUI;
 using System.Text.Json.Serialization;
 在此之后:
 using System.Text.Json.Serialization;
-using Infrastructure;
-using Infrastructure.ApiUI;
+using Framework;
+using Framework.ApiUI;
 using Framework.ApiUI;
 */
 using System.Text.Json.Serialization;

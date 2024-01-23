@@ -8,19 +8,19 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Hosting;
 在此之后:
 using Microsoft.AspNetCore.Hosting;
-using Infrastructure;
-using Infrastructure.ApiUI;
+using Framework;
+using Framework.ApiUI;
 using Framework.ApiUI;
 */
 using Microsoft.AspNetCore.Hosting;
 
-/* 项目“Infrastructure.ApiUI (net8.0)”的未合并的更改
+/* 项目“Framework.ApiUI (net8.0)”的未合并的更改
 在此之前:
 #if NETSTANDARD2_0
 在此之后:
 using ZhonTai;
 using ZhonTai.ApiUI;
-using Infrastructure.ApiUI;
+using Framework.ApiUI;
 #if NETSTANDARD2_0
 */
 #if NETSTANDARD2_0
