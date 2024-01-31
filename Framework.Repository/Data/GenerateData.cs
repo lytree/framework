@@ -1,7 +1,6 @@
 ﻿using Framework.Repository;
 using Framework.Repository.Attributes;
 using FreeSql.DataAnnotations;
-using Repository.Admin.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;

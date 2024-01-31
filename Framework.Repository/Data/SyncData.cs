@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using System.IO;
 using FreeSql.DataAnnotations;
 using System.Text.Json;
-using Repository.Admin.Core;
 using Framework.Helper;
 using Framework.Repository;
 

@@ -1,4 +1,5 @@
-﻿using FreeSql.DataAnnotations;
+﻿using Framework.Repository.Attributes;
+using FreeSql.DataAnnotations;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
