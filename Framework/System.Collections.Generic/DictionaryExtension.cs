@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.Extension;
+namespace System.Collections.Generic;
 
 public static class DictionaryExtension
 {
@@ -55,5 +53,16 @@ public static class DictionaryExtension
 	{
 		return dictionary.AddOrUpdate(key, k => addFactory(), (k, v) => updateFactory(v));
 	}
-
+	/// <summary>
+	/// 遍历IEnumerable
+	/// </summary>
+	/// <param name="dic"></param>
+	/// <param name="action">回调方法</param>
+	public static void ForEach<TKey, TValue>(this IDictionary<TKey, TValue> dic, Action<TKey, TValue> action)
+	{
+		foreach (var item in dic)
+		{
+			action(item.Key, item.Value);
+		}
+	}
 }
