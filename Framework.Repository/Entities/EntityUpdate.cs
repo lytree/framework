@@ -17,7 +17,7 @@ public class EntityUpdate<TKey> : EntityAdd, IEntityUpdate<TKey> where TKey : st
     [Description("修改者Id")]
     [Column(Position = -12, CanInsert = false)]
     [JsonPropertyOrder(10000)]
-    public virtual long? ModifiedUserId { get; set; }
+    public virtual TKey? ModifiedUserId { get; set; }
 
     /// <summary>
     /// 修改者
