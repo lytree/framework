@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Framework.System;
 
 
-public static class StringExtension
+public static class StringExtensions
 {
     /// <summary>
     /// 判断字符串是否为Null、空

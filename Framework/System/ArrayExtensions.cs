@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Framework.System;
 
-public static class ArrayExtension
+public static partial class ArrayExtensions
 {
 	public static void Fill<T>(this T[,] array, T value) => Fill((Array)array, value);
 	public static void Fill<T>(this T[,,] array, T value) => Fill((Array)array, value);

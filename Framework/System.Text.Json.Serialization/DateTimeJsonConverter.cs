@@ -6,11 +6,11 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Framework.System.Text.Json.Serialization.Converters;
+namespace Framework.System.Text.Json.Serialization;
 
 public class DateTimeJsonConverter : JsonConverter<DateTime>
 {
-	private string _format = "yyyy-MM-dd HH:mm:ss";
+	private readonly string _format = "yyyy-MM-dd HH:mm:ss";
 
 	public DateTimeJsonConverter()
 	{
@@ -21,11 +21,11 @@ public class DateTimeJsonConverter : JsonConverter<DateTime>
 	}
 	public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
-		return DateTime.Parse(reader.GetString());
+		return DateTime.Parse(s: reader.GetString());
 	}
 
 	public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
 	{
-		writer.WriteStringValue(value.ToString("yyyy-MM-dd HH:mm:ss"));
+		writer.WriteStringValue(value.ToString(_format));
 	}
 }

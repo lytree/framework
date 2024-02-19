@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Framework.System.Reflection;
 
-public static class MethodInfoExtension
+public static class MethodInfoExtensions
 {
 	public static bool HasAttribute<T>(this MethodInfo method)
 	{

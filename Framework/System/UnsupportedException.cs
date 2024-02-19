@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.Exceptions;
+namespace Framework.System;
 
 public class UnsupportedException : Exception
 {

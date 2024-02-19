@@ -279,9 +279,9 @@ internal class ReferenceEqualityComparer : EqualityComparer<object>
 	}
 }
 
-internal static class ArrayExtensions
+public  static partial class ArrayExtensions
 {
-	public static void ForEach(this Array array, Action<Array, int[]> action)
+	internal static void ForEach(this Array array, Action<Array, int[]> action)
 	{
 		if (array.LongLength == 0)
 		{
