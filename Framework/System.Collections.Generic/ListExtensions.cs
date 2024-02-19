@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Framework.System.Collections.Generic;
 
 
-public static class ListExtension
+public static class ListExtensions
 {
 	/// <summary>
 	/// 将列表转换为树形结构

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace System.Threading;
+namespace Framework.System.Threading;
 
 static class TaskToApm
 {

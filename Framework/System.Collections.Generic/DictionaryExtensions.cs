@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace System.Collections.Generic;
 
-public static class DictionaryExtension
+public static class DictionaryExtensions
 {
 	public static TValue GetOrAdd<TKey, TValue>(
 	   this IDictionary<TKey, TValue> dictionary,
