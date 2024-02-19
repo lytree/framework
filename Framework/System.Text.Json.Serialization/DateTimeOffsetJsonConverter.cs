@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Framework.System.Text.Json.Serialization.Converters;
+namespace Framework.System.Text.Json.Serialization;
 
 public class DateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset>
 {
