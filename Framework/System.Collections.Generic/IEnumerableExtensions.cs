@@ -137,131 +137,7 @@ public static class IEnumerableExtensions
 		return first.Where(f => !second.Any(s => condition(f, s)));
 	}
 
-#if NET6_0_OR_GREATER
-#else
 
-	/// <summary>
-	/// 按字段去重
-	/// </summary>
-	/// <typeparam name="TSource"></typeparam>
-	/// <typeparam name="TKey"></typeparam>
-	/// <param name="source"></param>
-	/// <param name="keySelector"></param>
-	/// <returns></returns>
-	public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
-	{
-		if (source == null) throw new ArgumentNullException(nameof(source));
-		if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
-		var set = new HashSet<TKey>();
-		return source.Where(item => set.Add(keySelector(item)));
-	}
-
-	/// <summary>
-	/// 按字段属性判等取交集
-	/// </summary>
-	/// <typeparam name="TSource"></typeparam>
-	/// <typeparam name="TKey"></typeparam>
-	/// <param name="first"></param>
-	/// <param name="second"></param>
-	/// <param name="keySelector"></param>
-	/// <returns></returns>
-	public static IEnumerable<TSource> IntersectBy<TSource, TKey>(this IEnumerable<TSource> first, IEnumerable<TKey> second, Func<TSource, TKey> keySelector)
-	{
-		return first.IntersectBy(second, keySelector, null);
-	}
-
-	/// <summary>
-	/// 按字段属性判等取交集
-	/// </summary>
-	/// <typeparam name="TSource"></typeparam>
-	/// <typeparam name="TKey"></typeparam>
-	/// <param name="first"></param>
-	/// <param name="second"></param>
-	/// <param name="keySelector"></param>
-	/// <param name="comparer"></param>
-	/// <returns></returns>
-	public static IEnumerable<TSource> IntersectBy<TSource, TKey>(this IEnumerable<TSource> first, IEnumerable<TKey> second, Func<TSource, TKey> keySelector, IEqualityComparer<TKey> comparer)
-	{
-		if (first == null) throw new ArgumentNullException(nameof(first));
-		if (second == null) throw new ArgumentNullException(nameof(second));
-		if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
-		return IntersectByIterator(first, second, keySelector, comparer);
-	}
-
-	private static IEnumerable<TSource> IntersectByIterator<TSource, TKey>(IEnumerable<TSource> first, IEnumerable<TKey> second, Func<TSource, TKey> keySelector, IEqualityComparer<TKey> comparer)
-	{
-		var set = new HashSet<TKey>(second, comparer);
-		return first.Where(source => set.Remove(keySelector(source)));
-	}
-
-	/// <summary>
-	/// 按字段属性判等取差集
-	/// </summary>
-	/// <typeparam name="TSource"></typeparam>
-	/// <typeparam name="TKey"></typeparam>
-	/// <param name="first"></param>
-	/// <param name="second"></param>
-	/// <param name="keySelector"></param>
-	/// <returns></returns>
-	public static IEnumerable<TSource> ExceptBy<TSource, TKey>(this IEnumerable<TSource> first, IEnumerable<TKey> second, Func<TSource, TKey> keySelector)
-	{
-		return first.ExceptBy(second, keySelector, null);
-	}
-
-	/// <summary>
-	/// 按字段属性判等取差集
-	/// </summary>
-	/// <typeparam name="TSource"></typeparam>
-	/// <typeparam name="TKey"></typeparam>
-	/// <param name="first"></param>
-	/// <param name="second"></param>
-	/// <param name="keySelector"></param>
-	/// <param name="comparer"></param>
-	/// <returns></returns>
-	/// <exception cref="ArgumentNullException"></exception>
-	public static IEnumerable<TSource> ExceptBy<TSource, TKey>(this IEnumerable<TSource> first, IEnumerable<TKey> second, Func<TSource, TKey> keySelector, IEqualityComparer<TKey> comparer)
-	{
-		if (first == null) throw new ArgumentNullException(nameof(first));
-		if (second == null) throw new ArgumentNullException(nameof(second));
-		if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
-		return ExceptByIterator(first, second, keySelector, comparer);
-	}
-
-	private static IEnumerable<TSource> ExceptByIterator<TSource, TKey>(IEnumerable<TSource> first, IEnumerable<TKey> second, Func<TSource, TKey> keySelector, IEqualityComparer<TKey> comparer)
-	{
-		var set = new HashSet<TKey>(second, comparer);
-		return first.Where(source => set.Add(keySelector(source)));
-	}
-
-#endif
-
-	/// <summary>
-	/// 添加多个元素
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="this"></param>
-	/// <param name="values"></param>
-	public static void AddRange<T>(this ICollection<T> @this, params T[] values)
-	{
-		foreach (var obj in values)
-		{
-			@this.Add(obj);
-		}
-	}
-
-	/// <summary>
-	/// 添加多个元素
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="this"></param>
-	/// <param name="values"></param>
-	public static void AddRange<T>(this ICollection<T> @this, IEnumerable<T> values)
-	{
-		foreach (var obj in values)
-		{
-			@this.Add(obj);
-		}
-	}
 
 	/// <summary>
 	/// 添加多个元素
@@ -298,21 +174,6 @@ public static class IEnumerableExtensions
 	/// <param name="this"></param>
 	/// <param name="predicate"></param>
 	/// <param name="values"></param>
-	public static void AddRangeIf<T>(this ICollection<T> @this, Func<T, bool> predicate, params T[] values)
-	{
-		foreach (var obj in values.Where(predicate))
-		{
-			@this.Add(obj);
-		}
-	}
-
-	/// <summary>
-	/// 添加符合条件的多个元素
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="this"></param>
-	/// <param name="predicate"></param>
-	/// <param name="values"></param>
 	public static void AddRangeIf<T>(this ConcurrentBag<T> @this, Func<T, bool> predicate, params T[] values)
 	{
 		foreach (var obj in values.Where(predicate))
@@ -336,88 +197,6 @@ public static class IEnumerableExtensions
 		}
 	}
 
-	/// <summary>
-	/// 添加不重复的元素
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="this"></param>
-	/// <param name="values"></param>
-	public static void AddRangeIfNotContains<T>(this ICollection<T> @this, params T[] values)
-	{
-		foreach (T obj in values)
-		{
-			if (!@this.Contains(obj))
-			{
-				@this.Add(obj);
-			}
-		}
-	}
-
-	/// <summary>
-	/// 移除符合条件的元素
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="this"></param>
-	/// <param name="where"></param>
-	public static void RemoveWhere<T>(this ICollection<T> @this, Func<T, bool> @where)
-	{
-		foreach (var obj in @this.Where(where).ToList())
-		{
-			@this.Remove(obj);
-		}
-	}
-
-	/// <summary>
-	/// 在元素之后添加元素
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="list"></param>
-	/// <param name="condition">条件</param>
-	/// <param name="value">值</param>
-	public static void InsertAfter<T>(this IList<T> list, Func<T, bool> condition, T value)
-	{
-		foreach (var index in list.Select((item, index) => new
-		{
-			item,
-			index
-		}).Where(p => condition(p.item)).OrderByDescending(p => p.index).Select(t => t.index))
-		{
-			if (index + 1 == list.Count)
-			{
-				list.Add(value);
-			}
-			else
-			{
-				list.Insert(index + 1, value);
-			}
-		}
-	}
-
-	/// <summary>
-	/// 在元素之后添加元素
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="list"></param>
-	/// <param name="index">索引位置</param>
-	/// <param name="value">值</param>
-	public static void InsertAfter<T>(this IList<T> list, int index, T value)
-	{
-		foreach (var i in list.Select((v, i) => new
-		{
-			Value = v,
-			Index = i
-		}).Where(p => p.Index == index).OrderByDescending(p => p.Index).Select(t => t.Index))
-		{
-			if (i + 1 == list.Count)
-			{
-				list.Add(value);
-			}
-			else
-			{
-				list.Insert(i + 1, value);
-			}
-		}
-	}
 
 	/// <summary>
 	/// 转HashSet
@@ -438,9 +217,9 @@ public static class IEnumerableExtensions
 	/// <param name="objs"></param>
 	/// <param name="action">回调方法</param>
 	/// <typeparam name="T"></typeparam>
-	public static void ForEach<T>(this IEnumerable<T> objs, Action<T> action)
+	public static void ForEach<T>(this IEnumerable<T> @this, Action<T> action)
 	{
-		foreach (var o in objs)
+		foreach (var o in @this)
 		{
 			action(o);
 		}
@@ -566,16 +345,16 @@ public static class IEnumerableExtensions
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	/// <typeparam name="TResult"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="selector"></param>
 	/// <param name="maxParallelCount">最大并行数</param>
 	/// <returns></returns>
-	public static async Task<List<TResult>> SelectAsync<T, TResult>(this IEnumerable<T> source, Func<T, int, Task<TResult>> selector, int maxParallelCount)
+	public static async Task<List<TResult>> SelectAsync<T, TResult>(this IEnumerable<T> @this, Func<T, int, Task<TResult>> selector, int maxParallelCount)
 	{
 		var results = new List<TResult>();
 		var tasks = new List<Task<TResult>>();
 		int index = 0;
-		foreach (var item in source)
+		foreach (var item in @this)
 		{
 			var task = selector(item, index);
 			tasks.Add(task);
@@ -602,12 +381,12 @@ public static class IEnumerableExtensions
 	/// <param name="maxParallelCount">最大并行数</param>
 	/// <param name="cancellationToken">取消口令</param>
 	/// <returns></returns>
-	public static async Task ForAsync<T>(this IEnumerable<T> source, Func<T, int, Task> selector, int maxParallelCount, CancellationToken cancellationToken = default)
+	public static async Task ForAsync<T>(this IEnumerable<T> @this, Func<T, int, Task> selector, int maxParallelCount, CancellationToken cancellationToken = default)
 	{
 		int index = 0;
 		if (Debugger.IsAttached)
 		{
-			foreach (var item in source)
+			foreach (var item in @this)
 			{
 				await selector(item, index);
 				index++;
@@ -617,7 +396,7 @@ public static class IEnumerableExtensions
 		}
 
 		var list = new List<Task>();
-		foreach (var item in source)
+		foreach (var item in @this)
 		{
 			if (cancellationToken.IsCancellationRequested)
 			{
@@ -644,14 +423,14 @@ public static class IEnumerableExtensions
 	/// <param name="selector"></param>
 	/// <param name="cancellationToken">取消口令</param>
 	/// <returns></returns>
-	public static Task ForAsync<T>(this IEnumerable<T> source, Func<T, int, Task> selector, CancellationToken cancellationToken = default)
+	public static Task ForAsync<T>(this IEnumerable<T> @this, Func<T, int, Task> selector, CancellationToken cancellationToken = default)
 	{
-		if (source is ICollection<T> collection)
+		if (@this is ICollection<T> collection)
 		{
 			return ForAsync(collection, selector, collection.Count, cancellationToken);
 		}
 
-		var list = source.ToList();
+		var list = @this.ToList();
 		return ForAsync(list, selector, list.Count, cancellationToken);
 	}
 
@@ -660,186 +439,186 @@ public static class IEnumerableExtensions
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
 	/// <typeparam name="TResult"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="selector"></param>
 	/// <returns></returns>
-	public static TResult MaxOrDefault<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> selector) => source.Select(selector).DefaultIfEmpty().Max();
+	public static TResult MaxOrDefault<TSource, TResult>(this IQueryable<TSource> @this, Expression<Func<TSource, TResult>> selector) => @this.Select(selector).DefaultIfEmpty().Max();
 
 	/// <summary>
 	/// 取最大值
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
 	/// <typeparam name="TResult"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="selector"></param>
 	/// <param name="defaultValue"></param>
 	/// <returns></returns>
-	public static TResult MaxOrDefault<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> selector, TResult defaultValue) => source.Select(selector).DefaultIfEmpty(defaultValue).Max();
+	public static TResult MaxOrDefault<TSource, TResult>(this IQueryable<TSource> @this, Expression<Func<TSource, TResult>> selector, TResult defaultValue) => @this.Select(selector).DefaultIfEmpty(defaultValue).Max();
 
 	/// <summary>
 	/// 取最大值
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <returns></returns>
-	public static TSource MaxOrDefault<TSource>(this IQueryable<TSource> source) => source.DefaultIfEmpty().Max();
+	public static TSource MaxOrDefault<TSource>(this IQueryable<TSource> @this) => @this.DefaultIfEmpty().Max();
 
 	/// <summary>
 	/// 取最大值
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="defaultValue"></param>
 	/// <returns></returns>
-	public static TSource MaxOrDefault<TSource>(this IQueryable<TSource> source, TSource defaultValue) => source.DefaultIfEmpty(defaultValue).Max();
-
-	/// <summary>
-	/// 取最大值
-	/// </summary>
-	/// <typeparam name="TSource"></typeparam>
-	/// <typeparam name="TResult"></typeparam>
-	/// <param name="source"></param>
-	/// <param name="selector"></param>
-	/// <param name="defaultValue"></param>
-	/// <returns></returns>
-	public static TResult MaxOrDefault<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector, TResult defaultValue) => source.Select(selector).DefaultIfEmpty(defaultValue).Max();
+	public static TSource MaxOrDefault<TSource>(this IQueryable<TSource> @this, TSource defaultValue) => @this.DefaultIfEmpty(defaultValue).Max();
 
 	/// <summary>
 	/// 取最大值
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
 	/// <typeparam name="TResult"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="selector"></param>
+	/// <param name="defaultValue"></param>
 	/// <returns></returns>
-	public static TResult MaxOrDefault<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector) => source.Select(selector).DefaultIfEmpty().Max();
+	public static TResult MaxOrDefault<TSource, TResult>(this IEnumerable<TSource> @this, Func<TSource, TResult> selector, TResult defaultValue) => @this.Select(selector).DefaultIfEmpty(defaultValue).Max();
 
 	/// <summary>
 	/// 取最大值
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
-	/// <param name="source"></param>
+	/// <typeparam name="TResult"></typeparam>
+	/// <param name="this"></param>
+	/// <param name="selector"></param>
 	/// <returns></returns>
-	public static TSource MaxOrDefault<TSource>(this IEnumerable<TSource> source) => source.DefaultIfEmpty().Max();
+	public static TResult MaxOrDefault<TSource, TResult>(this IEnumerable<TSource> @this, Func<TSource, TResult> selector) => @this.Select(selector).DefaultIfEmpty().Max();
 
 	/// <summary>
 	/// 取最大值
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
+	/// <returns></returns>
+	public static TSource MaxOrDefault<TSource>(this IEnumerable<TSource> @this) => @this.DefaultIfEmpty().Max();
+
+	/// <summary>
+	/// 取最大值
+	/// </summary>
+	/// <typeparam name="TSource"></typeparam>
+	/// <param name="this"></param>
 	/// <param name="defaultValue"></param>
 	/// <returns></returns>
-	public static TSource MaxOrDefault<TSource>(this IEnumerable<TSource> source, TSource defaultValue) => source.DefaultIfEmpty(defaultValue).Max();
+	public static TSource MaxOrDefault<TSource>(this IEnumerable<TSource> @this, TSource defaultValue) => @this.DefaultIfEmpty(defaultValue).Max();
 
 	/// <summary>
 	/// 取最小值
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
 	/// <typeparam name="TResult"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="selector"></param>
 	/// <returns></returns>
-	public static TResult MinOrDefault<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> selector) => source.Select(selector).DefaultIfEmpty().Min();
+	public static TResult MinOrDefault<TSource, TResult>(this IQueryable<TSource> @this, Expression<Func<TSource, TResult>> selector) => @this.Select(selector).DefaultIfEmpty().Min();
 
 	/// <summary>
 	/// 取最小值
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
 	/// <typeparam name="TResult"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="selector"></param>
 	/// <param name="defaultValue"></param>
 	/// <returns></returns>
-	public static TResult MinOrDefault<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> selector, TResult defaultValue) => source.Select(selector).DefaultIfEmpty(defaultValue).Min();
+	public static TResult MinOrDefault<TSource, TResult>(this IQueryable<TSource> @this, Expression<Func<TSource, TResult>> selector, TResult defaultValue) => @this.Select(selector).DefaultIfEmpty(defaultValue).Min();
 
 	/// <summary>
 	/// 取最小值
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <returns></returns>
-	public static TSource MinOrDefault<TSource>(this IQueryable<TSource> source) => source.DefaultIfEmpty().Min();
+	public static TSource MinOrDefault<TSource>(this IQueryable<TSource> @this) => @this.DefaultIfEmpty().Min();
 
 	/// <summary>
 	/// 取最小值
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="defaultValue"></param>
 	/// <returns></returns>
-	public static TSource MinOrDefault<TSource>(this IQueryable<TSource> source, TSource defaultValue) => source.DefaultIfEmpty(defaultValue).Min();
+	public static TSource MinOrDefault<TSource>(this IQueryable<TSource> @this, TSource defaultValue) => @this.DefaultIfEmpty(defaultValue).Min();
 
 	/// <summary>
 	/// 取最小值
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
 	/// <typeparam name="TResult"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="selector"></param>
 	/// <returns></returns>
-	public static TResult MinOrDefault<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector) => source.Select(selector).DefaultIfEmpty().Min();
+	public static TResult MinOrDefault<TSource, TResult>(this IEnumerable<TSource> @this, Func<TSource, TResult> selector) => @this.Select(selector).DefaultIfEmpty().Min();
 
 	/// <summary>
 	/// 取最小值
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
 	/// <typeparam name="TResult"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="selector"></param>
 	/// <param name="defaultValue"></param>
 	/// <returns></returns>
-	public static TResult MinOrDefault<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector, TResult defaultValue) => source.Select(selector).DefaultIfEmpty(defaultValue).Min();
+	public static TResult MinOrDefault<TSource, TResult>(this IEnumerable<TSource> @this, Func<TSource, TResult> selector, TResult defaultValue) => @this.Select(selector).DefaultIfEmpty(defaultValue).Min();
 
 	/// <summary>
 	/// 取最小值
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <returns></returns>
-	public static TSource MinOrDefault<TSource>(this IEnumerable<TSource> source) => source.DefaultIfEmpty().Min();
+	public static TSource MinOrDefault<TSource>(this IEnumerable<TSource> @this) => @this.DefaultIfEmpty().Min();
 
 	/// <summary>
 	/// 取最小值
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="defaultValue"></param>
 	/// <returns></returns>
-	public static TSource MinOrDefault<TSource>(this IEnumerable<TSource> source, TSource defaultValue) => source.DefaultIfEmpty(defaultValue).Min();
+	public static TSource MinOrDefault<TSource>(this IEnumerable<TSource> @this, TSource defaultValue) => @this.DefaultIfEmpty(defaultValue).Min();
 
 	/// <summary>
 	/// 标准差
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	/// <typeparam name="TResult"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="selector"></param>
 	/// <returns></returns>
-	public static TResult StandardDeviation<T, TResult>(this IEnumerable<T> source, Func<T, TResult> selector) where TResult : IConvertible
+	public static TResult StandardDeviation<T, TResult>(this IEnumerable<T> @this, Func<T, TResult> selector) where TResult : IConvertible
 	{
-		return StandardDeviation(source.Select(t => selector(t).ConvertTo<double>())).ConvertTo<TResult>();
+		return StandardDeviation(@this.Select(t => selector(t).ConvertTo<double>())).ConvertTo<TResult>();
 	}
 
 	/// <summary>
 	/// 标准差
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <returns></returns>
-	public static T StandardDeviation<T>(this IEnumerable<T> source) where T : IConvertible
+	public static T StandardDeviation<T>(this IEnumerable<T> @this) where T : IConvertible
 	{
-		return StandardDeviation(source.Select(t => t.ConvertTo<double>())).ConvertTo<T>();
+		return StandardDeviation(@this.Select(t => t.ConvertTo<double>())).ConvertTo<T>();
 	}
 
 	/// <summary>
 	/// 标准差
 	/// </summary>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <returns></returns>
-	public static double StandardDeviation(this IEnumerable<double> source)
+	public static double StandardDeviation(this IEnumerable<double> @this)
 	{
 		double result = 0;
-		var list = source as ICollection<double> ?? source.ToList();
+		var list = @this as ICollection<double> ?? @this.ToList();
 		int count = list.Count;
 		if (count > 1)
 		{
@@ -1010,95 +789,52 @@ public static class IEnumerableExtensions
 	/// 满足条件时执行筛选条件
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="condition"></param>
 	/// <param name="where"></param>
 	/// <returns></returns>
-	public static IEnumerable<T> WhereIf<T>(this IEnumerable<T> source, bool condition, Func<T, bool> where)
+	public static IEnumerable<T> WhereIf<T>(this IEnumerable<T> @this, bool condition, Func<T, bool> where)
 	{
-		return condition ? source.Where(where) : source;
+		return condition ? @this.Where(where) : @this;
 	}
 
 	/// <summary>
 	/// 满足条件时执行筛选条件
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="condition"></param>
 	/// <param name="where"></param>
 	/// <returns></returns>
-	public static IEnumerable<T> WhereIf<T>(this IEnumerable<T> source, Func<bool> condition, Func<T, bool> where)
+	public static IEnumerable<T> WhereIf<T>(this IEnumerable<T> @this, Func<bool> condition, Func<T, bool> where)
 	{
-		return condition() ? source.Where(where) : source;
+		return condition() ? @this.Where(where) : @this;
 	}
 
 	/// <summary>
 	/// 满足条件时执行筛选条件
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="condition"></param>
 	/// <param name="where"></param>
 	/// <returns></returns>
-	public static IQueryable<T> WhereIf<T>(this IQueryable<T> source, bool condition, Expression<Func<T, bool>> where)
+	public static IQueryable<T> WhereIf<T>(this IQueryable<T> @this, bool condition, Expression<Func<T, bool>> where)
 	{
-		return condition ? source.Where(where) : source;
+		return condition ? @this.Where(where) : @this;
 	}
 
 	/// <summary>
 	/// 满足条件时执行筛选条件
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	/// <param name="source"></param>
+	/// <param name="this"></param>
 	/// <param name="condition"></param>
 	/// <param name="where"></param>
 	/// <returns></returns>
-	public static IQueryable<T> WhereIf<T>(this IQueryable<T> source, Func<bool> condition, Expression<Func<T, bool>> where)
+	public static IQueryable<T> WhereIf<T>(this IQueryable<T> @this, Func<bool> condition, Expression<Func<T, bool>> where)
 	{
-		return condition() ? source.Where(where) : source;
+		return condition() ? @this.Where(where) : @this;
 	}
 
-	/// <summary>
-	/// 改变元素的索引位置
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="list">集合</param>
-	/// <param name="item">元素</param>
-	/// <param name="index">索引值</param>
-	/// <exception cref="ArgumentNullException"></exception>
-	public static IList<T> ChangeIndex<T>(this IList<T> list, T item, int index)
-	{
-		if (item is null)
-		{
-			throw new ArgumentNullException(nameof(item));
-		}
-
-		ChangeIndexInternal(list, item, index);
-		return list;
-	}
-
-	/// <summary>
-	/// 改变元素的索引位置
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="list">集合</param>
-	/// <param name="condition">元素定位条件</param>
-	/// <param name="index">索引值</param>
-	public static IList<T> ChangeIndex<T>(this IList<T> list, Func<T, bool> condition, int index)
-	{
-		var item = list.FirstOrDefault(condition);
-		if (item != null)
-		{
-			ChangeIndexInternal(list, item, index);
-		}
-		return list;
-	}
-
-	private static void ChangeIndexInternal<T>(IList<T> list, T item, int index)
-	{
-		index = Math.Max(0, index);
-		index = Math.Min(list.Count - 1, index);
-		list.Remove(item);
-		list.Insert(index, item);
-	}
 }
