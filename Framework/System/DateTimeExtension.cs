@@ -6,9 +6,16 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Framework.System;
-
+/// <summary>
+/// 
+/// </summary>
 public static class DateTimeExtension
 {
+	/// <summary>
+	/// 获取该时间相对于1970-01-01T00:00:00Z的毫秒数
+	/// </summary>
+	/// <param name="dt"></param>
+	/// <returns></returns>
 	public static long ToMilliseconds(this in DateTime dt)
 	{
 		var utcDateTime = TimeZoneInfo.ConvertTimeToUtc(TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.Local));
@@ -77,6 +84,7 @@ public static class DateTimeExtension
 		DateTime max = new(dt.Year, dt.Month, dt.Day, 23, 59, 59);
 		return max;
 	}
+
 	/// <summary>
 	/// 区间模式
 	/// </summary>

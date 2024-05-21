@@ -7,7 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Framework.Helper;
-
+/// <summary>
+/// 加密工具类
+/// </summary>
 public class DesEncryptHelper
 {
     private const string Key = "desenc1!";
@@ -31,7 +33,7 @@ public class DesEncryptHelper
     /// <param name="decryptString">解密字符串</param>
     /// <param name="key">秘钥</param>
     /// <returns></returns>
-    public static string Decrypt(string decryptString, string key = "")
+    public static string? Decrypt(string decryptString, string key = "")
     {
         return Decrypt(decryptString, key, false);
     }
@@ -56,7 +58,7 @@ public class DesEncryptHelper
     /// <param name="decryptString">解密字符串</param>
     /// <param name="key">秘钥</param>
     /// <returns></returns>
-    public static string Decrypt4Hex(string decryptString, string key = "")
+    public static string? Decrypt4Hex(string decryptString, string key = "")
     {
         return Decrypt(decryptString, key, true);
     }
@@ -107,7 +109,7 @@ public class DesEncryptHelper
     /// <param name="key"></param>
     /// <param name="hex"></param>
     /// <returns></returns>
-    private static string Decrypt(string decryptString, string key, bool hex)
+    private static string? Decrypt(string decryptString, string key, bool hex)
     {
         if (decryptString.IsNull())
         {

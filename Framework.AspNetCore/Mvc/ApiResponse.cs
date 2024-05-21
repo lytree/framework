@@ -9,15 +9,15 @@ public class ApiResponse<T> : IApiResponse<T>
     public int StatusCode { get; set; } = 200;
 
     public bool Success { get; set; } = true;
-    public string Code { get; set; }
+    public string Code { get; set; } = string.Empty;
 
-    public string Message { get; set; }
+    public string Message { get; set; } = string.Empty;
 
-    public T? Data { get; set; }
+    public T? Data { get; set; } = default(T);
 
 
     [JsonIgnore]
-    public Dictionary<string, object> ErrorData { get; set; }
+    public Dictionary<string, object> ErrorData { get; set; } = new Dictionary<string, object>();
 
     public Dictionary<string, object> AddErrorData(string key, object value)
     {
@@ -112,9 +112,9 @@ public static partial class ApiResponse
         };
     }
 
-    public static ApiResponse<object> Error(string code, string message = "Error", Exception exception = null)
+    public static ApiResponse<object> Error(string code, string message = "Error", Exception? exception = null)
     {
-        object obj = null;
+        object? obj = null;
         if (exception != null)
         {
             obj = new { exception.Message, exception.Data };
