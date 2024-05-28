@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<Nullable>enable</Nullable>
+  </PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Yarp.ReverseProxy" Version="2.1.0" />
+	</ItemGroup>
+  <ItemGroup>
+	<ProjectReference Include="..\Framework.AspNetCore\Framework.AspNetCore.csproj" />
+	<ProjectReference Include="..\Framework\Framework.csproj" />
+  </ItemGroup>
+
+</Project>

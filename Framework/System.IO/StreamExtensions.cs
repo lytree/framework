@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Framework.System.IO;
 
-public static class FileExtensions
+public static class StreamExtensions
 {
 	/// <summary>
 	/// 以文件流的形式复制大文件
