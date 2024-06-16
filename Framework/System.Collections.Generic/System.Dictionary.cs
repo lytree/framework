@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace System.Collections.Generic;
 
-public static class IDictionaryExtensions
+public static partial class Extensions
 {
 	/// <summary>
 	/// 

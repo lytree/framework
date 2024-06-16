@@ -11,7 +11,9 @@ using System.Threading.Tasks;
 using System.Web;
 
 namespace Framework.Helper;
-
+/// <summary>
+/// 压缩帮助类
+/// </summary>
 public static class CompressorHelper
 {
 	/// <summary>

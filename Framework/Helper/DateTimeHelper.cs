@@ -62,7 +62,7 @@ public static class DateTimeHelper
                     TimeRange timeRange0 = new();
                     var tmpTime = nextTime;
                     timeRange0.StartTime = nextTime;
-                    nextTime = nextTime.AddDays(1 - startTime.Day).AddDays(1).AddHours(-startTime.Hour).AddMinutes(-startTime.Minute).AddSeconds(-startTime.Second);
+                    nextTime = nextTime.AddDays(1).AddHours(-startTime.Hour).AddMinutes(-startTime.Minute).AddSeconds(-startTime.Second);
                     timeRange0.EndTime = nextTime;
                     timeDic.Add(tmpTime, timeRange0);
                     startTime = nextTime;

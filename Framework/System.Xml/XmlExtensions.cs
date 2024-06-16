@@ -2,10 +2,12 @@
 using System.Xml.Serialization;
 using System.Xml;
 
-namespace Framework.System.Xml;
+namespace System.Xml;
 
-
-public static class XmlExtensions
+/// <summary>
+/// XML 操作扩展类
+/// </summary>
+public static partial class Extensions
 {
 	public static T GetAs<T>(this XAttribute attr, T defaultValue = default(T))
 	{

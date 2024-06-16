@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace Framework.System.Collections.Generic;
 
-
-public static class IListExtensions
+/// <summary>
+/// 
+/// </summary>
+public static partial class Extensions
 {
 	/// <summary>
 	/// 将列表转换为树形结构

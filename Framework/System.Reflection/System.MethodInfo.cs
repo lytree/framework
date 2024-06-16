@@ -5,9 +5,12 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.System.Reflection;
+namespace System.Reflection;
 
-public static class MethodInfoExtensions
+/// <summary>
+/// 对象函数 扩展方法
+/// </summary>
+public static partial class Extensions
 {
 	public static bool HasAttribute<T>(this MethodInfo method)
 	{

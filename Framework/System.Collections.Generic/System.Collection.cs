@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.System.Collections.Generic;
+namespace System.Collections.Generic;
 
-
-public static class ICollectionExtensions
+/// <summary>
+/// 
+/// </summary>
+public static partial class Extensions
 {
 	/// <summary>
 	///     An ICollection&lt;T&gt; extension method that adds only if the value satisfies the predicate.

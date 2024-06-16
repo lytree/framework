@@ -1,5 +1,4 @@
-﻿using Framework.System.Reflection;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,13 +9,13 @@ using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Framework.System;
+namespace System;
 
 
 /// <summary>
 /// 对象扩展
 /// </summary>
-public static class ObjectExtensions
+public static partial class Extensions
 {
 	private static readonly MethodInfo CloneMethod = typeof(object).GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance);
 

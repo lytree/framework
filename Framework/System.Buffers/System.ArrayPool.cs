@@ -3,7 +3,7 @@
 /// <summary>
 /// 提供ArrayPool的扩展
 /// </summary>
-public static class ArrayPoolExtensions
+public static partial class Extensions
 {
     /// <summary>
     /// 申请可回收的IArrayOwner

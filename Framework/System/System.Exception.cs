@@ -5,9 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.System;
+namespace System;
+/// <summary>
+/// 异常扩展类
+/// </summary>
 
-public static class ExceptionExtension
+public static partial class Extensions
 {
 	/// <summary>
 	///     Gets the entire stack trace consisting of exception's footprints (File, Method, LineNumber)

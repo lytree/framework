@@ -5,9 +5,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.System.IO;
+namespace System.IO;
 
-public static class StreamExtensions
+public static partial class Extensions
 {
 	/// <summary>
 	/// 以文件流的形式复制大文件

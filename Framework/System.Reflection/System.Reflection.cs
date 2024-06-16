@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Framework.System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -8,13 +9,13 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.System.Reflection;
+namespace System.Reflection;
 
 
 /// <summary>
 /// 反射操作辅助类，如获取或设置字段、属性的值等反射信息。
 /// </summary>
-public static class ReflectionExtensions
+public static partial class  Extensions
 {
 	#region 属性字段设置
 

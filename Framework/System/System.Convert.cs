@@ -6,10 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.System;
+namespace System;
+/// <summary>
+/// 类型转换扩展类
+/// </summary>
 
-
-public static class ConvertibleExtensions
+public static partial class Extensions
 {
 	public static bool IsNumeric(this Type type)
 	{

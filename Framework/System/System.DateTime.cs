@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.System;
+namespace System;
 /// <summary>
 /// 
 /// </summary>
-public static class DateTimeExtension
+public static partial class Extension
 {
 	/// <summary>
 	/// 获取该时间相对于1970-01-01T00:00:00Z的毫秒数

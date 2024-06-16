@@ -8,7 +8,7 @@ namespace System.Buffers;
 /// <summary>
 ///  BufferWriter扩展
 /// </summary>
-public static class BufferWriterExtensions
+public static partial class Extensions
 {
     private const byte CR = (byte)'\r';
     private const byte LF = (byte)'\n';

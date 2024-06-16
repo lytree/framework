@@ -1,17 +1,16 @@
-﻿using Framework.System.Collections.Generic;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.Models;
+namespace System.Collections.Generic;
 
 /// <summary>
 /// 树形数据扩展
 /// </summary>
-public static class TreeExtensions
+public static partial class TreeExtensions
 {
 	/// <summary>
 	/// 过滤

@@ -6,10 +6,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Framework.System;
+namespace System;
 
 
-public static class StringExtensions
+public static partial class Extensions
 {
     /// <summary>
     /// 判断字符串是否为Null、空

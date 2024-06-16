@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.System.Collections.Generic;
+namespace System.Collections.Generic;
 
 
 /// <summary>

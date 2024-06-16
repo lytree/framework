@@ -7,13 +7,13 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.System.Collections.Generic;
+namespace System.Collections.Generic;
 
 
 /// <summary>
 ///
 /// </summary>
-public static class IEnumerableExtensions
+public static partial class Extensions
 {
 	/// <summary>
 	/// 按字段属性判等取交集

@@ -3,15 +3,25 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Framework.System.Text.Json.Serialization;
+namespace System.Text.Json.Serialization;
 
+/// <summary>
+/// DateTimeOffset 序列化对象
+/// </summary>
 public class DateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset>
 {
 	private readonly string _format = "yyyy-MM-dd HH:mm:ss";
+	/// <summary>
+	/// 默认使用 yyyy-MM-dd HH:mm:ss序列化
+	/// </summary>
 	public DateTimeOffsetJsonConverter()
 	{
 
 	}
+	/// <summary>
+	/// 使用 format 序列化时间
+	/// </summary>
+	/// <param name="format">格式化参数</param>
 
 	public DateTimeOffsetJsonConverter(string format)
 	{
