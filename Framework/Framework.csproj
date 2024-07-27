@@ -28,7 +28,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.VisualStudio.VsixColorCompiler" Version="17.0.31709.430" />
 		<PackageReference Include="SharpCompress" Version="0.37.2" />
 		<PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
 	</ItemGroup>
