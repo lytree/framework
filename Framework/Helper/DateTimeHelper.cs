@@ -54,7 +54,7 @@ public static class DateTimeHelper
             case TimeRangeType.Day://天分割
                 TimeRange timeRange = new();
                 timeRange.StartTime = startTime;
-                var nextTime = startTime.AddDays(1 - startTime.Day).AddDays(1).AddHours(-startTime.Hour).AddMinutes(-startTime.Minute).AddSeconds(-startTime.Second);
+                var nextTime = startTime.AddDays(1).AddHours(-startTime.Hour).AddMinutes(-startTime.Minute).AddSeconds(-startTime.Second);
                 timeRange.EndTime = nextTime;
                 timeDic.Add(startTime, timeRange);
                 while (DateTime.Compare(startTime, endTime) <= 0)
