@@ -20,14 +20,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="System.Convert\ByteArray.ToBase64String.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Include="System.Convert\ByteArray.ToBase64String.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="SharpCompress" Version="0.37.2" />
 		<PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
 	</ItemGroup>
