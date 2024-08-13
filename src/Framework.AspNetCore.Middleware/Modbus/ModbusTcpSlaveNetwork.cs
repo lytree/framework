@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Buffers;
@@ -19,8 +20,8 @@ namespace Net.Middleware.Modbus
 	/// </summary>
 	public class ModbusTcpSlaveNetwork : ModbusSlaveNetwork, IModbusTcpSlaveNetwork
 	{
-
-		public ModbusTcpSlaveNetwork(IModbusFactory modbusFactory, ILogger<ModbusLogger> logger)
+		
+		public ModbusTcpSlaveNetwork( IModbusFactory modbusFactory, ILogger<ModbusLogger> logger)
 			: base(new EmptyTransport(modbusFactory), modbusFactory, logger)
 		{
 

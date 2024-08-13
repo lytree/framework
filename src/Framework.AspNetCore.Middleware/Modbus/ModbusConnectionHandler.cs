@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Middleware.Telnet;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -17,11 +18,9 @@ public class ModbusConnectionHandler : ConnectionHandler
 
 	private readonly ILogger<ModbusConnectionHandler> _logger;
 
-	private readonly ModbusSlaveNetwork _modbusSlave;
 
-	public ModbusConnectionHandler(ModbusSlaveNetwork modbusSlave)
+	public ModbusConnectionHandler()
 	{
-		_modbusSlave = modbusSlave;
 		_logger = NullLogger<ModbusConnectionHandler>.Instance;
 	}
 	public override async Task OnConnectedAsync(ConnectionContext context)
@@ -31,12 +30,24 @@ public class ModbusConnectionHandler : ConnectionHandler
 		while (context.ConnectionClosed.IsCancellationRequested == false)
 		{
 			var result = await input.ReadAsync();
+			if (TryReadRequest(result))
+			{
+				//input.AdvanceTo(consumed);
+
+			}
+			else
+			{
+				input.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+			}
+
+			if (result.IsCompleted)
+			{
+				break;
+			}
 			if (result.IsCanceled)
 			{
 				break;
 			}
-
-			await _modbusSlave.ListenAsync(context,result.Buffer);
 
 
 			if (result.IsCompleted)
@@ -44,5 +55,24 @@ public class ModbusConnectionHandler : ConnectionHandler
 				break;
 			}
 		}
+	}
+	private static bool TryReadRequest(ReadResult result)
+	{
+		var reader = new SequenceReader<byte>(result.Buffer);
+		reader.TryRead(out byte span);
+
+		//if (reader.TryReadTo(out ReadOnlySpan<byte> span, 2))
+		//{
+		//	request = Encoding.UTF8.GetString(span);
+		//	consumed = reader.Position;
+		//	return true;
+		//}
+		//else
+		//{
+		//	request = string.Empty;
+		//	consumed = result.Buffer.Start;
+		//	return false;
+		//}
+		return true;
 	}
 }

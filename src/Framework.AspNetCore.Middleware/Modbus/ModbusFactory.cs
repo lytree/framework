@@ -5,6 +5,7 @@ using Net.Middleware.Modbus.MessageHandlers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -98,10 +99,10 @@ namespace Net.Middleware.Modbus
 		//	return new ModbusSerialSlaveNetwork(transport, this, Logger);
 		//}
 
-		//public IModbusTcpSlaveNetwork CreateSlaveNetwork(TcpListener tcpListener)
-		//{
-		//	return new ModbusTcpSlaveNetwork(tcpListener, this, Logger);
-		//}
+		public IModbusTcpSlaveNetwork CreateSlaveNetwork()
+		{
+			return new ModbusTcpSlaveNetwork(this, Logger);
+		}
 
 		//public IModbusSlaveNetwork CreateSlaveNetwork(UdpClient client)
 		//{
