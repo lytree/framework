@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.AspNetCore", "Fra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.AspNetCore.Middleware", "Framework.AspNetCore.Middleware\Framework.AspNetCore.Middleware.csproj", "{520FD0E4-14A9-4F57-BE58-1B15E4B70B74}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Framework.Buffers", "Framework.Buffers\Framework.Buffers.csproj", "{6833B0C7-6508-48D8-8384-33F463D4DEAE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Logging", "Framework.Logging\Framework.Logging.csproj", "{6C409FAA-037A-44D2-A99A-50DB97E792F9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,10 +59,10 @@ Global
 		{520FD0E4-14A9-4F57-BE58-1B15E4B70B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{520FD0E4-14A9-4F57-BE58-1B15E4B70B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{520FD0E4-14A9-4F57-BE58-1B15E4B70B74}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6833B0C7-6508-48D8-8384-33F463D4DEAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6833B0C7-6508-48D8-8384-33F463D4DEAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6833B0C7-6508-48D8-8384-33F463D4DEAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6833B0C7-6508-48D8-8384-33F463D4DEAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C409FAA-037A-44D2-A99A-50DB97E792F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C409FAA-037A-44D2-A99A-50DB97E792F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C409FAA-037A-44D2-A99A-50DB97E792F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C409FAA-037A-44D2-A99A-50DB97E792F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
