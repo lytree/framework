@@ -1,21 +1,17 @@
-﻿using Serilog.Core;
+﻿using Framework.Logging;
+using Serilog.Core;
 using Serilog.Events;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Framework.Logging.Enricher;
+namespace Serilog.Enrichers;
 
 public class InvocationContextEnricher : ILogEventEnricher
 {
     public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
     {
-        if (logEvent.Properties.ContainsKey(Constants.LogProperties.SourceContext))
+        if (logEvent.Properties.ContainsKey(LogProperties.SourceContext))
         {
-            var sourceContext = ((ScalarValue)logEvent.Properties[Constants.LogProperties.SourceContext]).Value?.ToString();
+            var sourceContext = ((ScalarValue)logEvent.Properties[LogProperties.SourceContext]).Value?.ToString();
             var callerFrame = GetCallerStackFrame(sourceContext);
 
             if (callerFrame != null)
@@ -24,10 +20,10 @@ public class InvocationContextEnricher : ILogEventEnricher
                 var lineNumber = callerFrame.GetFileLineNumber();
                 var fileName = callerFrame?.GetFileName();
 
-                logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(Constants.LogProperties.InvocationContextClassName, sourceContext));
-                logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(Constants.LogProperties.InvocationContextMethodName, methodName));
-                logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(Constants.LogProperties.InvocationContextFilePath, fileName));
-                logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(Constants.LogProperties.InvocationContextLineNumber, lineNumber));
+                logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(LogProperties.InvocationContextClassName, sourceContext));
+                logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(LogProperties.InvocationContextMethodName, methodName));
+                logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(LogProperties.InvocationContextFilePath, fileName));
+                logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(LogProperties.InvocationContextLineNumber, lineNumber));
             }
         }
     }

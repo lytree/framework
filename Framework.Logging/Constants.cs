@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.Logging.Constants;
+namespace Framework.Logging;
 
-internal class LogProperties
+internal static class LogProperties
 {
     public static readonly string SourceContext = "SourceContext";
 

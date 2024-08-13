@@ -15,9 +15,5 @@
 
 	<ItemGroup>
 	  <PackageReference Include="Serilog" Version="4.0.1" />
-	  <PackageReference Include="Serilog.Enrichers.Context" Version="4.6.5" />
-	  <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
-	  <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
-	  <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
 	</ItemGroup>
 </Project>
