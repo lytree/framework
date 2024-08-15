@@ -1,8 +1,8 @@
-﻿using Net.Middleware.Modbus.Data;
+﻿using AspNetCore.Middleware.Modbus.Data;
 using System;
 using System.IO;
 using System.Linq;
-namespace Net.Middleware.Modbus.Message
+namespace AspNetCore.Middleware.Modbus.Message
 {
 	public class ReadWriteMultipleRegistersRequest : AbstractModbusMessageWithData<RegisterCollection>, IModbusRequest
 	{

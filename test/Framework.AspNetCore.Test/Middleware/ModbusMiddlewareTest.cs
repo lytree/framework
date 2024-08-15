@@ -29,20 +29,9 @@ public class ModbusMiddlewareTest : IClassFixture<ModbusMiddlewareFixture>
 		int port = 502;
 		IPAddress address = new IPAddress(new byte[] { 127, 0, 0, 1 });
 
-		//// create and start the TCP slave
-		//TcpListener slaveTcpListener = new TcpListener(address, port);
-		//slaveTcpListener.Start();
 
 		var factory = new ModbusFactory();
-		//var network = factory.CreateSlaveNetwork(slaveTcpListener);
 
-		//IModbusSlave slave = factory.CreateSlave(slaveId);
-
-		//network.AddSlave(slave);
-
-		//var listenTask = network.ListenAsync();
-
-		// create the master
 		TcpClient masterTcpClient = new TcpClient(address.ToString(), port);
 		IModbusMaster master = factory.CreateMaster(masterTcpClient);
 
@@ -72,7 +61,8 @@ public class ModbusMiddlewareFixture : IDisposable
 			.CreateBuilder();
 		builder.WebHost.ConfigureKestrel((context, serverOptions) =>
 				{
-					serverOptions.ListenAnyIP(502, (listenOptions) => { listenOptions.UseModbus(); });
+					serverOptions.ListenAnyIP(502, (listenOptions) => { listenOptions.UseModbusTcp(); });
+					serverOptions.ListenAnyIP(503, (listenOptions) => { listenOptions.UseModbusRtuOverTcp(); });
 				});
 
 		_host = builder.Build();

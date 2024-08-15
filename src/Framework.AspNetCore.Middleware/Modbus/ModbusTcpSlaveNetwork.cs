@@ -12,7 +12,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Net.Middleware.Modbus
+namespace AspNetCore.Middleware.Modbus
 {
 
 	/// <summary>
@@ -21,16 +21,14 @@ namespace Net.Middleware.Modbus
 	public class ModbusTcpSlaveNetwork : ModbusSlaveNetwork, IModbusTcpSlaveNetwork
 	{
 		
-		public ModbusTcpSlaveNetwork( IModbusFactory modbusFactory, ILogger<ModbusLogger> logger)
+		public ModbusTcpSlaveNetwork( IModbusFactory modbusFactory, ILoggerFactory logger)
 			: base(new EmptyTransport(modbusFactory), modbusFactory, logger)
 		{
 
 		}
 
-		public ReadOnlyCollection<TcpClient> Masters => throw new NotImplementedException();
 
-
-		public override async Task ListenAsync(ConnectionContext context, ReadOnlySequence<byte> buffer)
+		public override async void HandlerRequest(ConnectionContext context, ReadOnlySequence<byte> buffer)
 		{
 			try
 			{
@@ -64,6 +62,7 @@ namespace Net.Middleware.Modbus
 					byte[] responseFrame = Transport.BuildMessageFrame(response);
 					Logger.LogInformation("TX to Master at {EndPoint}: {responseFrame}", context.RemoteEndPoint, string.Join(", ", responseFrame));
 					await context.Transport.Output.WriteAsync(responseFrame);
+					await context.Transport.Output.FlushAsync();
 				}
 			}
 			catch (Exception ex)

@@ -1,7 +1,7 @@
 ﻿
-using Net.Middleware.Modbus.Data;
+using AspNetCore.Middleware.Modbus.Data;
 
-namespace Net.Middleware.Modbus.Message
+namespace AspNetCore.Middleware.Modbus.Message
 {
 	public abstract class AbstractModbusMessageWithData<TData> : AbstractModbusMessage
 		where TData : IModbusMessageDataCollection

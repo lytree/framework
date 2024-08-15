@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 
-namespace Net.Middleware.Modbus.Data
+namespace AspNetCore.Middleware.Modbus.Data
 {
     /// <summary>
     ///     Collection of 16 bit registers.

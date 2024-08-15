@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Net.Middleware.Modbus
+namespace AspNetCore.Middleware.Modbus
 {
 	/// <summary>
 	///     A message built by the master (client) that initiates a Modbus transaction.

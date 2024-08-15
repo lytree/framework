@@ -1,4 +1,4 @@
-﻿namespace Net.Middleware.Modbus.Message
+﻿namespace AspNetCore.Middleware.Modbus.Message
 {
     /// <summary>
     ///     Methods specific to a modbus request message.

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
-using Net.Middleware.Modbus.Data;
-using Net.Middleware.Modbus.Message;
+using AspNetCore.Middleware.Modbus.Data;
+using AspNetCore.Middleware.Modbus.Message;
 
-namespace Net.Middleware.Modbus.MessageHandlers
+namespace AspNetCore.Middleware.Modbus.MessageHandlers
 {
     public class ReadWriteMultipleRegistersService : ModbusFunctionServiceBase<ReadWriteMultipleRegistersRequest>
     {

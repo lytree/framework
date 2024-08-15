@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Middleware.HttpProxy;
-using Net.Middleware.Modbus;
+using AspNetCore.Middleware.Modbus;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -15,16 +15,28 @@ namespace Microsoft.Extensions.DependencyInjection
 		/// </summary>
 		/// <param name="services"></param> 
 		/// <returns></returns>
-		public static IServiceCollection AddModbusTcpSlave(this IServiceCollection services, Func<IServiceProvider, ModbusSlaveNetwork> modbusSlaveNetwork)
+		public static IServiceCollection AddModbusTcpSlave(this IServiceCollection services, Func<IServiceProvider, ModbusFactory> modbudFactory)
 		{
-			services.TryAddSingleton(modbusSlaveNetwork);
-			services.TryAddSingleton<ModbusConnectionHandler>();
+			services.TryAddSingleton(modbudFactory);
+			services.TryAddSingleton<ModbusTcpConnectionHandler>();
 			return services;
 		}
-		public static IServiceCollection AddModbusTcpSlave(this IServiceCollection services, Func<ModbusSlaveNetwork> modbusSlaveNetwork)
+		public static IServiceCollection AddModbusTcpSlave(this IServiceCollection services, Func<ModbusFactory> modbudFactory)
 		{
-			services.TryAddSingleton(modbusSlaveNetwork);
-			services.TryAddSingleton<ModbusConnectionHandler>();
+			services.TryAddSingleton(modbudFactory);
+			services.TryAddSingleton<ModbusTcpConnectionHandler>();
+			return services;
+		}
+		public static IServiceCollection AddModbusRtuOverTcpSlave(this IServiceCollection services, Func<IServiceProvider, ModbusFactory> modbudFactory)
+		{
+			services.TryAddSingleton(modbudFactory);
+			services.TryAddSingleton<ModbusRtuOverTcpConnectionHandler>();
+			return services;
+		}
+		public static IServiceCollection AddModbusRtuOverTcpSlave(this IServiceCollection services, Func<ModbusFactory> modbudFactory)
+		{
+			services.TryAddSingleton(modbudFactory);
+			services.TryAddSingleton<ModbusRtuOverTcpConnectionHandler>();
 			return services;
 		}
 	}

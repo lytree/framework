@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Net.Middleware.Modbus
+namespace AspNetCore.Middleware.Modbus
 {
 	/// <summary>
 	/// Container for modbus function services.
@@ -54,22 +54,9 @@ namespace Net.Middleware.Modbus
 		/// <returns></returns>
 		IModbusSlaveNetwork CreateSlaveNetwork(IModbusAsciiTransport transport);
 
-		///// <summary>
-		///// Create a slave network based on TCP.
-		///// </summary>
-		///// <param name="tcpListener"></param>
-		///// <returns></returns>
-		//IModbusTcpSlaveNetwork CreateSlaveNetwork(TcpListener tcpListener);
-
-		///// <summary>
-		///// Creates a UDP modbus slave network.
-		///// </summary>
-		///// <param name="client"></param>
-		///// <returns></returns>
-		//IModbusSlaveNetwork CreateSlaveNetwork(UdpClient client);
 
 		#endregion
 
-		ILogger<ModbusLogger> Logger { get; }
+		ILoggerFactory LoggerFactory { get; }
 	}
 }

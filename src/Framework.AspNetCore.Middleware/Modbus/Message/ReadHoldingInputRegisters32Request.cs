@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 
-namespace Net.Middleware.Modbus.Message
+namespace AspNetCore.Middleware.Modbus.Message
 {
     public class ReadHoldingInputRegisters32Request : ReadHoldingInputRegistersRequest
     {

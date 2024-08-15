@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Net.Middleware.Modbus.Message
+namespace AspNetCore.Middleware.Modbus.Message
 {
     /// <summary>
     ///     Abstract Modbus message.

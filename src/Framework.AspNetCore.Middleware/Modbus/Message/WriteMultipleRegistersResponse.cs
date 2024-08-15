@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace Net.Middleware.Modbus.Message
+namespace AspNetCore.Middleware.Modbus.Message
 {
     public class WriteMultipleRegistersResponse : AbstractModbusMessage, IModbusMessage
     {

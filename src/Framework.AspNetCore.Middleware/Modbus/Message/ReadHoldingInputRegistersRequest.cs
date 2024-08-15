@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 
-namespace Net.Middleware.Modbus.Message
+namespace AspNetCore.Middleware.Modbus.Message
 {
     public class ReadHoldingInputRegistersRequest : AbstractModbusMessage, IModbusRequest
     {

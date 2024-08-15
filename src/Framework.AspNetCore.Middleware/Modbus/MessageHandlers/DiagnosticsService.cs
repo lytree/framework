@@ -1,4 +1,4 @@
-﻿namespace Net.Middleware.Modbus.MessageHandlers
+﻿namespace AspNetCore.Middleware.Modbus.MessageHandlers
 {
 	using Message;
 

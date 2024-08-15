@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Net.Middleware.Modbus.Data
+namespace AspNetCore.Middleware.Modbus.Data
 {
 	/// <summary>
 	/// A simple implementation of the point source. All registers are 

@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Net.Middleware.Modbus.Data
+namespace AspNetCore.Middleware.Modbus.Data
 {
     /// <summary>
     ///     Collection of discrete values.

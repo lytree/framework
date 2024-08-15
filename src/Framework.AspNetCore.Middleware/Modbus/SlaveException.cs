@@ -1,4 +1,4 @@
-﻿using Net.Middleware.Modbus.Message;
+﻿using AspNetCore.Middleware.Modbus.Message;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Net.Middleware.Modbus
+namespace AspNetCore.Middleware.Modbus
 {
 	public class SlaveException : Exception
 	{

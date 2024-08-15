@@ -8,7 +8,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Net.Middleware.Modbus.Data
+namespace AspNetCore.Middleware.Modbus.Data
 {
 	public class FileRecordCollection : IModbusMessageDataCollection
 	{

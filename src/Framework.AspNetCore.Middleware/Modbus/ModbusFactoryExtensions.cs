@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Net.Middleware.Modbus
+namespace AspNetCore.Middleware.Modbus
 {
 	internal static class ModbusFactoryExtensions
 	{

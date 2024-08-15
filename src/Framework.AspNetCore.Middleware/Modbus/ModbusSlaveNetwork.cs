@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
@@ -8,18 +9,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Net.Middleware.Modbus
+namespace AspNetCore.Middleware.Modbus
 {
 	public abstract class ModbusSlaveNetwork : ModbusDevice, IModbusSlaveNetwork
 	{
-		private readonly ILogger<ModbusLogger> _logger;
+		
+		private readonly ILogger<ModbusSlaveNetwork> _logger;
 		private readonly IDictionary<byte, IModbusSlave> _slaves = new ConcurrentDictionary<byte, IModbusSlave>();
 
-		protected ModbusSlaveNetwork(IModbusTransport transport, IModbusFactory modbusFactory, ILogger<ModbusLogger> logger)
+		protected ModbusSlaveNetwork(IModbusTransport transport, IModbusFactory modbusFactory, ILoggerFactory loggerFactory)
 			: base(transport)
 		{
 			ModbusFactory = modbusFactory;
-			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			_logger = loggerFactory == null ? NullLoggerFactory.Instance.CreateLogger<ModbusSlaveNetwork>() : loggerFactory.CreateLogger<ModbusSlaveNetwork>();
 		}
 
 		protected IModbusFactory ModbusFactory { get; }
@@ -34,7 +36,7 @@ namespace Net.Middleware.Modbus
 		/// <summary>
 		/// Start slave listening for requests.
 		/// </summary>
-		public abstract Task ListenAsync(ConnectionContext context, ReadOnlySequence<byte> buffer);
+		public abstract void HandlerRequest(ConnectionContext context, ReadOnlySequence<byte> buffer);
 
 		/// <summary>
 		/// Apply the request.

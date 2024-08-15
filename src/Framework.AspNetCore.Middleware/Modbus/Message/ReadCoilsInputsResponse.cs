@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
-using Net.Middleware.Modbus.Data;
+using AspNetCore.Middleware.Modbus.Data;
 
 
-namespace Net.Middleware.Modbus.Message
+namespace AspNetCore.Middleware.Modbus.Message
 {
     public class ReadCoilsInputsResponse : AbstractModbusMessageWithData<DiscreteCollection>, IModbusMessage
     {

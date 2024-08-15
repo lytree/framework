@@ -1,4 +1,4 @@
-﻿namespace Net.Middleware.Modbus.Data
+﻿namespace AspNetCore.Middleware.Modbus.Data
 {
     public class SlaveDataStore : ISlaveDataStore
     {

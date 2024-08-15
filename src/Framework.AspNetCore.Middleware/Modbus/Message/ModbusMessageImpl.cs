@@ -1,10 +1,10 @@
-﻿using Net.Middleware.Modbus.Data;
+﻿using AspNetCore.Middleware.Modbus.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 
-namespace Net.Middleware.Modbus.Message
+namespace AspNetCore.Middleware.Modbus.Message
 {
     /// <summary>
     ///     Class holding all implementation shared between two or more message types.

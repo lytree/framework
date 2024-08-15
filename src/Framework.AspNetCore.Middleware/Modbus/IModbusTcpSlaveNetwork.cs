@@ -6,16 +6,13 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Net.Middleware.Modbus
+namespace AspNetCore.Middleware.Modbus
 {
 	/// <summary>
 	///     Modbus TCP slave device.
 	/// </summary>
 	public interface IModbusTcpSlaveNetwork : IModbusSlaveNetwork
 	{
-		/// <summary>
-		///     Gets the Modbus TCP Masters connected to this Modbus TCP Slave.
-		/// </summary>
-		ReadOnlyCollection<TcpClient> Masters { get; }
+
 	}
 }

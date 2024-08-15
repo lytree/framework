@@ -1,9 +1,9 @@
-﻿using Net.Middleware.Modbus.Data;
+﻿using AspNetCore.Middleware.Modbus.Data;
 using System;
 using System.Linq;
 using System.Net;
 
-namespace Net.Middleware.Modbus.Message
+namespace AspNetCore.Middleware.Modbus.Message
 {
     class WriteFileRecordResponse : AbstractModbusMessageWithData<FileRecordCollection>, IModbusMessage
     {

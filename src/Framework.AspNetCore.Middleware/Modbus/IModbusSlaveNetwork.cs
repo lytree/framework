@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Net.Middleware.Modbus
+namespace AspNetCore.Middleware.Modbus
 {
 	/// <summary>
 	/// A network of slave devices on a single transport.
@@ -17,7 +17,7 @@ namespace Net.Middleware.Modbus
 		/// Listen for incoming requests.
 		/// </summary>
 		/// <returns></returns>
-		Task ListenAsync(ConnectionContext context,ReadOnlySequence<byte> buffer);
+		void HandlerRequest(ConnectionContext context,ReadOnlySequence<byte> buffer);
 
 		/// <summary>
 		/// Add a slave to the network.

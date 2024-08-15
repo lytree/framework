@@ -1,15 +1,18 @@
-﻿using Microsoft.Extensions.Logging;
+﻿
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Net.Middleware.Modbus.Data;
-using Net.Middleware.Modbus.MessageHandlers;
+using AspNetCore.Middleware.Modbus.Data;
+using AspNetCore.Middleware.Modbus.MessageHandlers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using AspNetCore.Middleware.Modbus.Device;
+using AspNetCore.Middleware.Modbus.IO;
 
-namespace Net.Middleware.Modbus
+namespace AspNetCore.Middleware.Modbus
 {
 	public class ModbusFactory : IModbusFactory
 	{
@@ -33,7 +36,10 @@ namespace Net.Middleware.Modbus
 
 		private readonly IDictionary<byte, IModbusFunctionService> _functionServices;
 
-		public ILogger<ModbusLogger> Logger { get; }
+		public ILoggerFactory LoggerFactory { get; }
+
+
+		public ILogger<IModbusFactory> Logger { get; }
 		/// <summary>
 		/// Create a factory which uses the built in standard slave function handlers.
 		/// </summary>
@@ -41,7 +47,7 @@ namespace Net.Middleware.Modbus
 		{
 			_functionServices = BuiltInFunctionServices.ToDictionary(s => s.FunctionCode, s => s);
 
-			Logger = NullLogger<ModbusLogger>.Instance;
+			LoggerFactory = NullLoggerFactory.Instance;
 		}
 
 		/// <summary>
@@ -53,9 +59,9 @@ namespace Net.Middleware.Modbus
 		public ModbusFactory(
 			IEnumerable<IModbusFunctionService> functionServices = null,
 			bool includeBuiltIn = true,
-			ILogger<ModbusLogger> logger = null)
+			ILoggerFactory loggerFactory = null)
 		{
-			Logger = logger ?? NullLogger<ModbusLogger>.Instance;
+			Logger = loggerFactory == null ? NullLoggerFactory.Instance.CreateLogger<ModbusFactory>() : loggerFactory.CreateLogger<ModbusFactory>();
 
 			//Determine if we're including the built in services
 			if (includeBuiltIn)
@@ -81,48 +87,31 @@ namespace Net.Middleware.Modbus
 			}
 		}
 
-		//public IModbusSlave CreateSlave(byte unitId, ISlaveDataStore dataStore = null)
-		//{
-		//	if (dataStore == null)
-		//		dataStore = new DefaultSlaveDataStore();
+		public IModbusSlave CreateSlave(byte unitId, ISlaveDataStore dataStore = null)
+		{
+			if (dataStore == null)
+				dataStore = new DefaultSlaveDataStore();
 
-		//	return new ModbusSlave(unitId, dataStore, GetAllFunctionServices());
-		//}
+			return new ModbusSlave(unitId, dataStore, GetAllFunctionServices());
+		}
 
-		//public IModbusSlaveNetwork CreateSlaveNetwork(IModbusRtuTransport transport)
-		//{
-		//	return new ModbusSerialSlaveNetwork(transport, this, Logger);
-		//}
-
-		//public IModbusSlaveNetwork CreateSlaveNetwork(IModbusAsciiTransport transport)
-		//{
-		//	return new ModbusSerialSlaveNetwork(transport, this, Logger);
-		//}
 
 		public IModbusTcpSlaveNetwork CreateSlaveNetwork()
 		{
-			return new ModbusTcpSlaveNetwork(this, Logger);
+			return new ModbusTcpSlaveNetwork(this, LoggerFactory);
 		}
 
-		//public IModbusSlaveNetwork CreateSlaveNetwork(UdpClient client)
-		//{
-		//	return new ModbusUdpSlaveNetwork(client, this, Logger);
-		//}
 
-		//public IModbusRtuTransport CreateRtuTransport(IStreamResource streamResource)
-		//{
-		//	return new ModbusRtuTransport(streamResource, this, Logger);
-		//}
+		public IModbusRtuTransport CreateRtuTransport(IStreamResource streamResource)
+		{
+			return new ModbusRtuTransport(streamResource, this, LoggerFactory);
+		}
 
-		//public IModbusAsciiTransport CreateAsciiTransport(IStreamResource streamResource)
-		//{
-		//	return new ModbusAsciiTransport(streamResource, this, Logger);
-		//}
 
-		//public IModbusTransport CreateIpTransport(IStreamResource streamResource)
-		//{
-		//	return new ModbusIpTransport(streamResource, this, Logger);
-		//}
+		public IModbusTransport CreateIpTransport(IStreamResource streamResource)
+		{
+			return new ModbusIpTransport(streamResource, this, LoggerFactory);
+		}
 
 
 		public IModbusFunctionService[] GetAllFunctionServices()
@@ -134,11 +123,6 @@ namespace Net.Middleware.Modbus
 		public IModbusFunctionService GetFunctionService(byte functionCode)
 		{
 			return _functionServices.GetValueOrDefault(functionCode);
-		}
-
-		public IModbusSlave CreateSlave(byte unitId, ISlaveDataStore dataStore = null)
-		{
-			throw new NotImplementedException();
 		}
 
 		public IModbusSlaveNetwork CreateSlaveNetwork(IModbusRtuTransport transport)

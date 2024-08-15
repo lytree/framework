@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Net.Middleware.Modbus.Message;
+using AspNetCore.Middleware.Modbus.Message;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,8 +7,9 @@ using System.Net.Sockets;
 using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Net.Middleware.Modbus
+namespace AspNetCore.Middleware.Modbus
 {
 	/// <summary>
 	/// Modbus transport.
@@ -24,14 +25,14 @@ namespace Net.Middleware.Modbus
 		/// <summary>
 		///     This constructor is called by the NullTransport.
 		/// </summary>
-		internal ModbusTransport(IModbusFactory modbusFactory, ILogger<ModbusLogger> logger)
+		internal ModbusTransport(IModbusFactory modbusFactory, ILoggerFactory loggerFactory)
 		{
 			ModbusFactory = modbusFactory;
-			Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			Logger = loggerFactory == null ? NullLoggerFactory.Instance.CreateLogger<IModbusTransport>() : loggerFactory.CreateLogger<IModbusTransport>();
 		}
 
-		internal ModbusTransport(IStreamResource streamResource, IModbusFactory modbusFactory, ILogger<ModbusLogger> logger)
-			: this(modbusFactory, logger)
+		internal ModbusTransport(IStreamResource streamResource, IModbusFactory modbusFactory, ILoggerFactory loggerFactory)
+			: this(modbusFactory, loggerFactory)
 		{
 			_streamResource = streamResource ?? throw new ArgumentNullException(nameof(streamResource));
 		}
@@ -104,7 +105,7 @@ namespace Net.Middleware.Modbus
 		/// <summary>
 		/// Gets the logger for this instance.
 		/// </summary>
-		protected ILogger<ModbusLogger> Logger { get; }
+		protected ILogger<IModbusTransport> Logger { get; }
 
 		/// <summary>
 		///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

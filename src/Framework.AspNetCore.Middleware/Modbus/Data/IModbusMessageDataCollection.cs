@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Net.Middleware.Modbus.Data
+namespace AspNetCore.Middleware.Modbus.Data
 {
     /// <summary>
     ///     Modbus message containing data.
