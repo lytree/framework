@@ -46,12 +46,12 @@ public class ModbusSerialSlaveNetwork : ModbusSlaveNetwork
 			}
 			catch (IOException ioe)
 			{
-				Logger.Warning($"IO Exception encountered while listening for requests - {ioe.Message}");
+				Logger.LogWarning($"IO Exception encountered while listening for requests - {ioe.Message}");
 				SerialTransport.DiscardInBuffer();
 			}
 			catch (TimeoutException te)
 			{
-				Logger.Trace($"Timeout Exception encountered while listening for requests - {te.Message}");
+				Logger.LogTrace($"Timeout Exception encountered while listening for requests - {te.Message}");
 				SerialTransport.DiscardInBuffer();
 			}
 			catch (InvalidOperationException)
@@ -69,4 +69,4 @@ public class ModbusSerialSlaveNetwork : ModbusSlaveNetwork
 		return Task.FromResult(0);
 	}
 }
-}
+
