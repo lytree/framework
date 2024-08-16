@@ -38,24 +38,6 @@ namespace AspNetCore.Middleware.Modbus
 
 		#endregion
 
-		#region Slave Networks
-
-		/// <summary>
-		/// Creates a slave network based on the RTU transport.
-		/// </summary>
-		/// <param name="transport"></param>
-		/// <returns></returns>
-		IModbusSlaveNetwork CreateSlaveNetwork(IModbusRtuTransport transport);
-
-		/// <summary>
-		/// Creates an ascii slave network.
-		/// </summary>
-		/// <param name="transport">The ascii transport to base this on.</param>
-		/// <returns></returns>
-		IModbusSlaveNetwork CreateSlaveNetwork(IModbusAsciiTransport transport);
-
-
-		#endregion
 
 		ILoggerFactory LoggerFactory { get; }
 	}

@@ -17,7 +17,7 @@ namespace AspNetCore.Middleware.Modbus
 		/// Listen for incoming requests.
 		/// </summary>
 		/// <returns></returns>
-		void HandlerRequest(ConnectionContext context,ReadOnlySequence<byte> buffer);
+		byte[] HandlerRequest(ConnectionContext context,ReadOnlySequence<byte> buffer, out SequencePosition consumed);
 
 		/// <summary>
 		/// Add a slave to the network.

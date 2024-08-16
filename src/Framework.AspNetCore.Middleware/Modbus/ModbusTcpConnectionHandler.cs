@@ -21,7 +21,7 @@ public class ModbusTcpConnectionHandler : ConnectionHandler
 
 	private readonly ILogger<ModbusTcpConnectionHandler> _logger;
 
-	private readonly ModbusTcpSlaveNetwork _modbusSlaveNetwork;
+	private readonly IModbusSlaveNetwork _modbusSlaveNetwork;
 	public ModbusTcpConnectionHandler(ModbusTcpSlaveNetwork modbusSlaveNetwork,ILogger<ModbusTcpConnectionHandler> logger)
 	{
 		_modbusSlaveNetwork = _modbusSlaveNetwork?? throw new ArgumentNullException(nameof(modbusSlaveNetwork));
@@ -55,14 +55,11 @@ public class ModbusTcpConnectionHandler : ConnectionHandler
 				break;
 			}
 
-			var requests = Parse(result.Buffer, out var consumed);
-			if (requests.Count > 0)
+			var response = _modbusSlaveNetwork.HandlerRequest(context, result.Buffer, out var consumed);
+			if (!consumed.IsDefaultValue())
 			{
-				foreach (var request in requests)
-				{
-					var redisContext = new RedisContext(client, request, response, context.Features);
-					await this.application.Invoke(redisContext);
-				}
+				await ouput.WriteAsync(response);
+				await ouput.FlushAsync();
 				input.AdvanceTo(consumed);
 			}
 			else
@@ -76,10 +73,5 @@ public class ModbusTcpConnectionHandler : ConnectionHandler
 			}
 		}
 
-	}
-
-	private byte[] Parse(ReadOnlySequence<byte> buffer, out SequencePosition consumed) 
-	{
-	
 	}
 }

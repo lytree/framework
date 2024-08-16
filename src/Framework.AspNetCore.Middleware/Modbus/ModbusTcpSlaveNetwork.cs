@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -20,15 +22,15 @@ namespace AspNetCore.Middleware.Modbus
 	/// </summary>
 	public class ModbusTcpSlaveNetwork : ModbusSlaveNetwork, IModbusTcpSlaveNetwork
 	{
-		
-		public ModbusTcpSlaveNetwork( IModbusFactory modbusFactory, ILoggerFactory logger)
+
+		public ModbusTcpSlaveNetwork(IModbusFactory modbusFactory, ILoggerFactory logger)
 			: base(new EmptyTransport(modbusFactory), modbusFactory, logger)
 		{
 
 		}
 
 
-		public override async void HandlerRequest(ConnectionContext context, ReadOnlySequence<byte> buffer)
+		public override byte[] HandlerRequest(ConnectionContext context, ReadOnlySequence<byte> buffer, out SequencePosition consumed)
 		{
 			try
 			{
@@ -36,7 +38,8 @@ namespace AspNetCore.Middleware.Modbus
 				if (mbapHeader.Length != 6)
 				{
 					Logger.LogDebug("0 bytes read, Master at {EndPoint} has closed Socket connection.", context.RemoteEndPoint);
-					return;
+					consumed = default;
+					return Array.Empty<byte>();
 				}
 				ushort frameLength = (ushort)IPAddress.HostToNetworkOrder(BitConverter.ToInt16(mbapHeader.AsSpan()[4..6]));
 				var messageFrame = buffer.Slice(6, frameLength).ToArray();
@@ -61,14 +64,18 @@ namespace AspNetCore.Middleware.Modbus
 					// write response
 					byte[] responseFrame = Transport.BuildMessageFrame(response);
 					Logger.LogInformation("TX to Master at {EndPoint}: {responseFrame}", context.RemoteEndPoint, string.Join(", ", responseFrame));
-					await context.Transport.Output.WriteAsync(responseFrame);
-					await context.Transport.Output.FlushAsync();
+					consumed = buffer.GetPosition(frame.Length);
+					return responseFrame;
 				}
+				consumed = default;
+				return Array.Empty<byte>();
+
 			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning("{Name} occured with Master at {EndPoint}. Closing connection.", ex.GetType().Name, context.RemoteEndPoint);
-				return;
+				consumed = default;
+				return Array.Empty<byte>();
 			}
 		}
 

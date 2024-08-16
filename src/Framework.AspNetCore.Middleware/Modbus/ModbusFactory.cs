@@ -125,14 +125,5 @@ namespace AspNetCore.Middleware.Modbus
 			return _functionServices.GetValueOrDefault(functionCode);
 		}
 
-		public IModbusSlaveNetwork CreateSlaveNetwork(IModbusRtuTransport transport)
-		{
-			throw new NotImplementedException();
-		}
-
-		public IModbusSlaveNetwork CreateSlaveNetwork(IModbusAsciiTransport transport)
-		{
-			throw new NotImplementedException();
-		}
 	}
 }
