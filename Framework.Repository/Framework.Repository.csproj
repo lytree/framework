@@ -5,10 +5,10 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Mapster" Version="7.4.0" />
-		<PackageReference Include="FreeSql" Version="3.2.833" />
-		<PackageReference Include="FreeSql.Repository" Version="3.2.833" />
-		<PackageReference Include="System.Text.Json" Version="8.0.4" />
+		<PackageReference Include="Mapster"  />
+		<PackageReference Include="FreeSql"  />
+		<PackageReference Include="FreeSql.Repository"  />
+		<PackageReference Include="System.Text.Json"  />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Framework\Framework.csproj" />
