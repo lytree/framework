@@ -71,7 +71,7 @@ namespace build
 
                 // Workaround to prevent issues with some consumers of the NuGet API that build
                 // links manually instead of following the links that come in the response.
-                // https://github.com/aaubry/YamlDotNet/issues/703
+                // https://github.com/aaubry/Framework/issues/703
                 version.PreReleaseLabel = version.PreReleaseLabel?.ToLowerInvariant();
             }
 
@@ -107,7 +107,7 @@ namespace build
 
         public static Task<MetadataSet> SetMetadata(GitVersion version)
         {
-            var templatePath = Path.Combine(BasePath, "YamlDotNet", "Properties", "AssemblyInfo.template");
+            var templatePath = Path.Combine(BasePath, "Framework", "Properties", "AssemblyInfo.template");
             WriteVerbose($"Using template {templatePath}");
 
             var template = File.ReadAllText(templatePath);
@@ -116,7 +116,7 @@ namespace build
                 .Replace("<%assemblyFileVersion%>", $"{version.MajorMinorPatch}.0")
                 .Replace("<%assemblyInformationalVersion%>", version.NuGetVersion);
 
-            var asssemblyInfoPath = Path.Combine(BasePath, "YamlDotNet", "Properties", "AssemblyInfo.cs");
+            var asssemblyInfoPath = Path.Combine(BasePath, "Framework", "Properties", "AssemblyInfo.cs");
             WriteVerbose($"Writing metadata to {asssemblyInfoPath}");
             File.WriteAllText(asssemblyInfoPath, assemblyInfo);
 
@@ -126,7 +126,7 @@ namespace build
         public static Task<SuccessfulBuild> Build(Options options, MetadataSet _)
         {
             var verbosity = options.Verbose ? "detailed" : "minimal";
-            Run("dotnet", $"build YamlDotNet.sln --configuration Release --verbosity {verbosity} -p:ContinuousIntegrationBuild=true", BasePath);
+            Run("dotnet", $"build Framework.sln --configuration Release --verbosity {verbosity} -p:ContinuousIntegrationBuild=true", BasePath);
 
             return Task.FromResult(new SuccessfulBuild());
         }
@@ -134,7 +134,7 @@ namespace build
         public static Task<SuccessfulUnitTests> UnitTest(Options options, SuccessfulBuild _)
         {
             var verbosity = options.Verbose ? "detailed" : "minimal";
-            Run("dotnet", $"test YamlDotNet.Test.csproj --no-build --configuration Release --verbosity {verbosity}", Path.Combine(BasePath, "YamlDotNet.Test"));
+            Run("dotnet", $"test Framework.Test.csproj --no-build --configuration Release --verbosity {verbosity}", Path.Combine(BasePath, "Framework.Test"));
 
             return Task.FromResult(new SuccessfulUnitTests());
         }
@@ -143,17 +143,17 @@ namespace build
         {
             var result = new List<NuGetPackage>();
             var verbosity = options.Verbose ? "detailed" : "minimal";
-            var buildDir = Path.Combine(BasePath, "YamlDotNet");
+            var buildDir = Path.Combine(BasePath, "Framework");
             Run("dotnet", $"pack --no-build -p:PackageVersion={version.NuGetVersion} -p:ContinuousIntegrationBuild=true --output bin", buildDir);
-            var packagePath = Path.Combine(buildDir, "bin", $"YamlDotNet.{version.NuGetVersion}.nupkg");
-            result.Add(new NuGetPackage(packagePath, "YamlDotNet"));
+            var packagePath = Path.Combine(buildDir, "bin", $"Framework.{version.NuGetVersion}.nupkg");
+            result.Add(new NuGetPackage(packagePath, "Framework"));
 
             if (PushSerializer)
             {
-                buildDir = Path.Combine(BasePath, "YamlDotNet.Analyzers.StaticGenerator");
+                buildDir = Path.Combine(BasePath, "Framework.Analyzers.StaticGenerator");
                 Run("dotnet", $"pack --no-build -p:PackageVersion={version.NuGetVersion} -p:ContinuousIntegrationBuild=true --output bin", buildDir);
-                packagePath = Path.Combine(buildDir, "bin", $"YamlDotNet.Analyzers.StaticGenerator.{version.NuGetVersion}.nupkg");
-                result.Add(new NuGetPackage(packagePath, "YamlDotNet.Analyzers.StaticGenerator"));
+                packagePath = Path.Combine(buildDir, "bin", $"Framework.Analyzers.StaticGenerator.{version.NuGetVersion}.nupkg");
+                result.Add(new NuGetPackage(packagePath, "Framework.Analyzers.StaticGenerator"));
             }
 
             return Task.FromResult(result);
@@ -169,7 +169,7 @@ namespace build
 
             var isSandbox = options.Host switch
             {
-                Host.AppVeyor => Environment.GetEnvironmentVariable("APPVEYOR_REPO_NAME") != "aaubry/YamlDotNet",
+                Host.AppVeyor => Environment.GetEnvironmentVariable("APPVEYOR_REPO_NAME") != "aaubry/Framework",
                 _ => false,
             };
 
@@ -312,11 +312,11 @@ namespace build
 
         public static Task Document(Options options)
         {
-            var samplesProjectDir = Path.Combine(BasePath, "YamlDotNet.Samples");
-            var samplesOutputDir = Path.Combine(BasePath, "..", "YamlDotNet.wiki");
+            var samplesProjectDir = Path.Combine(BasePath, "Framework.Samples");
+            var samplesOutputDir = Path.Combine(BasePath, "..", "Framework.wiki");
 
             var verbosity = options.Verbose ? "detailed" : "minimal";
-            Run("dotnet", $"test YamlDotNet.Samples.csproj --no-build --configuration Release --verbosity {verbosity} --logger \"trx;LogFileName=TestResults.trx\"", samplesProjectDir);
+            Run("dotnet", $"test Framework.Samples.csproj --no-build --configuration Release --verbosity {verbosity} --logger \"trx;LogFileName=TestResults.trx\"", samplesProjectDir);
 
             var report = XDocument.Load(Path.Combine(samplesProjectDir, "TestResults", "TestResults.trx"));
 
@@ -435,7 +435,7 @@ namespace build
                 if (repository == null)
                 {
                     WriteWarning($"Could not determine the current repository for host {Program.Host}. Falling-back to sandbox!");
-                    repository = "aaubry/YamlDotNet.Sandbox";
+                    repository = "aaubry/Framework.Sandbox";
                 }
                 return repository;
             }

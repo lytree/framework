@@ -4,6 +4,26 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
+  	<PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+	<PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+	<PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+	<PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
+	<PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.2" />
+	<PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+	<PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
+	<PackageVersion Include="SixLabors.ImageSharp" Version="3.1.5" />
+	<PackageVersion Include="SixLabors.ImageSharp.Drawing" Version="2.1.4" />
+  	<PackageVersion Include="Mapster" Version="7.4.0" />
+	<PackageVersion Include="FreeSql" Version="3.2.833" />
+	<PackageVersion Include="FreeSql.Repository" Version="3.2.833" />
+	<PackageVersion Include="System.Text.Json" Version="8.0.4" />
+    <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.3.0" />
+    <PackageVersion Include="MQTTnet" Version="4.3.6.1152" />
+    <PackageVersion Include="Serilog" Version="4.0.1" />
+    <PackageVersion Include="Yarp.ReverseProxy" Version="2.1.0" />
+	<PackageVersion Include="SharpCompress" Version="0.37.2" />
+	<PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
     <PackageVersion Include="Bullseye" Version="4.1.1" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />

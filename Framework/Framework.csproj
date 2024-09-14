@@ -34,8 +34,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="SharpCompress" Version="0.37.2" />
-		<PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
+		<PackageReference Include="SharpCompress" />
+		<PackageReference Include="System.IO.Pipelines"  />
 	</ItemGroup>
 
 	<ItemGroup>
