@@ -23,7 +23,6 @@
     <PackageVersion Include="Serilog" Version="4.0.1" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.2.0" />
     <PackageVersion Include="SharpCompress" Version="0.38.0" />
-    <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
     <PackageVersion Include="Bullseye" Version="5.0.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />

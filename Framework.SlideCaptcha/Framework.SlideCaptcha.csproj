@@ -9,7 +9,7 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Version>1.0.0</Version>
-		<PackageId>Lytree.Framework</PackageId>
+		<PackageId>Lytree.Framework.SlideCaptcha</PackageId>
 		<SignAssembly>False</SignAssembly>
 		<!--<PackageReadmeFile>README.md</PackageReadmeFile>-->
 	</PropertyGroup>

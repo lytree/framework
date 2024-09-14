@@ -9,7 +9,7 @@
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <Version>1.0.0</Version>
-	  <PackageId>Lytree.Framework</PackageId>
+	  <PackageId>Lytree.Framework.DB</PackageId>
 	  <SignAssembly>False</SignAssembly>
   </PropertyGroup>
 

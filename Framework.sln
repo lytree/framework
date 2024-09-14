@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Logging", "Framew
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.SlideCaptcha", "Framework.SlideCaptcha\Framework.SlideCaptcha.csproj", "{F470A768-F402-4473-AC01-75FDFAA97C29}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.DBCore", "Framework.DBCore\Framework.DBCore.csproj", "{76153ACB-CF8C-4563-8E85-347EDDA05020}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework..DB", "Framework.DBCore\Framework..DB.csproj", "{76153ACB-CF8C-4563-8E85-347EDDA05020}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决方案项", "{CA5D6978-3B64-4149-B34C-0DCCED18BC0C}"
 	ProjectSection(SolutionItems) = preProject
