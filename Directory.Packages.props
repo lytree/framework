@@ -19,7 +19,7 @@
     <PackageVersion Include="System.Text.Json" Version="8.0.4" />
     <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.3.1" />
-    <PackageVersion Include="MQTTnet" Version="4.3.6.1152" />
+    <PackageVersion Include="MQTTnet" Version="4.3.7.1207" />
     <PackageVersion Include="Serilog" Version="4.0.1" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.2.0" />
     <PackageVersion Include="SharpCompress" Version="0.38.0" />
