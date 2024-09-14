@@ -21,7 +21,7 @@ public class ApiException : Exception
 
 
     public ApiException(SerializationInfo serializationInfo, StreamingContext context)
-        : base(serializationInfo, context)
+		: base(serializationInfo, context)
     {
     }
 
