@@ -70,7 +70,6 @@ public abstract class SyncData
 	/// <param name="db"></param>
 	/// <param name="tran"></param>
 	/// <param name="dataList"></param>
-	/// <param name="dbConfig"></param>
 	/// <returns></returns>
 	protected virtual async Task InitDataAsync<T>(
 		IFreeSql db,

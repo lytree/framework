@@ -324,7 +324,6 @@ public static partial class DateTimeHelper
 		/// <param name="cy">农历年</param>
 		/// <param name="cm">农历月</param>
 		/// <param name="cd">农历日</param>
-		/// <param name="leapMonthFlag">闰月标志</param>
 		public ChineseCalendar(int cy, int cm, int cd)
 		{
 			int i, temp;
