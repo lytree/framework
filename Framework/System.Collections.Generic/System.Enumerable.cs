@@ -214,7 +214,6 @@ public static partial class Extensions
 	/// <summary>
 	/// 遍历IEnumerable
 	/// </summary>
-	/// <param name="objs"></param>
 	/// <param name="action">回调方法</param>
 	/// <typeparam name="T"></typeparam>
 	public static void ForEach<T>(this IEnumerable<T> @this, Action<T> action)
@@ -376,7 +375,6 @@ public static partial class Extensions
 	/// 异步For
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	/// <param name="source"></param>
 	/// <param name="selector"></param>
 	/// <param name="maxParallelCount">最大并行数</param>
 	/// <param name="cancellationToken">取消口令</param>
@@ -419,7 +417,6 @@ public static partial class Extensions
 	/// 异步For
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	/// <param name="source"></param>
 	/// <param name="selector"></param>
 	/// <param name="cancellationToken">取消口令</param>
 	/// <returns></returns>

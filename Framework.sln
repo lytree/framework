@@ -23,6 +23,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Logging", "Framew
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.SlideCaptcha", "Framework.SlideCaptcha\Framework.SlideCaptcha.csproj", "{F470A768-F402-4473-AC01-75FDFAA97C29}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.DB", "Framework.DB\Framework.DB.csproj", "{76153ACB-CF8C-4563-8E85-347EDDA05020}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决方案项", "{CA5D6978-3B64-4149-B34C-0DCCED18BC0C}"
 	ProjectSection(SolutionItems) = preProject
 		.gitattributes = .gitattributes
@@ -33,8 +35,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决�
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Net", "Framework.Net\Framework.Net.csproj", "{847BBFBB-E03A-4366-87D3-2E00C28F5C36}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.DB", "Framework.DB\Framework.DB.csproj", "{D24F41F4-F3B6-4B3C-869F-45D24222D391}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -82,14 +82,14 @@ Global
 		{F470A768-F402-4473-AC01-75FDFAA97C29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F470A768-F402-4473-AC01-75FDFAA97C29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F470A768-F402-4473-AC01-75FDFAA97C29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76153ACB-CF8C-4563-8E85-347EDDA05020}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76153ACB-CF8C-4563-8E85-347EDDA05020}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76153ACB-CF8C-4563-8E85-347EDDA05020}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76153ACB-CF8C-4563-8E85-347EDDA05020}.Release|Any CPU.Build.0 = Release|Any CPU
 		{847BBFBB-E03A-4366-87D3-2E00C28F5C36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{847BBFBB-E03A-4366-87D3-2E00C28F5C36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{847BBFBB-E03A-4366-87D3-2E00C28F5C36}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{847BBFBB-E03A-4366-87D3-2E00C28F5C36}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D24F41F4-F3B6-4B3C-869F-45D24222D391}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D24F41F4-F3B6-4B3C-869F-45D24222D391}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D24F41F4-F3B6-4B3C-869F-45D24222D391}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D24F41F4-F3B6-4B3C-869F-45D24222D391}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
