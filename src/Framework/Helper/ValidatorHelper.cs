@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Framework.Helper;
 
-public static class ValidatorHelper
+public static partial class Helper
 {
     /// <summary>
     /// 验证输入字符串为带小数点正数

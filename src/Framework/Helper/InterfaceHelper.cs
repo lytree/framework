@@ -10,7 +10,7 @@ namespace Framework.Helper;
 /// <summary>
 /// 接口帮助类
 /// </summary>
-public class InterfaceHelper
+public static partial class Helper
 {
 	public static string[] GetPropertyNames<T>() where T : class
 	{

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Framework.Helper;
 
-public static class EncodingHelper
+public static partial class Helper
 {
     /// <summary>
     /// 转换为16进制

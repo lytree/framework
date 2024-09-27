@@ -10,10 +10,7 @@
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 		<!-- Defines the bin and obj folder paths -->
 		<RepoRoot>$([System.IO.Path]::GetDirectoryName($([MSBuild]::GetPathOfFileAbove('.gitignore', '$(MSBuildThisFileDirectory)'))))\</RepoRoot>
-		<PackageOutputPath>$(RepoRoot)\package\</PackageOutputPath>
-		<!-- bin 目录 -->
-		<BaseOutputPath>$(RepoRoot)\bin\</BaseOutputPath>
-		<OutputPath>$(BaseOutputPath)$(MSBuildProjectName)\$(Configuration)\</OutputPath>
+		
 
 		
 

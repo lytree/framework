@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Framework.Helper;
 
-public static class HashHelper
+public static partial class Helper
 {
     private static string ComputeHash(HashAlgorithm hashAlgorithm, string source)
     {

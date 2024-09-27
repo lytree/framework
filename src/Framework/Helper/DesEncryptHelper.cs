@@ -1,6 +1,7 @@
 ﻿using Framework.System;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -10,7 +11,7 @@ namespace Framework.Helper;
 /// <summary>
 /// 加密工具类
 /// </summary>
-public class DesEncryptHelper
+public static partial class Helper
 {
     private const string Key = "desenc1!";
 
@@ -99,7 +100,7 @@ public class DesEncryptHelper
         cStream.FlushFinalBlock();
 
         var bytes = stream.ToArray();
-        return hex ? EncodingHelper.ToHex(bytes, lowerCase) : EncodingHelper.ToBase64(bytes);
+        return hex ? Helper.ToHex(bytes, lowerCase) : Helper.ToBase64(bytes);
     }
 
     /// <summary>
@@ -124,7 +125,7 @@ public class DesEncryptHelper
             throw new ArgumentException("秘钥长度为8位", nameof(key));
         }
         var keyBytes = Encoding.UTF8.GetBytes(key[..8]);
-        var inputByteArray = hex ? EncodingHelper.HexToBytes(decryptString) : Convert.FromBase64String(decryptString);
+        var inputByteArray = hex ? Helper.HexToBytes(decryptString) : Convert.FromBase64String(decryptString);
 
         var des = DES.Create();
         des.Mode = CipherMode.ECB;

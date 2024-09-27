@@ -10,7 +10,7 @@ namespace Framework.Helper;
 /// <summary>
 /// 实体帮助类
 /// </summary>
-public class EntityHelper
+public static partial class Helper
 {
 	public static List<string> GetPropertyNamesByAttribute<T, A>(bool inherit = false) where T : class where A : Attribute
 	{

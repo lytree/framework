@@ -1,6 +1,7 @@
 ﻿using Framework.System;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Framework.Helper;
 
-public class MD5EncryptHelper
+public static partial class Helper
 {
     /// <summary>
     /// 16位MD5加密
@@ -22,7 +23,7 @@ public class MD5EncryptHelper
             return string.Empty;
 
         using var md5 = MD5.Create();
-        return EncodingHelper.ToHex(md5.ComputeHash(Encoding.UTF8.GetBytes(password)), lowerCase);
+        return Helper.ToHex(md5.ComputeHash(Encoding.UTF8.GetBytes(password)), lowerCase);
     }
 
     /// <summary>
@@ -59,7 +60,7 @@ public class MD5EncryptHelper
 
         using var md5 = MD5.Create();
         byte[] s = md5.ComputeHash(Encoding.UTF8.GetBytes(password));
-        return EncodingHelper.ToBase64(s);
+        return Helper.ToBase64(s);
     }
 
     public static string GetHash(Stream stream)
