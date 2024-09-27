@@ -1,12 +1,22 @@
 ﻿<Project>
- <PropertyGroup>
-   <Version>1.0.0</Version>
-   <Deterministic>true</Deterministic>
-   <IncludeSymbols>true</IncludeSymbols>
-	 <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-	 <PublishRepositoryUrl>true</PublishRepositoryUrl>
-	 <EmbedUntrackedSources>true</EmbedUntrackedSources>
-	 <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
-   <NoWarn>1701;1702;CS1573;CS8600;CS8601;CS8602;CS8603;CS8604;CS8605;CS8618;CS8619;CS8620;CS8622;CS8625;CS8629;CS8714;CS1591;CS0649;CA2200;CS8767</NoWarn>
- </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+		<Version>1.0.0</Version>
+		<Deterministic>true</Deterministic>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+		<!-- Defines the bin and obj folder paths -->
+		<RepoRoot>$([System.IO.Path]::GetDirectoryName($([MSBuild]::GetPathOfFileAbove('.gitignore', '$(MSBuildThisFileDirectory)'))))\</RepoRoot>
+		<PackageOutputPath>$(RepoRoot)\package\</PackageOutputPath>
+		<!-- bin 目录 -->
+		<BaseOutputPath>$(RepoRoot)\bin\</BaseOutputPath>
+		<OutputPath>$(BaseOutputPath)$(MSBuildProjectName)\$(Configuration)\</OutputPath>
+
+		
+
+		<NoWarn>1701;1702;CS1573;CS8600;CS8601;CS8602;CS8603;CS8604;CS8605;CS8618;CS8619;CS8620;CS8622;CS8625;CS8629;CS8714;CS1591;CS0649;CA2200;CS8767;CS1711</NoWarn>
+	</PropertyGroup>
 </Project>

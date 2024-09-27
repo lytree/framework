@@ -1,0 +1,9 @@
+<Project>
+	<PropertyGroup>
+
+		<!-- Keep generated code in `obj` folder -->
+		<!--<EmitCompilerGeneratedFiles>True</EmitCompilerGeneratedFiles>-->
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PublishRelease>true</PublishRelease>
+	</PropertyGroup>
+</Project>

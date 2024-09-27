@@ -1,22 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
 	<PropertyGroup>
-		<TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Version>1.0.0</Version>
-		<PackageId>Lytree.Framework.DynamicApi</PackageId>
+		<PackageId>Lytree.Framework.Mvvm</PackageId>
 		<SignAssembly>False</SignAssembly>
+		
 	</PropertyGroup>
-	<PropertyGroup>
-		<Description>中台动态WebApi库</Description>
-		<PackageTags>DynamicApi;WebApi;</PackageTags>
-	</PropertyGroup>
-
 	<ItemGroup>
-		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+		<PackageReference Include="CommunityToolkit.Mvvm" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Helper\" />
 	</ItemGroup>
 </Project>

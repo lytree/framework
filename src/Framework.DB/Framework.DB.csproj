@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
 	  <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
@@ -6,15 +6,11 @@
 	  <Nullable>enable</Nullable>
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
-	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <Version>1.0.0</Version>
-	  <PackageId>Lytree.Framework.MQTT</PackageId>
+	  <PackageId>Lytree.Framework.DB</PackageId>
 	  <SignAssembly>False</SignAssembly>
+	  
   </PropertyGroup>
-
-  <ItemGroup>
-	<PackageReference Include="MQTTnet" />
-  </ItemGroup>
 
 </Project>
