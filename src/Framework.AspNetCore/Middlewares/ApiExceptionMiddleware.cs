@@ -1,6 +1,6 @@
 ﻿using Framework.AspNetCore.AspNetCore.Mvc;
 using Framework.AspNetCore.Mvc;
-using Framework.Helper;
+using Framework;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
@@ -52,7 +52,7 @@ public class ApiExceptionMiddleware
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = appException.StatusCode;
 
-        return context.Response.WriteAsync(JsonHelper.Serialize(ApiResponse.Fail(appException.ApiMessage)));
+        return context.Response.WriteAsync(Helper.JsonSerialize(ApiResponse.Fail(appException.ApiMessage)));
     }
     private Task HandleArgumentExceptionAsync<T>(HttpContext context, T exception) where T : Exception
     {
@@ -63,11 +63,11 @@ public class ApiExceptionMiddleware
         var userAgent = context.Request.Headers.UserAgent.FirstOrDefault();
         context.Items.TryGetValue("_ActionArguments", out object? actionArguments);
         _logger.LogError(exception, "Error while processing request. \r\nActionArguments: {ActionArguments} \r\nAuthorization: {Authorization} \r\nUserAgent: {UserAgent}",
-            actionArguments != null ? JsonHelper.Serialize(actionArguments) : "",
+            actionArguments != null ? Helper.JsonSerialize(actionArguments) : "",
             authorization,
             userAgent);
 
-        return context.Response.WriteAsync(JsonHelper.Serialize(obj: ApiResponse.BadRequest(exception.Message)));
+        return context.Response.WriteAsync(Helper.JsonSerialize(obj: ApiResponse.BadRequest(exception.Message)));
     }
     private Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
@@ -78,10 +78,10 @@ public class ApiExceptionMiddleware
         var userAgent = context.Request.Headers.UserAgent.FirstOrDefault();
         context.Items.TryGetValue("_ActionArguments", out object? actionArguments);
         _logger.LogError(exception, "Error while processing request. \r\nActionArguments: {ActionArguments} \r\nAuthorization: {Authorization} \r\nUserAgent: {UserAgent}",
-        actionArguments != null ? JsonHelper.Serialize(actionArguments) : "",
+        actionArguments != null ? Helper.JsonSerialize(actionArguments) : "",
         authorization,
         userAgent);
 
-        return context.Response.WriteAsync(JsonHelper.Serialize(obj: ApiResponse.Error(exception.Message)));
+        return context.Response.WriteAsync(Helper.JsonSerialize(obj: ApiResponse.Error(exception.Message)));
     }
 }

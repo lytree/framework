@@ -5,14 +5,14 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.Helper;
+namespace Framework;
 
 /// <summary>
 /// 实体帮助类
 /// </summary>
 public static partial class Helper
 {
-	public static List<string> GetPropertyNamesByAttribute<T, A>(bool inherit = false) where T : class where A : Attribute
+	public static List<string> GetEntityPropertyNamesByAttribute<T, A>(bool inherit = false) where T : class where A : Attribute
 	{
 		Type classType = typeof(T);
 

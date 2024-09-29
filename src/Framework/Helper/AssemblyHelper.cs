@@ -5,12 +5,12 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.Helper;
+namespace Framework;
 
 /// <summary>
 /// 程序集帮助类
 /// </summary>
-public static class AssemblyHelper
+public static partial class Helper
 {
     /// <summary>
     /// 根据程序集名称列表获取程序集列表

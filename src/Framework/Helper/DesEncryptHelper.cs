@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.Helper;
+namespace Framework;
 /// <summary>
 /// 加密工具类
 /// </summary>
@@ -22,9 +22,9 @@ public static partial class Helper
     /// <param name="encryptString">加密字符串</param>
     /// <param name="key">秘钥</param>
     /// <returns></returns>
-    public static string Encrypt(string encryptString, string key = "")
+    public static string DESEncrypt(string encryptString, string key = "")
     {
-        return Encrypt(encryptString, key, false, true);
+        return DESEncrypt(encryptString, key, false, true);
     }
 
     /// <summary>
@@ -34,9 +34,9 @@ public static partial class Helper
     /// <param name="decryptString">解密字符串</param>
     /// <param name="key">秘钥</param>
     /// <returns></returns>
-    public static string? Decrypt(string decryptString, string key = "")
+    public static string? DESDecrypt(string decryptString, string key = "")
     {
-        return Decrypt(decryptString, key, false);
+        return DESDecrypt(decryptString, key, false);
     }
 
     /// <summary>
@@ -47,9 +47,9 @@ public static partial class Helper
     /// <param name="key">秘钥</param>
     /// <param name="lowerCase">是否小写</param>
     /// <returns></returns>
-    public static string Encrypt4Hex(string encryptString, string key = "", bool lowerCase = false)
+    public static string DESEncrypt4Hex(string encryptString, string key = "", bool lowerCase = false)
     {
-        return Encrypt(encryptString, key, true, lowerCase);
+        return DESEncrypt(encryptString, key, true, lowerCase);
     }
 
     /// <summary>
@@ -59,9 +59,9 @@ public static partial class Helper
     /// <param name="decryptString">解密字符串</param>
     /// <param name="key">秘钥</param>
     /// <returns></returns>
-    public static string? Decrypt4Hex(string decryptString, string key = "")
+    public static string? DESDecrypt4Hex(string decryptString, string key = "")
     {
-        return Decrypt(decryptString, key, true);
+        return DESDecrypt(decryptString, key, true);
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ public static partial class Helper
     /// <param name="hex"></param>
     /// <param name="lowerCase"></param>
     /// <returns></returns>
-    private static string Encrypt(string encryptString, string key, bool hex, bool lowerCase = false)
+    private static string DESEncrypt(string encryptString, string key, bool hex, bool lowerCase = false)
     {
         if (encryptString.IsNull())
         {
@@ -110,7 +110,7 @@ public static partial class Helper
     /// <param name="key"></param>
     /// <param name="hex"></param>
     /// <returns></returns>
-    private static string? Decrypt(string decryptString, string key, bool hex)
+    private static string? DESDecrypt(string decryptString, string key, bool hex)
     {
         if (decryptString.IsNull())
         {

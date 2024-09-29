@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.Helper;
+namespace Framework;
 
 public static partial class Helper
 {

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.Helper;
+namespace Framework;
 
-public  static class ConvertHelper
+public  static partial class Helper
 {
 	// Base32 字符集，共 32 个字符
 

@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Framework.Helper;
+namespace Framework;
 
 public static partial class Helper
 {

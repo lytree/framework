@@ -23,8 +23,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Logging", "src\Fr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.SlideCaptcha", "src\Framework.SlideCaptcha\Framework.SlideCaptcha.csproj", "{F470A768-F402-4473-AC01-75FDFAA97C29}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.DB", "src\Framework.DB\Framework.DB.csproj", "{76153ACB-CF8C-4563-8E85-347EDDA05020}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决方案项", "{CA5D6978-3B64-4149-B34C-0DCCED18BC0C}"
 	ProjectSection(SolutionItems) = preProject
 		.gitattributes = .gitattributes
@@ -83,10 +81,6 @@ Global
 		{F470A768-F402-4473-AC01-75FDFAA97C29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F470A768-F402-4473-AC01-75FDFAA97C29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F470A768-F402-4473-AC01-75FDFAA97C29}.Release|Any CPU.Build.0 = Release|Any CPU
-		{76153ACB-CF8C-4563-8E85-347EDDA05020}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{76153ACB-CF8C-4563-8E85-347EDDA05020}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{76153ACB-CF8C-4563-8E85-347EDDA05020}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{76153ACB-CF8C-4563-8E85-347EDDA05020}.Release|Any CPU.Build.0 = Release|Any CPU
 		{847BBFBB-E03A-4366-87D3-2E00C28F5C36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{847BBFBB-E03A-4366-87D3-2E00C28F5C36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{847BBFBB-E03A-4366-87D3-2E00C28F5C36}.Release|Any CPU.ActiveCfg = Release|Any CPU

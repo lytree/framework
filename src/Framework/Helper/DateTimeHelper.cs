@@ -8,11 +8,11 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
-namespace Framework.Helper;
+namespace Framework;
 /// <summary>
 /// 时间工具类
 /// </summary>
-public static partial class DateTimeHelper
+public static partial class Helper
 {
     /// <summary>
     /// 时间戳起始日期

@@ -5,14 +5,14 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.Helper;
+namespace Framework;
 
 /// <summary>
 /// 接口帮助类
 /// </summary>
 public static partial class Helper
 {
-	public static string[] GetPropertyNames<T>() where T : class
+	public static string[] GetInterfacePropertyNames<T>() where T : class
 	{
 		Type interfaceType = typeof(T);
 

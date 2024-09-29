@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.Helper;
+namespace Framework;
 
 public static partial class Helper
 {
@@ -17,7 +17,7 @@ public static partial class Helper
     /// <param name="password"></param>
     /// <param name="lowerCase"></param>
     /// <returns></returns>
-    public static string Encrypt16(string password, bool lowerCase = false)
+    public static string MD5Encrypt16(string password, bool lowerCase = false)
     {
         if (password.IsNull())
             return string.Empty;
@@ -32,7 +32,7 @@ public static partial class Helper
     /// <param name="password"></param>
     /// <param name="lowerCase"></param>
     /// <returns></returns>
-    public static string Encrypt32(string password = "", bool lowerCase = false)
+    public static string MD5Encrypt32(string password = "", bool lowerCase = false)
     {
         if (password.IsNull())
             return string.Empty;
@@ -53,7 +53,7 @@ public static partial class Helper
     /// </summary>
     /// <param name="password"></param>
     /// <returns></returns>
-    public static string Encrypt64(string password)
+    public static string MD5Encrypt64(string password)
     {
         if (password.IsNull())
             return string.Empty;

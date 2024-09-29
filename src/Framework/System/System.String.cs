@@ -1,4 +1,4 @@
-﻿using Framework.Helper;
+﻿using Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -89,7 +89,7 @@ public static partial class Extensions
             return string.Empty;
 
         var bytes = encoding.GetBytes(str);
-        return EncodingHelper.ToBase64(bytes);
+        return Helper.ToBase64(bytes);
     }
     public static string ToPath(this string s)
     {

@@ -1,4 +1,4 @@
-﻿using Framework.Helper;
+﻿using Framework;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using System;
@@ -29,7 +29,7 @@ public class DefaultStorage : IStorage
 		var bytes = _cache.Get(WrapKey(key));
 		if (bytes == null) return default;
 		var json = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-		return JsonHelper.Deserialize<T>(json);
+		return Helper.JsonDeserialize<T>(json);
 	}
 
 	public void Remove(string key)
@@ -39,7 +39,7 @@ public class DefaultStorage : IStorage
 
 	public void Set<T>(string key, T value, DateTimeOffset absoluteExpiration)
 	{
-		string json = JsonHelper.Serialize(value);
+		string json = Helper.JsonSerialize(value);
 		byte[] bytes = Encoding.UTF8.GetBytes(json);
 
 		_cache.Set(WrapKey(key), bytes, new DistributedCacheEntryOptions

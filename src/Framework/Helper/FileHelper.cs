@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -7,12 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.Helper;
+namespace Framework;
 
 
 public static partial class Helper
 {
-    private static readonly ILogger logger = typeof(Helper).Logger();
 
     private static readonly ConcurrentBag<FileInfo> tempFiles = new();
 
@@ -77,8 +75,6 @@ public static partial class Helper
                 }
             }
         }
-
         double elapsedMilliseconds = (DateTime.UtcNow - startTime).TotalMilliseconds;
-        logger.LogInformation("Cleared temp files in {elapsedMilliseconds}ms", elapsedMilliseconds);
     }
 }

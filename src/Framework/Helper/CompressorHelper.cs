@@ -11,11 +11,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace Framework.Helper;
+namespace Framework;
 /// <summary>
 /// 压缩帮助类
 /// </summary>
-public static class CompressorHelper
+public static partial class Helper
 {
 	/// <summary>
 	/// 将多个文件压缩到一个内存流中，可保存为zip文件，方便于web方式下载

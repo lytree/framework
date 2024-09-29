@@ -9,14 +9,23 @@
 		<Version>1.0.0</Version>
 		<PackageId>Lytree.Framework.DynamicApi</PackageId>
 		<SignAssembly>False</SignAssembly>
-		
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 	<PropertyGroup>
 		<Description>中台动态WebApi库</Description>
 		<PackageTags>DynamicApi;WebApi;</PackageTags>
 	</PropertyGroup>
 
+
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="README.md">
+	    <PackagePath>\</PackagePath>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    <Pack>True</Pack>
+	  </Resource>
 	</ItemGroup>
 </Project>

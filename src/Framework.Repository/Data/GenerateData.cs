@@ -1,4 +1,4 @@
-﻿using Framework.Helper;
+﻿using Framework;	
 using Framework.Repository;
 using Framework.Repository.Attributes;
 using Framework.Repository.Entities;
@@ -19,14 +19,14 @@ namespace Framework.Repository.Data;
 
 public abstract class GenerateData
 {
-	private readonly string _tenantName = InterfaceHelper.GetPropertyNames<ITenant>().FirstOrDefault()?.ToLower();
+	private readonly string _tenantName = Helper.GetInterfacePropertyNames<ITenant>().FirstOrDefault()?.ToLower();
 	protected virtual void IgnorePropName(JsonTypeInfo ti, bool isTenant)
 	{
 		foreach (var jsonPropertyInfo in ti.Properties)
 		{
 			jsonPropertyInfo.ShouldSerialize = (obj, _) =>
 			{
-				if (jsonPropertyInfo.Name.ToLower() == _tenantName && EntityHelper.IsImplementInterface(ti.Type, typeof(ITenant)))
+				if (jsonPropertyInfo.Name.ToLower() == _tenantName && Helper.IsImplementInterface(ti.Type, typeof(ITenant)))
 				{
 					return isTenant;
 				}

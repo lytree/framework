@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.Helper;
-public static partial class DateTimeHelper
+namespace Framework;
+public static partial class Helper
 {
 	/// <summary>
 	/// 中国农历类 支持 1900.1.31日起至 2069.12.31日止的数据

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using System.IO;
 using FreeSql.DataAnnotations;
 using System.Text.Json;
-using Framework.Helper;
 using Framework.Repository;
 using System.Data.Common;
 
@@ -122,7 +121,7 @@ public abstract class SyncData
 			throw new Exception(msg);
 		}
 		var jsonData = FileHelper.ReadFile(filePath);
-		var data = JsonHelper.Deserialize<T[]>(jsonData);
+		var data = Helper.JsonDeserialize<T[]>(jsonData);
 
 		return data;
 	}

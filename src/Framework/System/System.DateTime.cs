@@ -1,4 +1,5 @@
-﻿using Framework.Helper;
+﻿
+using Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ public static partial class Extension
     public static long ToMilliseconds(this in DateTime dt)
     {
         var utcDateTime = TimeZoneInfo.ConvertTimeToUtc(TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.Local));
-        return Convert.ToInt64((utcDateTime - DateTimeHelper.TimestampStart).TotalMilliseconds);
+        return Convert.ToInt64((utcDateTime - Helper.TimestampStart).TotalMilliseconds);
     }
     /// <summary>
     /// 获取该时间相对于1970-01-01T00:00:00Z的秒数
@@ -29,7 +30,7 @@ public static partial class Extension
     public static long ToSeconds(this in DateTime dt)
     {
         var utcDateTime = TimeZoneInfo.ConvertTimeToUtc(TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.Local));
-        return Convert.ToInt64((utcDateTime - DateTimeHelper.TimestampStart).TotalSeconds);
+        return Convert.ToInt64((utcDateTime - Helper.TimestampStart).TotalSeconds);
     }
 
     /// <summary>
@@ -41,7 +42,7 @@ public static partial class Extension
     {
         var utcDateTime = TimeZoneInfo.ConvertTimeToUtc(TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.Local));
 
-        return (utcDateTime - DateTimeHelper.TimestampStart).Ticks / 10;
+        return (utcDateTime - Helper.TimestampStart).Ticks / 10;
     }
     /// <summary>
     /// 判断时间是否在区间内

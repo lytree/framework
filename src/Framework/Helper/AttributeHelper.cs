@@ -6,16 +6,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Framework.Helper;
+namespace Framework;
 
-public static class AttributeHelper
+public static partial class Helper
 {
-    public static string GetDisplayName<T>(string propertyDisplayName)
+    public static string GetAttributeDisplayName<T>(string propertyDisplayName)
     {
         return (TypeDescriptor.GetProperties(typeof(T))[propertyDisplayName].Attributes[typeof(DisplayNameAttribute)] as DisplayNameAttribute).DisplayName;
     }
 
-    public static string GetDisplay<T>(string propertyDisplayName)
+    public static string GetAttributeDisplay<T>(string propertyDisplayName)
     {
         return (TypeDescriptor.GetProperties(typeof(T))[propertyDisplayName].Attributes[typeof(DisplayAttribute)] as DisplayAttribute).Name;
     }

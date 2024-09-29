@@ -1,5 +1,5 @@
-﻿namespace Framework.Helper;
-public static partial class DateTimeHelper
+﻿namespace Framework;
+public static partial class Helper
 {
     public enum DateRangeType
     {
