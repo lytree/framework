@@ -11,7 +11,7 @@ namespace Framework.System;
 
 public static class EnumExtension
 {
-	public static string ToDescription(this Enum item)
+	public static string GetDescription(this Enum item)
 	{
 		string name = item.ToString();
 		var desc = item.GetType().GetField(name)?.GetCustomAttribute<DescriptionAttribute>(false);
@@ -40,7 +40,7 @@ public static class EnumExtension
 		return Enum.GetValues(enumType).Cast<Enum>()
 			.Where(m => !ignoreNull || !m.ToString().Equals("Null")).Select(x => new Dictionary<string, object>
 			{
-				["Label"] = x.ToDescription(),
+				["Label"] = x.GetDescription(),
 				["Value"] = x
 			}).ToList();
 	}
@@ -55,7 +55,7 @@ public static class EnumExtension
 		return Enum.GetValues(enumType).Cast<Enum>()
 			 .Where(m => !ignoreNull || !m.ToString().Equals("Null")).Select(x => new Dictionary<string, object>
 			 {
-				 ["Label"] = x.ToDescription(),
+				 ["Label"] = x.GetDescription(),
 				 ["Value"] = x
 			 }).ToList();
 	}

@@ -19,7 +19,7 @@
     <PackageVersion Include="Mapster" Version="7.4.0" />
     <PackageVersion Include="FreeSql" Version="3.2.833" />
     <PackageVersion Include="FreeSql.Repository" Version="3.2.833" />
-    <PackageVersion Include="System.Text.Json" Version="8.0.4" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
     <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.3.2" />
     <PackageVersion Include="MQTTnet" Version="4.3.7.1207" />

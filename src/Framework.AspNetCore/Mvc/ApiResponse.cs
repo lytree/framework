@@ -13,7 +13,7 @@ public class ApiResponse<T> : IApiResponse<T>
 
     public string Message { get; set; } = string.Empty;
 
-    public T? Data { get; set; } = default(T);
+    public T Data { get; set; } = default(T);
 
 
     [JsonIgnore]
