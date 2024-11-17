@@ -3,25 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework", "src\Framework\Framework.csproj", "{003D2060-62B7-4736-8BE5-C7C26649C350}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework", "Framework\Framework.csproj", "{003D2060-62B7-4736-8BE5-C7C26649C350}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.MQTT", "src\Framework.MQTT\Framework.MQTT.csproj", "{788FE4B1-92ED-4ED2-8950-C0AAACEE1275}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.MQTT", "Framework.MQTT\Framework.MQTT.csproj", "{788FE4B1-92ED-4ED2-8950-C0AAACEE1275}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Mvvm", "src\Framework.Mvvm\Framework.Mvvm.csproj", "{BE0F4040-4C38-40CE-8AA6-7B8E52D43537}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Mvvm", "Framework.Mvvm\Framework.Mvvm.csproj", "{BE0F4040-4C38-40CE-8AA6-7B8E52D43537}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.ApiUI", "src\Framework.ApiUI\Framework.ApiUI.csproj", "{6DF988E0-C46F-4C7D-91C3-23B44551658F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Repository", "Framework.Repository\Framework.Repository.csproj", "{B8084A38-8123-4ECB-9377-43DDFE287F98}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.DynamicApi", "src\Framework.DynamicApi\Framework.DynamicApi.csproj", "{97BDA40E-790E-46FB-B75D-8ECD7EC7433B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.AspNetCore", "Framework.AspNetCore\Framework.AspNetCore.csproj", "{A80192D7-7F67-4324-82AE-3FEAB51CE5D0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Repository", "src\Framework.Repository\Framework.Repository.csproj", "{B8084A38-8123-4ECB-9377-43DDFE287F98}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.AspNetCore.Middleware", "Framework.AspNetCore.Middleware\Framework.AspNetCore.Middleware.csproj", "{520FD0E4-14A9-4F57-BE58-1B15E4B70B74}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.AspNetCore", "src\Framework.AspNetCore\Framework.AspNetCore.csproj", "{A80192D7-7F67-4324-82AE-3FEAB51CE5D0}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.AspNetCore.Middleware", "src\Framework.AspNetCore.Middleware\Framework.AspNetCore.Middleware.csproj", "{520FD0E4-14A9-4F57-BE58-1B15E4B70B74}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Logging", "src\Framework.Logging\Framework.Logging.csproj", "{6C409FAA-037A-44D2-A99A-50DB97E792F9}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.SlideCaptcha", "src\Framework.SlideCaptcha\Framework.SlideCaptcha.csproj", "{F470A768-F402-4473-AC01-75FDFAA97C29}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Logging", "Framework.Logging\Framework.Logging.csproj", "{6C409FAA-037A-44D2-A99A-50DB97E792F9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Document", "Document", "{CA5D6978-3B64-4149-B34C-0DCCED18BC0C}"
 	ProjectSection(SolutionItems) = preProject
@@ -33,7 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Document", "Document", "{CA
 		Readme.md = Readme.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Net", "src\Framework.Net\Framework.Net.csproj", "{847BBFBB-E03A-4366-87D3-2E00C28F5C36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Net", "Framework.Net\Framework.Net.csproj", "{847BBFBB-E03A-4366-87D3-2E00C28F5C36}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,14 +47,6 @@ Global
 		{BE0F4040-4C38-40CE-8AA6-7B8E52D43537}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE0F4040-4C38-40CE-8AA6-7B8E52D43537}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE0F4040-4C38-40CE-8AA6-7B8E52D43537}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6DF988E0-C46F-4C7D-91C3-23B44551658F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6DF988E0-C46F-4C7D-91C3-23B44551658F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6DF988E0-C46F-4C7D-91C3-23B44551658F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6DF988E0-C46F-4C7D-91C3-23B44551658F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{97BDA40E-790E-46FB-B75D-8ECD7EC7433B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{97BDA40E-790E-46FB-B75D-8ECD7EC7433B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{97BDA40E-790E-46FB-B75D-8ECD7EC7433B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{97BDA40E-790E-46FB-B75D-8ECD7EC7433B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B8084A38-8123-4ECB-9377-43DDFE287F98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B8084A38-8123-4ECB-9377-43DDFE287F98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8084A38-8123-4ECB-9377-43DDFE287F98}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -77,10 +63,6 @@ Global
 		{6C409FAA-037A-44D2-A99A-50DB97E792F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C409FAA-037A-44D2-A99A-50DB97E792F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C409FAA-037A-44D2-A99A-50DB97E792F9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F470A768-F402-4473-AC01-75FDFAA97C29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F470A768-F402-4473-AC01-75FDFAA97C29}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F470A768-F402-4473-AC01-75FDFAA97C29}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F470A768-F402-4473-AC01-75FDFAA97C29}.Release|Any CPU.Build.0 = Release|Any CPU
 		{847BBFBB-E03A-4366-87D3-2E00C28F5C36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{847BBFBB-E03A-4366-87D3-2E00C28F5C36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{847BBFBB-E03A-4366-87D3-2E00C28F5C36}.Release|Any CPU.ActiveCfg = Release|Any CPU
