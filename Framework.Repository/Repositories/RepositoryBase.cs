@@ -111,7 +111,7 @@ public class RepositoryBase<TEntity, TKey> : DefaultRepository<TEntity, TKey>, I
 
 public class RepositoryBase<TEntity> : RepositoryBase<TEntity, long>, IRepositoryBase<TEntity> where TEntity : class
 {
-	RepositoryBase(UnitOfWorkManager uowm) : base(uowm.Orm)
+	public RepositoryBase(UnitOfWorkManager uowm) : base(uowm.Orm)
 	{
 		uowm.Binding(this);
 	}
