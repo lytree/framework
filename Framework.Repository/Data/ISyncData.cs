@@ -7,5 +7,5 @@ namespace Framework.Repository.Data;
 /// </summary>
 public interface ISyncData
 {
-    Task SyncDataAsync(IFreeSql db);
+    Task SyncDataAsync(IFreeSql db, IDbConfig dbConfig);
 }

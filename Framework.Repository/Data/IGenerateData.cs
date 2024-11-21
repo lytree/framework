@@ -7,5 +7,5 @@ namespace Framework.Repository.Data;
 /// </summary>
 public interface IGenerateData
 {
-    Task GenerateDataAsync(IFreeSql db);
+    Task GenerateDataAsync(IFreeSql db,IDbConfig dbConfig);
 }

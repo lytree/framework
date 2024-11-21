@@ -104,4 +104,14 @@ public static partial class Extensions
 
 		return list;
 	}
+    /// <summary>
+    /// 深度克隆
+    /// </summary>
+    /// <typeparam name="T">类型</typeparam>
+    /// <param name="list">列表</param>
+    /// <returns></returns>
+    public static List<T> Clone<T>(this List<T> list)
+    {
+        return Helper.JsonDeserialize<List<T>>(Helper.JsonSerialize(list));
+    }
 }
