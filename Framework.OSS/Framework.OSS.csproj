@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Resource Include="README.md">
+			<PackagePath>\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Pack>True</Pack>
+		</Resource>
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Aliyun.OSS.SDK.NetCore" VersionOverride="2.14.1" />
+		<PackageReference Include="BceSdkDotNetCore" VersionOverride="1.0.6.1123" />
+		<PackageReference Include="Microsoft.CSharp" VersionOverride="4.7.0" />
+		<PackageReference Include="Minio" VersionOverride="6.0.3" />
+		<PackageReference Include="Qiniu" VersionOverride="8.7.0" />
+		<PackageReference Include="Tencent.QCloud.Cos.Sdk" VersionOverride="5.4.40" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" VersionOverride="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" VersionOverride="8.0.2" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection"/>
+		<PackageReference Include="Microsoft.Extensions.Options" />
+	</ItemGroup>
+</Project>

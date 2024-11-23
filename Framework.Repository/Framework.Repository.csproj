@@ -17,6 +17,7 @@
 		<PackageReference Include="FreeSql" />
 		<PackageReference Include="FreeSql.Repository" />
 		<PackageReference Include="System.Text.Json" />
+		<PackageReference Include="Yitter.IdGenerator" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Framework\Framework.csproj" />
