@@ -4,14 +4,10 @@ using Framework.OSS.Interface;
 using Framework.OSS.Interface.Base;
 using Framework.OSS.Interface.Service;
 using Framework.OSS.Models;
+using Framework.OSS.Models.Exceptions;
 using Framework.OSS.Models.Policy;
-using OnceMi.AspNetCore.OSS;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using Bucket = Framework.OSS.Models.Bucket;
+using Owner = Framework.OSS.Models.Owner;
 
 namespace Framework.OSS.Services
 {

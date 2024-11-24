@@ -3,11 +3,12 @@ using Framework.OSS.Interface;
 using Framework.OSS.Interface.Base;
 using Framework.OSS.Interface.Service;
 using Framework.OSS.Models;
+using Framework.OSS.Models.Exceptions;
 using Framework.OSS.Models.Policy;
 using Framework.OSS.Models.Qiniu;
+using Framework.OSS.Providers;
 using Framework.OSS.Utils;
-using OnceMi.AspNetCore.OSS;
-using OnceMi.AspNetCore.OSS.Providers;
+
 using Qiniu.Http;
 using Qiniu.Storage;
 using Qiniu.Util;
@@ -17,7 +18,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Bucket = Framework.OSS.Models.Bucket;
+using Owner = Framework.OSS.Models.Owner;
 namespace Framework.OSS.Services
 {
     public class QiniuOSSService : BaseOSSService, IQiniuOSSService

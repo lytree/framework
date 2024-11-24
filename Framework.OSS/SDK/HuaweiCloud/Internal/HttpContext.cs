@@ -13,7 +13,6 @@
 //----------------------------------------------------------------------------------*/
 using Framework.OSS.SDK.HuaweiCloud;
 using OBS;
-using OBS.Internal.Auth;
 using System;
 using System.Collections.Generic;
 using System.Text;

@@ -11,15 +11,16 @@ using Framework.OSS.Interface;
 using Framework.OSS.Interface.Base;
 using Framework.OSS.Interface.Service;
 using Framework.OSS.Models;
+using Framework.OSS.Models.Exceptions;
 using Framework.OSS.Models.Policy;
-using OnceMi.AspNetCore.OSS;
-using OnceMi.AspNetCore.OSS.Providers;
+using Framework.OSS.Providers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Bucket = Framework.OSS.Models.Bucket;
+using Owner = Framework.OSS.Models.Owner;
 namespace Framework.OSS.Services
 {
     public class QCloudOSSService : BaseOSSService, IQCloudOSSService

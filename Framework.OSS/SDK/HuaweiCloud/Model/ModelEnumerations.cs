@@ -14,6 +14,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Framework.OSS.SDK.HuaweiCloud.Internal;
 using OBS.Internal;
 
 namespace Framework.OSS.SDK.HuaweiCloud.Model

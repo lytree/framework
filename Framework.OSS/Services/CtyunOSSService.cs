@@ -3,6 +3,7 @@ using Framework.OSS.Interface.Base;
 using Framework.OSS.Interface.Service;
 using Framework.OSS.Models;
 using Framework.OSS.Models.Ctyun;
+using Framework.OSS.Models.Exceptions;
 using Framework.OSS.Models.Policy;
 using Framework.OSS.SDK.Ctyun;
 using System;
@@ -15,7 +16,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.Serialization;
-
+using Bucket = Framework.OSS.Models.Bucket;
+using Owner = Framework.OSS.Models.Owner;
 namespace Framework.OSS.Services
 {
     /// <summary>

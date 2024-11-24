@@ -1,8 +1,5 @@
 ﻿using Framework.OSS.Models;
 using Framework.OSS.Models.Policy;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 namespace Framework.OSS.Interface.Service
 {
     public interface IMinioOSSService : IOSSService

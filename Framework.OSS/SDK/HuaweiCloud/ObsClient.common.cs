@@ -16,12 +16,10 @@ using Framework.OSS.SDK.HuaweiCloud.Internal;
 using Framework.OSS.SDK.HuaweiCloud.Internal.Log;
 using Framework.OSS.SDK.HuaweiCloud.Internal.Negotiation;
 using Framework.OSS.SDK.HuaweiCloud.Model;
-using OBS.Internal;
-using System;
-using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using HttpClient = OBS.Internal.HttpClient;
 
 namespace OBS
 {

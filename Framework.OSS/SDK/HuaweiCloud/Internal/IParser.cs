@@ -11,7 +11,6 @@
 // CONDITIONS OF ANY KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations under the License.
 //----------------------------------------------------------------------------------*/
-using OBS.Internal.Negotiation;
 using Framework.OSS.SDK.HuaweiCloud.Model;
 
 namespace Framework.OSS.SDK.HuaweiCloud.Internal
