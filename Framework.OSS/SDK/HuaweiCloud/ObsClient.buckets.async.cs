@@ -14,9 +14,11 @@
 using System;
 using System.IO;
 using System.Net;
+using Framework.OSS;
 using Framework.OSS.SDK.HuaweiCloud;
 using Framework.OSS.SDK.HuaweiCloud.Internal;
 using Framework.OSS.SDK.HuaweiCloud.Model;
+using Microsoft.Extensions.Logging;
 using OBS.Internal;
 
 
@@ -24,7 +26,7 @@ namespace OBS
 {
     public partial class ObsClient
     {
-
+        private static readonly ILogger _logger = OSSServiceFactory.CreateLogger<ObsClient>();
         /// <summary>
         /// Start the asynchronous request for obtaining the bucket list.
         /// </summary>
@@ -74,8 +76,8 @@ namespace OBS
             }
             catch (ObsException ex)
             {
-                if (result != null && result.HttpContext != null 
-                    && result.HttpRequest != null && 
+                if (result != null && result.HttpContext != null
+                    && result.HttpRequest != null &&
                     ex.StatusCode == HttpStatusCode.BadRequest
                     && "Unsupported Authorization Type".Equals(ex.ErrorMessage)
                     && this.ObsConfig.AuthTypeNegotiation
@@ -96,7 +98,7 @@ namespace OBS
             }
             finally
             {
-                CommonUtil.CloseIDisposable(result);
+                CommonUtil.CloseIDisposable(result, _logger);
             }
         }
 
@@ -557,7 +559,7 @@ namespace OBS
         /// Start the asynchronous request for obtaining the bucket lifecycle rules.
         /// </summary>
         /// <param name="request">Parameters in a request for obtaining the bucket lifecycle rules</param>
-         /// <param name="callback">Asynchronous request callback function</param>
+        /// <param name="callback">Asynchronous request callback function</param>
         /// <param name="state">Asynchronous request status object</param>
         /// <returns>Response to the asynchronous request</returns>
         public IAsyncResult BeginGetBucketLifecycle(GetBucketLifecycleRequest request, AsyncCallback callback, object state)

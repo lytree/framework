@@ -16,6 +16,7 @@ using Framework.OSS.SDK.HuaweiCloud.Internal;
 
 using Framework.OSS.SDK.HuaweiCloud.Internal.Negotiation;
 using Framework.OSS.SDK.HuaweiCloud.Model;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Reflection;
 using System.Text;
@@ -150,9 +151,9 @@ namespace OBS
                 authTypeCache = new AuthTypeCache();
             }
 
-            LoggerMgr.Initialize();
 
-            if (LoggerMgr.IsWarnEnabled)
+
+            if (_logger.IsEnabled(Microsoft.Extensions.Logging.LogLevel.Warning))
             {
                 StringBuilder sb = new StringBuilder();
                 sb.Append("[OBS SDK Version=")
@@ -164,7 +165,7 @@ namespace OBS
                      .Append("Access Mode=")
                      .Append(obsConfig.PathStyle ? "Path" : "Virtual Hosting")
                      .Append("]");
-                LoggerMgr.Warn(sb.ToString());
+                _logger.LogWarning(sb.ToString());
             }
         }
 
@@ -215,10 +216,10 @@ namespace OBS
                     throw ex;
                 }
 
-                if (LoggerMgr.IsInfoEnabled)
+                if (_logger.IsEnabled(LogLevel.Information))
                 {
                     string msg = string.IsNullOrEmpty(bucketName) ? "The target server doesnot support OBS protocol, use S3 protocol" : string.Format("The target server doesnot support OBS protocol, use S3 protocol, Bucket:{0}", bucketName);
-                    LoggerMgr.Info(msg, ex);
+                    _logger.LogInformation(ex, msg);
                 }
             }
 
@@ -269,18 +270,18 @@ namespace OBS
                                     {
                                         authType = this.NegotiateAuthType(_request.BucketName, async);
                                         this.authTypeCache.RefreshAuthType(_request.BucketName, authType.Value);
-                                        if (LoggerMgr.IsInfoEnabled)
+                                        if (_logger.IsEnabled(LogLevel.Information))
                                         {
-                                            LoggerMgr.Info(string.Format("Refresh auth type {0} for bucket {1}", authType, _request.BucketName));
+                                            _logger.LogInformation(string.Format("Refresh auth type {0} for bucket {1}", authType, _request.BucketName));
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    if (LoggerMgr.IsDebugEnabled)
+                    if (_logger.IsEnabled(LogLevel.Debug))
                     {
-                        LoggerMgr.Debug(string.Format("Get auth type {0}", authType));
+                        _logger.LogDebug(string.Format("Get auth type {0}", authType));
                     }
                     context.AuthType = authType;
                 }
@@ -289,9 +290,9 @@ namespace OBS
             request.Sender = this;
             doValidateDelegate?.Invoke();
 
-            if (LoggerMgr.IsInfoEnabled)
+            if (_logger.IsEnabled(LogLevel.Information))
             {
-                LoggerMgr.Info(request.GetAction() + " begin.");
+                _logger.LogInformation(request.GetAction() + " begin.");
             }
             return context;
         }
@@ -371,35 +372,35 @@ namespace OBS
                     }
                     catch (ObsException _ex)
                     {
-                        if (LoggerMgr.IsErrorEnabled)
+                        if (_logger.IsEnabled(LogLevel.Error))
                         {
-                            LoggerMgr.Error(string.Format("{0} exception code: {1}, with message: {2}", request.GetAction(), _ex.ErrorCode, _ex.ErrorMessage));
+                            _logger.LogError(string.Format("{0} exception code: {1}, with message: {2}", request.GetAction(), _ex.ErrorCode, _ex.ErrorMessage));
 
                         }
                         throw _ex;
                     }
                     catch (Exception _ex)
                     {
-                        if (LoggerMgr.IsErrorEnabled)
+                        if (_logger.IsEnabled(LogLevel.Error))
                         {
-                            LoggerMgr.Error(string.Format("{0} exception with message: {1}", request.GetAction(), _ex.Message));
+                            _logger.LogError(string.Format("{0} exception with message: {1}", request.GetAction(), _ex.Message));
                         }
                         throw new ObsException(_ex.Message, _ex);
                     }
                 }
 
-                if (LoggerMgr.IsErrorEnabled)
+                if (_logger.IsEnabled(LogLevel.Error))
                 {
-                    LoggerMgr.Error(string.Format("{0} exception code: {1}, with message: {2}", request.GetAction(), ex.ErrorCode, ex.ErrorMessage));
+                    _logger.LogError(string.Format("{0} exception code: {1}, with message: {2}", request.GetAction(), ex.ErrorCode, ex.ErrorMessage));
 
                 }
                 throw ex;
             }
             catch (Exception ex)
             {
-                if (LoggerMgr.IsErrorEnabled)
+                if (_logger.IsEnabled(LogLevel.Error))
                 {
-                    LoggerMgr.Error(string.Format("{0} exception with message: {1}", request.GetAction(), ex.Message));
+                    _logger.LogError(string.Format("{0} exception with message: {1}", request.GetAction(), ex.Message));
                 }
                 throw new ObsException(ex.Message, ex);
             }
@@ -410,12 +411,12 @@ namespace OBS
                     request.Sender = null;
                 }
 
-                CommonUtil.CloseIDisposable(httpRequest);
+                CommonUtil.CloseIDisposable(httpRequest, _logger);
 
-                if (LoggerMgr.IsInfoEnabled)
+                if (_logger.IsEnabled(LogLevel.Information))
                 {
 
-                    LoggerMgr.Info(string.Format("{0} end, cost {1} ms", request.GetAction(), (DateTime.Now - reqTime).TotalMilliseconds));
+                    _logger.LogInformation(string.Format("{0} end, cost {1} ms", request.GetAction(), (DateTime.Now - reqTime).TotalMilliseconds));
                 }
             }
         }

@@ -46,8 +46,8 @@ namespace Framework.OSS.Services
             {"Asia_South", "as0"},
         };
 
-        public QiniuOSSService(ICacheProvider cache, OSSOptions options, ILoggerFactory loggerFactory)
-            : base(cache, options,loggerFactory)
+        public QiniuOSSService(ICacheProvider cache, OSSOptions options)
+            : base(cache, options)
         {
             _mac = new Mac(Options.AccessKey, Options.SecretKey);
             _config = new Config();

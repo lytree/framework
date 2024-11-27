@@ -40,8 +40,8 @@ namespace Framework.OSS.Services
             }
         }
 
-        public HaweiOSSService(ICacheProvider cache, OSSOptions options, ILoggerFactory loggerFactory)
-            : base(cache, options,loggerFactory)
+        public HaweiOSSService(ICacheProvider cache, OSSOptions options)
+            : base(cache, options)
         {
             string endPoint = options.Endpoint;
             //如果是不带协议的endpoint，添加协议

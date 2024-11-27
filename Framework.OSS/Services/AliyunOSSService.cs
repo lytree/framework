@@ -25,7 +25,7 @@ namespace Framework.OSS.Services
         }
 
         public AliyunOSSService(ICacheProvider cache
-            , OSSOptions options, ILoggerFactory loggerFactory) : base(cache, options, loggerFactory)
+            , OSSOptions options) : base(cache, options)
         {
             if (options == null)
                 throw new ArgumentNullException(nameof(options), "The OSSOptions can not null");

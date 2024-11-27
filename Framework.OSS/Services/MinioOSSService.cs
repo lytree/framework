@@ -31,8 +31,8 @@ namespace Framework.OSS.Services
             }
         }
 
-        public MinioOSSService(ICacheProvider cache, OSSOptions options, ILoggerFactory loggerFactory)
-            : base(cache, options,loggerFactory)
+        public MinioOSSService(ICacheProvider cache, OSSOptions options)
+            : base(cache, options)
         {
             IMinioClient client = new MinioClient()
                 .WithEndpoint(options.Endpoint)

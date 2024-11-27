@@ -35,8 +35,8 @@ namespace Framework.OSS.Services
             }
         }
 
-        public QCloudOSSService(ICacheProvider cache, OSSOptions options, ILoggerFactory loggerFactory)
-            : base(cache, options,loggerFactory)
+        public QCloudOSSService(ICacheProvider cache, OSSOptions options)
+            : base(cache, options)
         {
             CosXmlConfig config = new CosXmlConfig.Builder()
                 .IsHttps(options.IsEnableHttps)

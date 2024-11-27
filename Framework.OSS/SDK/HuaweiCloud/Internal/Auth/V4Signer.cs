@@ -14,13 +14,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 
 namespace Framework.OSS.SDK.HuaweiCloud.Internal.Auth
 {
     internal class V4Signer : Signer
     {
-
+        private static readonly ILogger _logger = OSSServiceFactory.CreateLogger<V4Signer>();
         private static V4Signer instance = new V4Signer();
         private const string ContentSha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
         private const string UnsignedPayload = "UNSIGNED-PAYLOAD";
@@ -197,20 +198,17 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal.Auth
             // Hashed Payload
             canonicalRequest.Append(string.IsNullOrEmpty(payload) ? UnsignedPayload : payload);
 
-            if (LoggerMgr.IsDebugEnabled)
-            {
-                LoggerMgr.Debug("CanonicalRequest: ******");
-            }
+
+            _logger.LogDebug("CanonicalRequest: ******");
+
 
             StringBuilder stringToSign = new StringBuilder(Algorithm).Append("\n")
                 .Append(dateDict["LongDate"]).Append("\n")
                 .Append(dateDict["ShortDate"]).Append(ScopeSuffix).Append("\n")
                 .Append(CommonUtil.HexSha256(canonicalRequest.ToString()));
 
-            if (LoggerMgr.IsDebugEnabled)
-            {
-                LoggerMgr.Debug("StringToSign:  ******");
-            }
+            _logger.LogDebug("StringToSign:  ******");
+
 
             return CaculateSignature(stringToSign.ToString(), dateDict["ShortDate"], context.SecurityProvider.Sk);
         }

@@ -11,6 +11,7 @@
 // CONDITIONS OF ANY KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations under the License.
 //----------------------------------------------------------------------------------*/
+using Framework.OSS;
 using Framework.OSS.Interface.Base;
 using Framework.OSS.SDK.HuaweiCloud;
 using Framework.OSS.SDK.HuaweiCloud.Internal;
@@ -25,7 +26,7 @@ namespace OBS.Internal
 {
     internal partial class HttpClient
     {
-        private ILogger<BaseOSSService> _logger;
+        private static readonly ILogger _logger = OSSServiceFactory.CreateLogger<HttpClient>();
         internal HttpObsAsyncResult BeginPerformRequest(HttpRequest request, HttpContext context,
             AsyncCallback callback, object state)
         {
@@ -144,7 +145,7 @@ namespace OBS.Internal
                     {
                         if (_logger.IsEnabled(LogLevel.Error))
                         {
-                            _logger.LogError(ex,"Rethrowing as a ObsException error in EndPerformRequest");
+                            _logger.LogError(ex, "Rethrowing as a ObsException error in EndPerformRequest");
                         }
                         throw ex;
                     }
@@ -159,18 +160,18 @@ namespace OBS.Internal
                         }
                         else if (result.RetryCount > maxErrorRetry && _logger.IsEnabled(LogLevel.Warning))
                         {
-                             _logger.LogWarning(ex,"Too many errors excced the max error retry count");
+                            _logger.LogWarning(ex, "Too many errors excced the max error retry count");
                         }
                         if (_logger.IsEnabled(LogLevel.Error))
                         {
-                            _logger.LogError(ex,"Rethrowing as a ObsException error in PerformRequest");
+                            _logger.LogError(ex, "Rethrowing as a ObsException error in PerformRequest");
                         }
                         throw ParseObsException(response, ex.Message, ex, result.HttpContext);
                     }
                 }
                 finally
                 {
-                    CommonUtil.CloseIDisposable(response);
+                    CommonUtil.CloseIDisposable(response, _logger);
                 }
             }
         }
@@ -189,7 +190,7 @@ namespace OBS.Internal
                 httpRequest.Headers.Add(Constants.CommonHeaders.Connection, "Close");
             }
 
-            HttpWebRequest request = HttpWebRequestFactory.BuildWebRequest(httpRequest, context);
+            HttpWebRequest request = HttpWebRequestFactory.BuildWebRequest(httpRequest, context,_logger);
             asyncResult.HttpWebRequest = request;
             asyncResult.HttpStartDateTime = DateTime.Now;
 
@@ -253,11 +254,11 @@ namespace OBS.Internal
                     };
                     if (!webRequest.SendChunked)
                     {
-                        CommonUtil.WriteTo(data, requestStream, webRequest.ContentLength, obsConfig.BufferSize, callback);
+                        CommonUtil.WriteTo(data, requestStream, webRequest.ContentLength, obsConfig.BufferSize, callback, _logger);
                     }
                     else
                     {
-                        CommonUtil.WriteTo(data, requestStream, obsConfig.BufferSize, callback);
+                        CommonUtil.WriteTo(data, requestStream, obsConfig.BufferSize, callback, _logger);
                     }
                 }
                 asyncResult.Continue(this.EndGetResponse);
@@ -307,6 +308,7 @@ namespace OBS.Internal
 
     internal class HttpObsAsyncResult : ObsAsyncResult<HttpResponse>
     {
+        private static readonly ILogger _logger = OSSServiceFactory.CreateLogger<HttpObsAsyncResult>();
         public HttpObsAsyncResult(AsyncCallback callback, object state) : base(callback, state)
         {
             this.IsTimeout = true;
@@ -373,7 +375,7 @@ namespace OBS.Internal
                 }
                 catch (Exception ex)
                 {
-                    LoggerMgr.Error(ex.Message, ex);
+                    _logger.LogError(ex.Message, ex);
                 }
             }
         }
@@ -405,7 +407,7 @@ namespace OBS.Internal
             {
                 base.Dispose(disposing);
                 this.AdditionalState = null;
-                CommonUtil.CloseIDisposable(this.HttpRequest);
+                CommonUtil.CloseIDisposable(this.HttpRequest, _logger);
             }
         }
     }

@@ -6,6 +6,7 @@ using Framework.OSS.Models;
 using Framework.OSS.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Minio;
 using System;
@@ -16,15 +17,15 @@ namespace Framework.OSS
     {
         private readonly IOptionsMonitor<OSSOptions> optionsMonitor;
         private readonly ICacheProvider _cache;
-        private readonly ILoggerFactory logger;
+        public static ILoggerFactory LoggerFactory { get; set; }
 
         public OSSServiceFactory(IOptionsMonitor<OSSOptions> optionsMonitor
             , ICacheProvider provider
-            , ILoggerFactory logger)
+            , ILoggerFactory loggerFactory)
         {
             this.optionsMonitor = optionsMonitor ?? throw new ArgumentNullException();
             _cache = provider ?? throw new ArgumentNullException(nameof(IMemoryCache));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(ILoggerFactory));
+            LoggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
         }
 
         public IOSSService Create()
@@ -34,7 +35,7 @@ namespace Framework.OSS
 
         public IOSSService Create(string name)
         {
-            #region ²ÎÊýÑéÖ¤
+            #region ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¤
 
             if (string.IsNullOrEmpty(name))
             {
@@ -69,20 +70,23 @@ namespace Framework.OSS
             switch (options.Provider)
             {
                 case OSSProvider.Aliyun:
-                    return new AliyunOSSService(_cache, options, logger);
+                    return new AliyunOSSService(_cache, options);
                 case OSSProvider.Minio:
-                    return new MinioOSSService(_cache, options, logger);
+                    return new MinioOSSService(_cache, options);
                 case OSSProvider.QCloud:
-                    return new QCloudOSSService(_cache, options, logger);
+                    return new QCloudOSSService(_cache, options);
                 case OSSProvider.Qiniu:
-                    return new QiniuOSSService(_cache, options, logger);
+                    return new QiniuOSSService(_cache, options);
                 case OSSProvider.HuaweiCloud:
-                    return new HaweiOSSService(_cache, options, logger);
+                    return new HaweiOSSService(_cache, options);
                 case OSSProvider.Ctyun:
-                    return new CtyunOSSService(_cache, options, logger);
+                    return new CtyunOSSService(_cache, options);
                 default:
                     throw new Exception("Unknow provider type");
             }
         }
+
+        public static ILogger CreateLogger<T>() => LoggerFactory.CreateLogger<T>();
+        public static ILogger CreateLogger(string categoryName) => LoggerFactory.CreateLogger(categoryName);
     }
 }

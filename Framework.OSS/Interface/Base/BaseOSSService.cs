@@ -12,15 +12,12 @@ namespace Framework.OSS.Interface.Base
     {
         private readonly ICacheProvider _cache;
 
-
-        public ILogger Logger { get; private set; }
         public OSSOptions Options { get; private set; }
 
-        public BaseOSSService(ICacheProvider cache, OSSOptions options, ILoggerFactory loggerFactory)
+        public BaseOSSService(ICacheProvider cache, OSSOptions options)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             Options = options ?? throw new ArgumentNullException(nameof(options));
-            Logger = loggerFactory.CreateLogger<BaseOSSService>();
         }
 
         public virtual Task RemovePresignedUrlCache(string bucketName, string objectName)

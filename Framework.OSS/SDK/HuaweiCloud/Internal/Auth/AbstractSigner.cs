@@ -171,11 +171,6 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal.Auth
                 }
             }
 
-            if (LoggerMgr.IsDebugEnabled)
-            {
-                LoggerMgr.Debug("StringToSign: ******");
-            }
-
             IDictionary<string, string> ret = new Dictionary<string, string>();
             ret.Add("Signature", Convert.ToBase64String(CommonUtil.HmacSha1(context.SecurityProvider.Sk, stringToSign.ToString())));
 
