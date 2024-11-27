@@ -6,6 +6,7 @@ using Framework.OSS.Models.Exceptions;
 using Framework.OSS.Models.Policy;
 using Framework.OSS.Providers;
 using Framework.OSS.Utils;
+using Microsoft.Extensions.Logging;
 using Minio;
 using Minio.DataModel;
 using Minio.DataModel.Args;
@@ -30,8 +31,8 @@ namespace Framework.OSS.Services
             }
         }
 
-        public MinioOSSService(ICacheProvider cache, OSSOptions options)
-            : base(cache, options)
+        public MinioOSSService(ICacheProvider cache, OSSOptions options, ILoggerFactory loggerFactory)
+            : base(cache, options,loggerFactory)
         {
             IMinioClient client = new MinioClient()
                 .WithEndpoint(options.Endpoint)

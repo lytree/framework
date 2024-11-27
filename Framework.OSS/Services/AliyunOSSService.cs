@@ -6,6 +6,7 @@ using Framework.OSS.Interface.Service;
 using Framework.OSS.Models;
 using Framework.OSS.Models.Exceptions;
 using Framework.OSS.Models.Policy;
+using Microsoft.Extensions.Logging;
 using Bucket = Framework.OSS.Models.Bucket;
 using Owner = Framework.OSS.Models.Owner;
 
@@ -24,7 +25,7 @@ namespace Framework.OSS.Services
         }
 
         public AliyunOSSService(ICacheProvider cache
-            , OSSOptions options) : base(cache, options)
+            , OSSOptions options, ILoggerFactory loggerFactory) : base(cache, options, loggerFactory)
         {
             if (options == null)
                 throw new ArgumentNullException(nameof(options), "The OSSOptions can not null");

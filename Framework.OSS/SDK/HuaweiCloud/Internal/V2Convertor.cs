@@ -19,7 +19,7 @@ using System.IO;
 using OBS.Model;
 using Framework.OSS.SDK.HuaweiCloud.Model;
 using Framework.OSS.SDK.HuaweiCloud.Internal.Negotiation;
-using Framework.OSS.SDK.HuaweiCloud.Internal.Log;
+
 
 namespace Framework.OSS.SDK.HuaweiCloud.Internal
 {

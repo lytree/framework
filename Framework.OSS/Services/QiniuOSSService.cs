@@ -8,7 +8,7 @@ using Framework.OSS.Models.Policy;
 using Framework.OSS.Models.Qiniu;
 using Framework.OSS.Providers;
 using Framework.OSS.Utils;
-
+using Microsoft.Extensions.Logging;
 using Qiniu.Http;
 using Qiniu.Storage;
 using Qiniu.Util;
@@ -46,8 +46,8 @@ namespace Framework.OSS.Services
             {"Asia_South", "as0"},
         };
 
-        public QiniuOSSService(ICacheProvider cache, OSSOptions options)
-            : base(cache, options)
+        public QiniuOSSService(ICacheProvider cache, OSSOptions options, ILoggerFactory loggerFactory)
+            : base(cache, options,loggerFactory)
         {
             _mac = new Mac(Options.AccessKey, Options.SecretKey);
             _config = new Config();

@@ -16,7 +16,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Net;
-using Framework.OSS.SDK.HuaweiCloud.Internal.Log;
 using Framework.OSS.SDK.HuaweiCloud.Model;
 using Framework.OSS.SDK.HuaweiCloud.Internal;
 using Framework.OSS.SDK.HuaweiCloud;

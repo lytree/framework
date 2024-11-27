@@ -14,6 +14,7 @@ using Framework.OSS.Models;
 using Framework.OSS.Models.Exceptions;
 using Framework.OSS.Models.Policy;
 using Framework.OSS.Providers;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,8 +35,8 @@ namespace Framework.OSS.Services
             }
         }
 
-        public QCloudOSSService(ICacheProvider cache, OSSOptions options)
-            : base(cache, options)
+        public QCloudOSSService(ICacheProvider cache, OSSOptions options, ILoggerFactory loggerFactory)
+            : base(cache, options,loggerFactory)
         {
             CosXmlConfig config = new CosXmlConfig.Builder()
                 .IsHttps(options.IsEnableHttps)

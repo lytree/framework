@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Minio;
 using System;
 
@@ -34,11 +36,6 @@ namespace Framework.OSS
         /// 华为云 OBS
         /// </summary>
         HuaweiCloud = 5,
-
-        /// <summary>
-        /// 百度云 BOS
-        /// </summary>
-        BaiduCloud = 6,
         /// <summary>
         /// 天翼云 OOS
         /// </summary>
@@ -104,5 +101,7 @@ namespace Framework.OSS
         /// 在使用之前请评估当前应用的缓存能力能否顶住当前请求
         /// </summary>
         public bool IsEnableCache { get; set; } = false;
+
+       
     }
 }

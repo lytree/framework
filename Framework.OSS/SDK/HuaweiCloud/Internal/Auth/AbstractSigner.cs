@@ -14,7 +14,6 @@
 using System;
 using System.Text;
 using System.Collections.Generic;
-using Framework.OSS.SDK.HuaweiCloud.Internal.Log;
 
 namespace Framework.OSS.SDK.HuaweiCloud.Internal.Auth
 {

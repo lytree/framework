@@ -6,6 +6,7 @@ using Framework.OSS.Models.Ctyun;
 using Framework.OSS.Models.Exceptions;
 using Framework.OSS.Models.Policy;
 using Framework.OSS.SDK.Ctyun;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,7 +35,7 @@ namespace Framework.OSS.Services
         private string _serviceURL;
 
         public CtyunOSSService(ICacheProvider cache
-            , OSSOptions options) : base(cache, options)
+            , OSSOptions options, ILoggerFactory loggerFactory) : base(cache, options, loggerFactory)
         {
             if (options == null)
                 throw new ArgumentNullException(nameof(options), "The OSSOptions can not null");

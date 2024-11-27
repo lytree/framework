@@ -19,7 +19,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using System.Reflection;
-using Framework.OSS.SDK.HuaweiCloud.Internal.Log;
+
 using Framework.OSS.SDK.HuaweiCloud.Model;
 
 namespace Framework.OSS.SDK.HuaweiCloud.Internal

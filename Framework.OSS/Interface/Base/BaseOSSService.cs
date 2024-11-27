@@ -1,6 +1,8 @@
 ﻿using Framework.OSS;
 using Framework.OSS.Models;
 using Framework.OSS.Utils;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Threading.Tasks;
 
@@ -9,12 +11,16 @@ namespace Framework.OSS.Interface.Base
     public abstract class BaseOSSService
     {
         private readonly ICacheProvider _cache;
+
+
+        public ILogger Logger { get; private set; }
         public OSSOptions Options { get; private set; }
 
-        public BaseOSSService(ICacheProvider cache, OSSOptions options)
+        public BaseOSSService(ICacheProvider cache, OSSOptions options, ILoggerFactory loggerFactory)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             Options = options ?? throw new ArgumentNullException(nameof(options));
+            Logger = loggerFactory.CreateLogger<BaseOSSService>();
         }
 
         public virtual Task RemovePresignedUrlCache(string bucketName, string objectName)

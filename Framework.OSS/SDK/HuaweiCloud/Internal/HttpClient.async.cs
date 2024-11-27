@@ -11,10 +11,12 @@
 // CONDITIONS OF ANY KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations under the License.
 //----------------------------------------------------------------------------------*/
+using Framework.OSS.Interface.Base;
 using Framework.OSS.SDK.HuaweiCloud;
 using Framework.OSS.SDK.HuaweiCloud.Internal;
-using Framework.OSS.SDK.HuaweiCloud.Internal.Log;
+
 using Framework.OSS.SDK.HuaweiCloud.Model;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Net;
@@ -23,7 +25,8 @@ namespace OBS.Internal
 {
     internal partial class HttpClient
     {
-        internal HttpObsAsyncResult BeginPerformRequest(HttpRequest request, HttpContext context, 
+        private ILogger<BaseOSSService> _logger;
+        internal HttpObsAsyncResult BeginPerformRequest(HttpRequest request, HttpContext context,
             AsyncCallback callback, object state)
         {
             this.PrepareRequestAndContext(request, context);
@@ -51,9 +54,9 @@ namespace OBS.Internal
                 int statusCode = Convert.ToInt32(response.StatusCode);
                 new MergeResponseHeaderHandler(this.GetIHeaders(context)).Handle(response);
 
-                if (LoggerMgr.IsDebugEnabled)
+                if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    LoggerMgr.Debug(string.Format("Response with statusCode {0} and headers {1}", statusCode, CommonUtil.ConvertHeadersToString(response.Headers)));
+                    _logger.LogDebug(string.Format("Response with statusCode {0} and headers {1}", statusCode, CommonUtil.ConvertHeadersToString(response.Headers)));
                 }
 
                 if (statusCode >= 300 && statusCode < 400 && statusCode != 304)
@@ -67,9 +70,9 @@ namespace OBS.Internal
                             {
                                 location += "?" + CommonUtil.ConvertParamsToString(request.Params);
                             }
-                            if (LoggerMgr.IsWarnEnabled)
+                            if (_logger.IsEnabled(LogLevel.Warning))
                             {
-                                LoggerMgr.Warn(string.Format("Redirect to {0}", location));
+                                _logger.LogWarning(string.Format("Redirect to {0}", location));
                             }
                             context.RedirectLocation = location;
                             result.RetryCount--;
@@ -95,18 +98,18 @@ namespace OBS.Internal
                     {
                         if (ShouldRetry(request, null, result.RetryCount, maxErrorRetry))
                         {
-                            if (LoggerMgr.IsWarnEnabled)
+                            if (_logger.IsEnabled(LogLevel.Warning))
                             {
-                                LoggerMgr.Warn("Retrying connection that failed with RequestTimeout error");
+                                _logger.LogWarning("Retrying connection that failed with RequestTimeout error");
                             }
                             PrepareRetry(request, response, result.RetryCount, originPos, true);
                             result.Reset();
                             this.BeginDoRequest(result);
                             return this.EndPerformRequest(result);
                         }
-                        else if (result.RetryCount > maxErrorRetry && LoggerMgr.IsErrorEnabled)
+                        else if (result.RetryCount > maxErrorRetry && _logger.IsEnabled(LogLevel.Error))
                         {
-                            LoggerMgr.Error("Exceeded maximum number of retries for RequestTimeout errors");
+                            _logger.LogError("Exceeded maximum number of retries for RequestTimeout errors");
                         }
                     }
                     throw exception;
@@ -120,9 +123,9 @@ namespace OBS.Internal
                         this.BeginDoRequest(result);
                         return this.EndPerformRequest(result);
                     }
-                    else if (result.RetryCount > maxErrorRetry && LoggerMgr.IsErrorEnabled)
+                    else if (result.RetryCount > maxErrorRetry && _logger.IsEnabled(LogLevel.Error))
                     {
-                        LoggerMgr.Error("Encountered too many 5xx errors");
+                        _logger.LogError("Encountered too many 5xx errors");
                     }
                     throw ParseObsException(response, "Request error", context);
                 }
@@ -139,9 +142,9 @@ namespace OBS.Internal
                 {
                     if (ex is ObsException)
                     {
-                        if (LoggerMgr.IsErrorEnabled)
+                        if (_logger.IsEnabled(LogLevel.Error))
                         {
-                            LoggerMgr.Error("Rethrowing as a ObsException error in EndPerformRequest", ex);
+                            _logger.LogError(ex,"Rethrowing as a ObsException error in EndPerformRequest");
                         }
                         throw ex;
                     }
@@ -154,13 +157,13 @@ namespace OBS.Internal
                             this.BeginDoRequest(result);
                             return this.EndPerformRequest(result);
                         }
-                        else if (result.RetryCount > maxErrorRetry && LoggerMgr.IsWarnEnabled)
+                        else if (result.RetryCount > maxErrorRetry && _logger.IsEnabled(LogLevel.Warning))
                         {
-                            LoggerMgr.Warn("Too many errors excced the max error retry count", ex);
+                             _logger.LogWarning(ex,"Too many errors excced the max error retry count");
                         }
-                        if (LoggerMgr.IsErrorEnabled)
+                        if (_logger.IsEnabled(LogLevel.Error))
                         {
-                            LoggerMgr.Error("Rethrowing as a ObsException error in PerformRequest", ex);
+                            _logger.LogError(ex,"Rethrowing as a ObsException error in PerformRequest");
                         }
                         throw ParseObsException(response, ex.Message, ex, result.HttpContext);
                     }
@@ -292,9 +295,9 @@ namespace OBS.Internal
             }
             finally
             {
-                if (LoggerMgr.IsInfoEnabled)
+                if (_logger.IsEnabled(LogLevel.Information))
                 {
-                    LoggerMgr.Info(string.Format("Send http request end, cost {0} ms", (DateTime.Now.Ticks - asyncResult.HttpStartDateTime.Ticks) / 10000));
+                    _logger.LogInformation($"Send http request end, cost {(DateTime.Now.Ticks - asyncResult.HttpStartDateTime.Ticks) / 10000} ms");
                 }
             }
         }
@@ -378,7 +381,7 @@ namespace OBS.Internal
         public void Abort(Exception ex)
         {
             this.Abort();
-            if(ex != null)
+            if (ex != null)
             {
                 this.Set(ex);
             }

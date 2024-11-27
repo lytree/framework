@@ -21,9 +21,10 @@ using System.Reflection;
 using System.Collections.Generic;
 using Framework.OSS.SDK.HuaweiCloud.Internal.Auth;
 using Framework.OSS.SDK.HuaweiCloud.Internal;
-using Framework.OSS.SDK.HuaweiCloud.Internal.Log;
+
 using Framework.OSS.SDK.HuaweiCloud;
 using Framework.OSS.SDK.HuaweiCloud.Model;
+using Microsoft.Extensions.Logging;
 
 namespace OBS.Internal
 {
@@ -67,7 +68,7 @@ namespace OBS.Internal
             }
         }
 
-        internal HttpResponse DoRequest(HttpRequest httpRequest, HttpContext context)
+        internal HttpResponse DoRequest(HttpRequest httpRequest, HttpContext context, ILogger logger)
         {
             if (!context.SkipAuth)
             {
@@ -79,7 +80,7 @@ namespace OBS.Internal
                 httpRequest.Headers.Add(Constants.CommonHeaders.Connection, "Close");
             }
 
-            HttpWebRequest request = HttpWebRequestFactory.BuildWebRequest(httpRequest, context);
+            HttpWebRequest request = HttpWebRequestFactory.BuildWebRequest(httpRequest, context, logger);
 
             DateTime reqTime = DateTime.Now;
 
@@ -113,29 +114,29 @@ namespace OBS.Internal
             }
             finally
             {
-                if (LoggerMgr.IsInfoEnabled)
+                if (logger.IsEnabled(LogLevel.Information))
                 {
-                    LoggerMgr.Info(string.Format("Send http request end, cost {0} ms", (DateTime.Now.Ticks - reqTime.Ticks) / 10000));
+                    logger.LogInformation(string.Format("Send http request end, cost {0} ms", (DateTime.Now.Ticks - reqTime.Ticks) / 10000));
                 }
             }
         }
 
-        internal void PrepareRequestAndContext(HttpRequest request, HttpContext context)
+        internal void PrepareRequestAndContext(HttpRequest request, HttpContext context, ILogger logger)
         {
             IHeaders iheaders = this.GetIHeaders(context);
             CommonUtil.RenameHeaders(request, iheaders.HeaderPrefix(), iheaders.HeaderMetaPrefix());
 
-            if (LoggerMgr.IsDebugEnabled)
+            if (logger.IsEnabled(LogLevel.Debug))
             {
-                LoggerMgr.Debug(string.Format("Perform {0} request for {1}", request.Method, request.GetUrl()));
-                LoggerMgr.Debug("Perform http request with headers:" + CommonUtil.ConvertHeadersToString(request.Headers));
+                logger.LogDebug(string.Format("Perform {0} request for {1}", request.Method, request.GetUrl()));
+                logger.LogDebug("Perform http request with headers:" + CommonUtil.ConvertHeadersToString(request.Headers));
             }
         }
 
-        internal HttpResponse PerformRequest(HttpRequest request, HttpContext context)
+        internal HttpResponse PerformRequest(HttpRequest request, HttpContext context, ILogger logger)
         {
-            this.PrepareRequestAndContext(request, context);
-            HttpResponse response = this.PerformRequest(request, context, 0);
+            this.PrepareRequestAndContext(request, context, logger);
+            HttpResponse response = this.PerformRequest(request, context, 0, logger);
             foreach (HttpResponseHandler handler in context.Handlers)
             {
                 handler.Handle(response);
@@ -143,7 +144,7 @@ namespace OBS.Internal
             return response;
         }
 
-        internal HttpResponse PerformRequest(HttpRequest request, HttpContext context, int retryCount)
+        internal HttpResponse PerformRequest(HttpRequest request, HttpContext context, int retryCount, ILogger logger)
         {
             long originPos = -1;
             HttpResponse response = null;
@@ -153,15 +154,15 @@ namespace OBS.Internal
                 {
                     originPos = request.Content.Position;
                 }
-                response = this.DoRequest(request, context);
+                response = this.DoRequest(request, context, logger);
 
                 new MergeResponseHeaderHandler(this.GetIHeaders(context)).Handle(response);
 
                 int statusCode = Convert.ToInt32(response.StatusCode);
 
-                if (LoggerMgr.IsDebugEnabled)
+                if (logger.IsEnabled(LogLevel.Debug))
                 {
-                    LoggerMgr.Debug(string.Format("Response with statusCode {0} and headers {1}", statusCode, CommonUtil.ConvertHeadersToString(response.Headers)));
+                    logger.LogDebug(string.Format("Response with statusCode {0} and headers {1}", statusCode, CommonUtil.ConvertHeadersToString(response.Headers)));
                 }
 
                 int maxErrorRetry = context.ObsConfig.MaxErrorRetry;
@@ -177,42 +178,42 @@ namespace OBS.Internal
                             {
                                 location += "?" + CommonUtil.ConvertParamsToString(request.Params);
                             }
-                            if (LoggerMgr.IsWarnEnabled)
+                            if (logger.IsEnabled(LogLevel.Warning))
                             {
-                                LoggerMgr.Warn(string.Format("Redirect to {0}", location));
+                                logger.LogWarning(string.Format("Redirect to {0}", location));
                             }
                             context.RedirectLocation = location;
                             retryCount--;
                             if (ShouldRetry(request, null, retryCount, maxErrorRetry))
                             {
-                                PrepareRetry(request, response, retryCount, originPos, false);
-                                return PerformRequest(request, context, ++retryCount);
+                                PrepareRetry(request, response, retryCount, originPos, false, logger);
+                                return PerformRequest(request, context, ++retryCount, logger);
                             }
                             else if (retryCount > maxErrorRetry)
                             {
-                                throw ParseObsException(response, "Exceeded 3xx redirect limit", context);
+                                throw ParseObsException(response, "Exceeded 3xx redirect limit", context, logger);
                             }
                         }
                     }
-                    throw ParseObsException(response, "Try to redirect, but location is null!", context);
+                    throw ParseObsException(response, "Try to redirect, but location is null!", context, logger);
                 }
                 else if ((statusCode >= 400 && statusCode < 500) || statusCode == 304)
                 {
-                    ObsException exception = ParseObsException(response, "Request error", context);
+                    ObsException exception = ParseObsException(response, "Request error", context, logger);
                     if (Constants.RequestTimeout.Equals(exception.ErrorCode))
                     {
                         if (ShouldRetry(request, null, retryCount, maxErrorRetry))
                         {
-                            if (LoggerMgr.IsWarnEnabled)
+                            if (logger.IsEnabled(LogLevel.Warning))
                             {
-                                LoggerMgr.Warn("Retrying connection that failed with RequestTimeout error");
+                                logger.LogWarning("Retrying connection that failed with RequestTimeout error");
                             }
-                            PrepareRetry(request, response, retryCount, originPos, false);
-                            return PerformRequest(request, context, ++retryCount);
+                            PrepareRetry(request, response, retryCount, originPos, false, logger);
+                            return PerformRequest(request, context, ++retryCount, logger);
                         }
-                        else if (retryCount > maxErrorRetry && LoggerMgr.IsErrorEnabled)
+                        else if (retryCount > maxErrorRetry && logger.IsEnabled(LogLevel.Error))
                         {
-                            LoggerMgr.Error("Exceeded maximum number of retries for RequestTimeout errors");
+                            logger.LogError("Exceeded maximum number of retries for RequestTimeout errors");
                         }
                     }
                     throw exception;
@@ -221,14 +222,14 @@ namespace OBS.Internal
                 {
                     if (ShouldRetry(request, null, retryCount, maxErrorRetry))
                     {
-                        PrepareRetry(request, response, retryCount, originPos, true);
-                        return PerformRequest(request, context, ++retryCount);
+                        PrepareRetry(request, response, retryCount, originPos, true, logger);
+                        return PerformRequest(request, context, ++retryCount, logger);
                     }
-                    else if (retryCount > maxErrorRetry && LoggerMgr.IsErrorEnabled)
+                    else if (retryCount > maxErrorRetry && logger.IsEnabled(LogLevel.Error))
                     {
-                        LoggerMgr.Error("Encountered too many 5xx errors");
+                        logger.LogError("Encountered too many 5xx errors");
                     }
-                    throw ParseObsException(response, "Request error", context);
+                    throw ParseObsException(response, "Request error", context, logger);
                 }
                 return response;
             }
@@ -238,9 +239,9 @@ namespace OBS.Internal
                 {
                     if (ex is ObsException)
                     {
-                        if (LoggerMgr.IsErrorEnabled)
+                        if (logger.IsEnabled(LogLevel.Error))
                         {
-                            LoggerMgr.Error("Rethrowing as a ObsException error in PerformRequest", ex);
+                            logger.LogError(ex, "Rethrowing as a ObsException error in PerformRequest");
                         }
                         throw ex;
                     }
@@ -248,18 +249,18 @@ namespace OBS.Internal
                     {
                         if (ShouldRetry(request, ex, retryCount, context.ObsConfig.MaxErrorRetry))
                         {
-                            PrepareRetry(request, response, retryCount, originPos, true);
-                            return PerformRequest(request, context, ++retryCount);
+                            PrepareRetry(request, response, retryCount, originPos, true, logger);
+                            return PerformRequest(request, context, ++retryCount, logger);
                         }
-                        else if (retryCount > context.ObsConfig.MaxErrorRetry && LoggerMgr.IsWarnEnabled)
+                        else if (retryCount > context.ObsConfig.MaxErrorRetry && logger.IsEnabled(LogLevel.Warning))
                         {
-                            LoggerMgr.Warn("Too many errors excced the max error retry count", ex);
+                            logger.LogWarning(ex, "Too many errors excced the max error retry count");
                         }
-                        if (LoggerMgr.IsErrorEnabled)
+                        if (logger.IsEnabled(LogLevel.Error))
                         {
-                            LoggerMgr.Error("Rethrowing as a ObsException error in PerformRequest", ex);
+                            logger.LogError(ex, "Rethrowing as a ObsException error in PerformRequest");
                         }
-                        throw ParseObsException(response, ex.Message, ex, context);
+                        throw ParseObsException(response, ex.Message, ex, context, logger);
                     }
                 }
                 finally
@@ -269,7 +270,7 @@ namespace OBS.Internal
             }
         }
 
-        private void PrepareRetry(HttpRequest request, HttpResponse response, int retryCount, long originPos, bool sleep)
+        private void PrepareRetry(HttpRequest request, HttpResponse response, int retryCount, long originPos, bool sleep, ILogger logger)
         {
             CommonUtil.CloseIDisposable(response);
 
@@ -284,19 +285,19 @@ namespace OBS.Internal
             if (sleep)
             {
                 int delay = (int)Math.Pow(2, retryCount) * 50;
-                if (LoggerMgr.IsWarnEnabled)
+                if (logger.IsEnabled(LogLevel.Warning))
                 {
-                    LoggerMgr.Warn(string.Format("Send http request error, will retry in {0} ms", delay));
+                    logger.LogWarning(string.Format("Send http request error, will retry in {0} ms", delay));
                 }
                 Thread.Sleep(delay);
             }
         }
-        private ObsException ParseObsException(HttpResponse response, string message, HttpContext context)
+        private ObsException ParseObsException(HttpResponse response, string message, HttpContext context, ILogger logger)
         {
-            return ParseObsException(response, message, null, context);
+            return ParseObsException(response, message, null, context, logger);
         }
 
-        private ObsException ParseObsException(HttpResponse response, string message, Exception ex, HttpContext context)
+        private ObsException ParseObsException(HttpResponse response, string message, Exception ex, HttpContext context, ILogger logger)
         {
             ObsException exception = new ObsException(message, ex);
             if (response != null)
@@ -325,9 +326,9 @@ namespace OBS.Internal
                 catch (Exception ee)
                 {
                     exception.ErrorMessage = ee.Message;
-                    if (LoggerMgr.IsErrorEnabled)
+                    if (logger.IsEnabled(LogLevel.Error))
                     {
-                        LoggerMgr.Error(ee.Message, ee);
+                        logger.LogError(ee.Message, ee);
                     }
                 }
 
@@ -417,19 +418,19 @@ namespace OBS.Internal
             return true;
         }
 
-        internal static HttpWebRequest BuildWebRequest(HttpRequest request, HttpContext context)
+        internal static HttpWebRequest BuildWebRequest(HttpRequest request, HttpContext context, ILogger logger)
         {
-            if (LoggerMgr.IsDebugEnabled)
+            if (logger.IsEnabled(LogLevel.Debug))
             {
-                LoggerMgr.Debug("Perform http request with url:" + request.GetUrl());
+                logger.LogDebug("Perform http request with url:" + request.GetUrl());
             }
 
             string url = string.IsNullOrEmpty(context.RedirectLocation) ? request.GetUrl() : context.RedirectLocation;
             ObsConfig obsConfig = context.ObsConfig;
             HttpWebRequest webRequest = WebRequest.Create(url) as HttpWebRequest;
 
-            AddHeaders(webRequest, request, obsConfig);
-            AddProxy(webRequest, obsConfig);
+            AddHeaders(webRequest, request, obsConfig, logger);
+            AddProxy(webRequest, obsConfig, logger);
 
             if (webRequest.RequestUri.Scheme.Equals("https") && !obsConfig.ValidateCertificate)
             {
@@ -458,7 +459,7 @@ namespace OBS.Internal
 
 
         private static void AddHeaders(HttpWebRequest webRequest, HttpRequest request,
-                                              ObsConfig obsConfig)
+                                              ObsConfig obsConfig, ILogger logger)
         {
 
             webRequest.Timeout = obsConfig.Timeout;
@@ -499,7 +500,7 @@ namespace OBS.Internal
         }
 
 
-        private static void AddProxy(HttpWebRequest webRequest, ObsConfig obsConfig)
+        private static void AddProxy(HttpWebRequest webRequest, ObsConfig obsConfig, ILogger logger)
         {
 
             webRequest.Proxy = null;
@@ -526,10 +527,10 @@ namespace OBS.Internal
 
                 webRequest.PreAuthenticate = true;
 
-                if (LoggerMgr.IsInfoEnabled)
+                if (logger.IsEnabled(LogLevel.Information))
                 {
 
-                    LoggerMgr.Info(string.Format("Send http request using proxy {0}:{1}", obsConfig.ProxyHost, obsConfig.ProxyPort));
+                    logger.LogInformation(string.Format("Send http request using proxy {0}:{1}", obsConfig.ProxyHost, obsConfig.ProxyPort));
                 }
 
             }

@@ -8,6 +8,7 @@ using Framework.OSS.Models.Huawei;
 using Framework.OSS.Models.Policy;
 using Framework.OSS.SDK.HuaweiCloud.Model;
 using Framework.OSS.Utils;
+using Microsoft.Extensions.Logging;
 using OBS;
 using OBS.Model;
 using System;
@@ -39,8 +40,8 @@ namespace Framework.OSS.Services
             }
         }
 
-        public HaweiOSSService(ICacheProvider cache, OSSOptions options)
-            : base(cache, options)
+        public HaweiOSSService(ICacheProvider cache, OSSOptions options, ILoggerFactory loggerFactory)
+            : base(cache, options,loggerFactory)
         {
             string endPoint = options.Endpoint;
             //如果是不带协议的endpoint，添加协议

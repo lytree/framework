@@ -13,7 +13,7 @@
 //----------------------------------------------------------------------------------*/
 using Framework.OSS.SDK.HuaweiCloud;
 using Framework.OSS.SDK.HuaweiCloud.Internal;
-using Framework.OSS.SDK.HuaweiCloud.Internal.Log;
+
 using System;
 using System.IO;
 

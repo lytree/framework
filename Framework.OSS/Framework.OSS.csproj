@@ -14,8 +14,8 @@
 		</Resource>
 	</ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 		<PackageReference Include="Aliyun.OSS.SDK.NetCore" VersionOverride="2.14.1" />
-		<PackageReference Include="BceSdkDotNetCore" VersionOverride="1.0.6.1123" />
 		<PackageReference Include="Microsoft.CSharp" VersionOverride="4.7.0" />
 		<PackageReference Include="Minio" VersionOverride="6.0.3" />
 		<PackageReference Include="Qiniu" VersionOverride="8.7.0" />

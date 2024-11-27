@@ -69,19 +69,17 @@ namespace Framework.OSS
             switch (options.Provider)
             {
                 case OSSProvider.Aliyun:
-                    return new AliyunOSSService(_cache, options);
+                    return new AliyunOSSService(_cache, options, logger);
                 case OSSProvider.Minio:
-                    return new MinioOSSService(_cache, options);
+                    return new MinioOSSService(_cache, options, logger);
                 case OSSProvider.QCloud:
-                    return new QCloudOSSService(_cache, options);
+                    return new QCloudOSSService(_cache, options, logger);
                 case OSSProvider.Qiniu:
-                    return new QiniuOSSService(_cache, options);
+                    return new QiniuOSSService(_cache, options, logger);
                 case OSSProvider.HuaweiCloud:
-                    return new HaweiOSSService(_cache, options);
-                case OSSProvider.BaiduCloud:
-                    return new BaiduOSSService(_cache, options);
+                    return new HaweiOSSService(_cache, options, logger);
                 case OSSProvider.Ctyun:
-                    return new CtyunOSSService(_cache, options);
+                    return new CtyunOSSService(_cache, options, logger);
                 default:
                     throw new Exception("Unknow provider type");
             }
