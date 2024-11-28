@@ -19,6 +19,7 @@ using Framework.OSS.SDK.HuaweiCloud;
 using Framework.OSS.SDK.HuaweiCloud.Internal;
 
 using Framework.OSS.SDK.HuaweiCloud.Internal.Negotiation;
+using Microsoft.Extensions.Logging;
 using OBS.Internal;
 
 namespace OBS
@@ -44,24 +45,24 @@ namespace OBS
             try
             {
                 HttpObsAsyncResult result = this.httpClient.BeginPerformRequest(this.PrepareHttpRequest(request, context), context, callback, state);
-                
+
                 result.AdditionalState = new object[] { request, context };
                 return result;
             }
             catch (ObsException ex)
             {
-                if (LoggerMgr.IsErrorEnabled)
+                if (_logger.IsEnabled(LogLevel.Error))
                 {
-                    LoggerMgr.Error(string.Format("{0} exception code: {1}, with message: {2}", request.GetAction(), ex.ErrorCode, ex.Message));
+                    _logger.LogError(string.Format("{0} exception code: {1}, with message: {2}", request.GetAction(), ex.ErrorCode, ex.Message));
 
                 }
                 throw ex;
             }
             catch (Exception ex)
             {
-                if (LoggerMgr.IsErrorEnabled)
+                if (_logger.IsEnabled(LogLevel.Error))
                 {
-                    LoggerMgr.Error(string.Format("{0} exception with message: {1}", request.GetAction(), ex.Message));
+                    _logger.LogError(string.Format("{0} exception with message: {1}", request.GetAction(), ex.Message));
                 }
                 throw new ObsException(ex.Message, ex);
             }
@@ -82,8 +83,8 @@ namespace OBS
                 throw new ObsException(Constants.NullRequestMessage, ErrorType.Sender, Constants.NullRequest, "");
             }
             HttpObsAsyncResult result = ar as HttpObsAsyncResult;
-            
-            if(result == null)
+
+            if (result == null)
             {
                 throw new ObsException(Constants.NullRequestMessage, ErrorType.Sender, Constants.NullRequest, "");
             }
@@ -91,27 +92,27 @@ namespace OBS
 
             T request = additionalState[0] as T;
             HttpContext context = additionalState[1] as HttpContext;
-            
+
             try
             {
-                
+
                 HttpResponse httpResponse = this.httpClient.EndPerformRequest(result);
                 return this.PrepareResponse<T, K>(request, context, result.HttpRequest, httpResponse);
             }
             catch (ObsException ex)
             {
-                if (LoggerMgr.IsErrorEnabled)
+                if (_logger.IsEnabled(LogLevel.Error))
                 {
-                    LoggerMgr.Error(string.Format("{0} exception code: {1}, with message: {2}", request.GetAction(), ex.ErrorCode, ex.Message));
+                    _logger.LogError(string.Format("{0} exception code: {1}, with message: {2}", request.GetAction(), ex.ErrorCode, ex.Message));
 
                 }
                 throw ex;
             }
             catch (Exception ex)
             {
-                if (LoggerMgr.IsErrorEnabled)
+                if (_logger.IsEnabled(LogLevel.Error))
                 {
-                    LoggerMgr.Error(string.Format("{0} exception with message: {1}", request.GetAction(), ex.Message));
+                    _logger.LogError(string.Format("{0} exception with message: {1}", request.GetAction(), ex.Message));
                 }
                 throw new ObsException(ex.Message, ex);
             }
@@ -124,13 +125,13 @@ namespace OBS
                         request.Sender = null;
                     }
 
-                    CommonUtil.CloseIDisposable(result.HttpRequest);
+                    CommonUtil.CloseIDisposable(result.HttpRequest, _logger);
                 }
 
-                if (LoggerMgr.IsInfoEnabled)
+                if (_logger.IsEnabled(LogLevel.Information))
                 {
 
-                    LoggerMgr.Info(string.Format("{0} end, cost {1} ms", request.GetAction(), (DateTime.Now - result.RequestStartDateTime).TotalMilliseconds));
+                    _logger.LogInformation(string.Format("{0} end, cost {1} ms", request.GetAction(), (DateTime.Now - result.RequestStartDateTime).TotalMilliseconds));
                 }
             }
         }
