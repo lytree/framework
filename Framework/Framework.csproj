@@ -13,7 +13,6 @@
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>		
 	</PropertyGroup>
 
-
 	<ItemGroup>
 		<PackageReference Include="SharpCompress" />
 		<PackageReference Include="System.IO.Pipelines" />

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Framework;
 
-public  static partial class Helper
+public static partial class Helper
 {
 	// Base32 字符集，共 32 个字符
 
