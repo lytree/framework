@@ -6,6 +6,7 @@ using Framework.OSS.Interface.Service;
 using Framework.OSS.Models;
 using Framework.OSS.Models.Exceptions;
 using Framework.OSS.Models.Policy;
+using Microsoft.Extensions.Logging;
 using Bucket = Framework.OSS.Models.Bucket;
 using Owner = Framework.OSS.Models.Owner;
 

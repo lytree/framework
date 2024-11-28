@@ -1,6 +1,8 @@
 ﻿using Framework.OSS;
 using Framework.OSS.Models;
 using Framework.OSS.Utils;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Threading.Tasks;
 
@@ -9,6 +11,7 @@ namespace Framework.OSS.Interface.Base
     public abstract class BaseOSSService
     {
         private readonly ICacheProvider _cache;
+
         public OSSOptions Options { get; private set; }
 
         public BaseOSSService(ICacheProvider cache, OSSOptions options)

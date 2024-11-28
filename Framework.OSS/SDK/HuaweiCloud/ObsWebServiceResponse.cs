@@ -12,6 +12,7 @@
 // specific language governing permissions and limitations under the License.
 //----------------------------------------------------------------------------------*/
 using Framework.OSS.SDK.HuaweiCloud.Internal;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -23,6 +24,7 @@ namespace Framework.OSS.SDK.HuaweiCloud
     /// </summary>
     public class ObsWebServiceResponse : IDisposable
     {
+        private static readonly ILogger _logger = OSSServiceFactory.CreateLogger<ObsWebServiceResponse>();
         private bool _disposed = false;
 
         private IDictionary<string, string> _headers;
@@ -98,7 +100,7 @@ namespace Framework.OSS.SDK.HuaweiCloud
             {
                 if (OriginalResponse.Content != null && ContentLength > 0)
                 {
-                    CommonUtil.CloseIDisposable(OriginalResponse);
+                    CommonUtil.CloseIDisposable(OriginalResponse, _logger);
                 }
                 _disposed = true;
             }

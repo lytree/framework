@@ -16,10 +16,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Net;
-using Framework.OSS.SDK.HuaweiCloud.Internal.Log;
 using Framework.OSS.SDK.HuaweiCloud.Model;
 using Framework.OSS.SDK.HuaweiCloud.Internal;
 using Framework.OSS.SDK.HuaweiCloud;
+using Microsoft.Extensions.Logging;
 
 namespace OBS
 {
@@ -145,7 +145,7 @@ namespace OBS
 
                     catch (Exception ex)
                     {
-                        LoggerMgr.Warn(string.Format("Load checkpoint file with path {0} error", resumableUploadRequest.CheckpointFile), ex);
+                        _logger.LogWarning(string.Format("Load checkpoint file with path {0} error", resumableUploadRequest.CheckpointFile), ex);
                         loadFileFlag = false;
                     }
                 }
@@ -587,9 +587,9 @@ namespace OBS
                         param.eventHandler(this, e);
                     }
 
-                    if (LoggerMgr.IsDebugEnabled)
+                    if (_logger.IsEnabled(LogLevel.Debug))
                     {
-                        LoggerMgr.Debug(string.Format("PartNumber {0} is done, PartSize {1}, Offset {2}", uploadPart.PartNumber,
+                        _logger.LogDebug(string.Format("PartNumber {0} is done, PartSize {1}, Offset {2}", uploadPart.PartNumber,
                             uploadPart.Size, uploadPart.Offset));
                     }
 
@@ -782,7 +782,7 @@ namespace OBS
             }
             catch (ObsException ex)
             {
-                LoggerMgr.Warn("Abort multipart upload failed", ex);
+                _logger.LogWarning(ex, "Abort multipart upload failed");
             }
         }
         #endregion
@@ -1238,7 +1238,7 @@ namespace OBS
                         }
                     }
 
-                    LoggerMgr.Debug($"No {downloadPart.PartNumber} part ContentLength is {getObjectResponse.ContentLength} and Part size is ：{downloadPart.End - downloadPart.Start}");
+                    _logger.LogDebug($"No {downloadPart.PartNumber} part ContentLength is {getObjectResponse.ContentLength} and Part size is ：{downloadPart.End - downloadPart.Start}");
                     partResultDown.IsFailed = false;
                     downloadPart.IsCompleted = true;
 
@@ -1268,9 +1268,9 @@ namespace OBS
             }
             catch (ObsException ex)
             {
-                if (LoggerMgr.IsErrorEnabled)
+                if (_logger.IsEnabled(LogLevel.Error))
                 {
-                    LoggerMgr.Error(string.Format("DownloadPartExcute exception code: {0}, with message: {1}", ex.ErrorCode, ex.Message), ex);
+                    _logger.LogError(string.Format("DownloadPartExcute exception code: {0}, with message: {1}", ex.ErrorCode, ex.Message), ex);
                 }
 
                 if (ex.StatusCode >= HttpStatusCode.BadRequest && ex.StatusCode < HttpStatusCode.InternalServerError)
@@ -1289,9 +1289,9 @@ namespace OBS
             }
             catch (Exception ex)
             {
-                if (LoggerMgr.IsErrorEnabled)
+                if (_logger.IsEnabled(LogLevel.Error))
                 {
-                    LoggerMgr.Error("Error in DownloadPartExcute", ex);
+                    _logger.LogError(ex, "Error in DownloadPartExcute");
                 }
 
                 partResultDown.IsFailed = true;
@@ -1308,9 +1308,9 @@ namespace OBS
             }
             finally
             {
-                if (LoggerMgr.IsDebugEnabled)
+                if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    LoggerMgr.Debug($"No {downloadPart.PartNumber} part finally download {(partResultDown.IsFailed ? "Failed" : "Succeed")}, Start at {downloadPart.Start}, End at {downloadPart.End}");
+                    _logger.LogDebug($"No {downloadPart.PartNumber} part finally download {(partResultDown.IsFailed ? "Failed" : "Succeed")}, Start at {downloadPart.Start}, End at {downloadPart.End}");
                 }
 
                 param.partResultDown = partResultDown;

@@ -19,8 +19,9 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using System.Reflection;
-using Framework.OSS.SDK.HuaweiCloud.Internal.Log;
+
 using Framework.OSS.SDK.HuaweiCloud.Model;
+using Microsoft.Extensions.Logging;
 
 namespace Framework.OSS.SDK.HuaweiCloud.Internal
 {
@@ -36,7 +37,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
         private static readonly Regex ChinesePattern = new Regex("[\u4e00-\u9fa5]");
         private static readonly Regex IPPattern = new Regex(@"^((2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(2[0-4]\d|25[0-5]|[01]?\d\d?)$");
 
-        public static void CloseIDisposable(IDisposable disposable)
+        public static void CloseIDisposable(IDisposable disposable,ILogger logger)
         {
             if (disposable != null)
             {
@@ -46,9 +47,9 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                 }
                 catch (Exception ee)
                 {
-                    if (LoggerMgr.IsErrorEnabled)
+                    if (logger.IsEnabled(LogLevel.Error))
                     {
-                        LoggerMgr.Error(ee.Message, ee);
+                        logger.LogError(ee.Message, ee);
                     }
                 }
             }
@@ -129,12 +130,12 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
             request.Headers = headers;
         }
 
-        public static void WriteTo(Stream src, Stream dest, int bufferSize)
+        public static void WriteTo(Stream src, Stream dest, int bufferSize,ILogger logger)
         {
-            WriteTo(src, dest, bufferSize, null);
+            WriteTo(src, dest, bufferSize, null,logger);
         }
 
-        public static void WriteTo(Stream src, Stream dest, int bufferSize, ObsCallback callback)
+        public static void WriteTo(Stream src, Stream dest, int bufferSize, ObsCallback callback,ILogger logger)
         {
             DateTime reqTime = DateTime.Now;
             byte[] buffer = new byte[bufferSize];
@@ -145,9 +146,9 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                 callback?.Invoke();
             }
             dest.Flush();
-            if (LoggerMgr.IsInfoEnabled)
+            if (logger.IsEnabled(LogLevel.Information))
             {
-                LoggerMgr.Info(string.Format("Write http request stream end, cost {0} ms", (DateTime.Now.Ticks - reqTime.Ticks) / 10000));
+                logger.LogInformation(string.Format("Write http request stream end, cost {0} ms", (DateTime.Now.Ticks - reqTime.Ticks) / 10000));
             }
         }
 
@@ -178,13 +179,14 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
             }
         }
 
-        public static long WriteTo(Stream orignStream, Stream destStream, long totalSize, int bufferSize)
+        public static long WriteTo(Stream orignStream, Stream destStream, long totalSize, int bufferSize,ILogger logger)
         {
-            return WriteTo(orignStream, destStream, totalSize, bufferSize, null);
+            return WriteTo(orignStream, destStream, totalSize, bufferSize, null,logger);
         }
 
-        public static long WriteTo(Stream orignStream, Stream destStream, long totalSize, int bufferSize, ObsCallback callback)
+        public static long WriteTo(Stream orignStream, Stream destStream, long totalSize, int bufferSize, ObsCallback callback,ILogger logger)
         {
+
             DateTime reqTime = DateTime.Now;
             byte[] buffer = new byte[bufferSize];
 
@@ -207,10 +209,10 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
             }
             destStream.Flush();
 
-            if (LoggerMgr.IsInfoEnabled)
+            if (logger.IsEnabled(LogLevel.Information))
             {
 
-                LoggerMgr.Info(string.Format("Write http request stream end, cost {0} ms", (DateTime.Now.Ticks - reqTime.Ticks) / 10000));
+                logger.LogInformation(string.Format("Write http request stream end, cost {0} ms", (DateTime.Now.Ticks - reqTime.Ticks) / 10000));
             }
 
             return alreadyRead;
@@ -436,7 +438,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
         }
 
 
-        public static int? ParseToInt32(string value)
+        public static int? ParseToInt32(string value,ILogger logger)
         {
             try
             {
@@ -444,15 +446,15 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
             }
             catch (Exception ex)
             {
-                if (LoggerMgr.IsWarnEnabled)
+                if (logger.IsEnabled(LogLevel.Warning))
                 {
-                    LoggerMgr.Warn(string.Format("Parse {0} to Int32 failed", value), ex);
+                    logger.LogWarning(string.Format("Parse {0} to Int32 failed", value), ex);
                 }
                 return null;
             }
         }
 
-        public static long? ParseToInt64(string value)
+        public static long? ParseToInt64(string value,ILogger logger)
         {
             try
             {
@@ -460,15 +462,15 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
             }
             catch (Exception ex)
             {
-                if (LoggerMgr.IsWarnEnabled)
+                if (logger.IsEnabled(LogLevel.Warning))
                 {
-                    LoggerMgr.Warn(string.Format("Parse {0} to Int64 failed", value), ex);
+                    logger.LogWarning(string.Format("Parse {0} to Int64 failed", value), ex);
                 }
                 return null;
             }
         }
 
-        public static DateTime? ParseToDateTime(string value, string format1, string format2)
+        public static DateTime? ParseToDateTime(string value, string format1, string format2,ILogger logger)
         {
             try
             {
@@ -482,18 +484,18 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                 }
                 catch (Exception ex)
                 {
-                    if (LoggerMgr.IsWarnEnabled)
+                    if (logger.IsEnabled(LogLevel.Warning))
                     {
-                        LoggerMgr.Warn(string.Format("Parse {0} to DateTime failed", value), ex);
+                        logger.LogWarning(string.Format("Parse {0} to DateTime failed", value), ex);
                     }
                     return null;
                 }
             }
         }
 
-        public static DateTime? ParseToDateTime(string value)
+        public static DateTime? ParseToDateTime(string value,ILogger logger)
         {
-            return ParseToDateTime(value, Constants.ISO8601DateFormat, Constants.ISO8601DateFormatNoMS);
+            return ParseToDateTime(value, Constants.ISO8601DateFormat, Constants.ISO8601DateFormatNoMS,logger);
         }
 
     }

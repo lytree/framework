@@ -6,6 +6,7 @@ using Framework.OSS.Models.Ctyun;
 using Framework.OSS.Models.Exceptions;
 using Framework.OSS.Models.Policy;
 using Framework.OSS.SDK.Ctyun;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;

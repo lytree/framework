@@ -18,11 +18,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using Framework.OSS.SDK.HuaweiCloud.Model;
+using Microsoft.Extensions.Logging;
 
 namespace Framework.OSS.SDK.HuaweiCloud.Internal
 {
     internal class V2Parser : IParser
     {
+        private static readonly ILogger _logger = OSSServiceFactory.CreateLogger<V2Parser>();
 
         protected IHeaders iheaders;
 
@@ -143,7 +145,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                     }
                     else if ("CreationDate".Equals(reader.Name))
                     {
-                        currentBucket.CreationDate = CommonUtil.ParseToDateTime(reader.ReadString());
+                        currentBucket.CreationDate = CommonUtil.ParseToDateTime(reader.ReadString(), _logger);
                     }
                     else if ("Location".Equals(reader.Name))
                     {
@@ -287,7 +289,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                     }
                     else if ("MaxKeys".Equals(xmlReader.Name))
                     {
-                        response.MaxKeys = CommonUtil.ParseToInt32(xmlReader.ReadString());
+                        response.MaxKeys = CommonUtil.ParseToInt32(xmlReader.ReadString(),_logger);
                     }
                     else if ("Delimiter".Equals(xmlReader.Name))
                     {
@@ -311,7 +313,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                     }
                     else if ("LastModified".Equals(xmlReader.Name))
                     {
-                        currentObject.LastModified = CommonUtil.ParseToDateTime(xmlReader.ReadString());
+                        currentObject.LastModified = CommonUtil.ParseToDateTime(xmlReader.ReadString(),_logger);
                     }
                     else if ("ETag".Equals(xmlReader.Name))
                     {
@@ -402,7 +404,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                     }
                     else if ("MaxKeys".Equals(xmlReader.Name))
                     {
-                        response.MaxKeys = CommonUtil.ParseToInt32(xmlReader.ReadString());
+                        response.MaxKeys = CommonUtil.ParseToInt32(xmlReader.ReadString(),_logger);
                     }
                     else if ("Delimiter".Equals(xmlReader.Name))
                     {
@@ -439,7 +441,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                     }
                     else if ("LastModified".Equals(xmlReader.Name))
                     {
-                        currentObject.LastModified = CommonUtil.ParseToDateTime(xmlReader.ReadString());
+                        currentObject.LastModified = CommonUtil.ParseToDateTime(xmlReader.ReadString(),_logger);
                     }
                     else if ("IsLatest".Equals(xmlReader.Name))
                     {
@@ -544,7 +546,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                     }
                     else if ("MaxUploads".Equals(xmlReader.Name))
                     {
-                        response.MaxUploads = CommonUtil.ParseToInt32(xmlReader.ReadString());
+                        response.MaxUploads = CommonUtil.ParseToInt32(xmlReader.ReadString(),_logger);
                     }
                     else if ("Delimiter".Equals(xmlReader.Name))
                     {
@@ -572,7 +574,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                     }
                     else if ("Initiated".Equals(xmlReader.Name))
                     {
-                        currentUpload.Initiated = CommonUtil.ParseToDateTime(xmlReader.ReadString());
+                        currentUpload.Initiated = CommonUtil.ParseToDateTime(xmlReader.ReadString(),_logger);
                     }
                     else if ("Initiator".Equals(xmlReader.Name))
                     {
@@ -762,7 +764,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                     }
                     else if ("MaxAgeSeconds".Equals(xmlReader.Name))
                     {
-                        currentCorsRule.MaxAgeSeconds = CommonUtil.ParseToInt32(xmlReader.ReadString());
+                        currentCorsRule.MaxAgeSeconds = CommonUtil.ParseToInt32(xmlReader.ReadString(),_logger);
                     }
                     else if ("ExposeHeader".Equals(xmlReader.Name))
                     {
@@ -857,22 +859,22 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                     {
                         if (innerExpiration)
                         {
-                            currentRule.Expiration.Days = CommonUtil.ParseToInt32(xmlReader.ReadString());
+                            currentRule.Expiration.Days = CommonUtil.ParseToInt32(xmlReader.ReadString(),_logger);
                         }
                         else if (innerTransition)
                         {
-                            currentTransition.Days = CommonUtil.ParseToInt32(xmlReader.ReadString());
+                            currentTransition.Days = CommonUtil.ParseToInt32(xmlReader.ReadString(),_logger);
                         }
                     }
                     else if ("Date".Equals(xmlReader.Name))
                     {
                         if (innerExpiration)
                         {
-                            currentRule.Expiration.Date = CommonUtil.ParseToDateTime(xmlReader.ReadString());
+                            currentRule.Expiration.Date = CommonUtil.ParseToDateTime(xmlReader.ReadString(),_logger);
                         }
                         else if (innerTransition)
                         {
-                            currentTransition.Date = CommonUtil.ParseToDateTime(xmlReader.ReadString());
+                            currentTransition.Date = CommonUtil.ParseToDateTime(xmlReader.ReadString(),_logger);
                         }
                     }
                     else if ("NoncurrentDays".Equals(xmlReader.Name))
@@ -1320,15 +1322,15 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                     }
                     else if ("PartNumberMarker".Equals(xmlReader.Name))
                     {
-                        response.PartNumberMarker = CommonUtil.ParseToInt32(xmlReader.ReadString());
+                        response.PartNumberMarker = CommonUtil.ParseToInt32(xmlReader.ReadString(),_logger);
                     }
                     else if ("NextPartNumberMarker".Equals(xmlReader.Name))
                     {
-                        response.NextPartNumberMarker = CommonUtil.ParseToInt32(xmlReader.ReadString());
+                        response.NextPartNumberMarker = CommonUtil.ParseToInt32(xmlReader.ReadString(),_logger);
                     }
                     else if ("MaxParts".Equals(xmlReader.Name))
                     {
-                        response.MaxParts = CommonUtil.ParseToInt32(xmlReader.ReadString());
+                        response.MaxParts = CommonUtil.ParseToInt32(xmlReader.ReadString(),_logger);
                     }
                     else if ("IsTruncated".Equals(xmlReader.Name))
                     {
@@ -1348,7 +1350,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                     }
                     else if ("LastModified".Equals(xmlReader.Name))
                     {
-                        currentPart.LastModified = CommonUtil.ParseToDateTime(xmlReader.ReadString());
+                        currentPart.LastModified = CommonUtil.ParseToDateTime(xmlReader.ReadString(),_logger);
                     }
                     else if ("ETag".Equals(xmlReader.Name))
                     {
@@ -1542,7 +1544,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                 {
                     if ("LastModified".Equals(xmlReader.Name))
                     {
-                        response.LastModified = CommonUtil.ParseToDateTime(xmlReader.ReadString());
+                        response.LastModified = CommonUtil.ParseToDateTime(xmlReader.ReadString(),_logger);
                     }
                     else if ("ETag".Equals(xmlReader.Name))
                     {
@@ -1587,7 +1589,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                 {
                     if ("LastModified".Equals(xmlReader.Name))
                     {
-                        response.LastModified = CommonUtil.ParseToDateTime(xmlReader.ReadString());
+                        response.LastModified = CommonUtil.ParseToDateTime(xmlReader.ReadString(),_logger);
                     }
                     else if ("ETag".Equals(xmlReader.Name))
                     {
@@ -1692,7 +1694,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
 
             if (httpResponse.Headers.ContainsKey(Constants.CommonHeaders.LastModified))
             {
-                response.LastModified = CommonUtil.ParseToDateTime(httpResponse.Headers[Constants.CommonHeaders.LastModified], Constants.RFC822DateFormat, Constants.ISO8601DateFormat);
+                response.LastModified = CommonUtil.ParseToDateTime(httpResponse.Headers[Constants.CommonHeaders.LastModified], Constants.RFC822DateFormat, Constants.ISO8601DateFormat,_logger);
             }
 
             if (httpResponse.Headers.ContainsKey(iheaders.StorageClassHeader()))
@@ -1721,7 +1723,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                     if (m.Success)
                     {
                         response.RestoreStatus.Restored = !Convert.ToBoolean(m.Groups["ongoing"].Value);
-                        response.RestoreStatus.ExpiryDate = CommonUtil.ParseToDateTime(m.Groups["date"].Value, Constants.RFC822DateFormat, Constants.ISO8601DateFormat);
+                        response.RestoreStatus.ExpiryDate = CommonUtil.ParseToDateTime(m.Groups["date"].Value, Constants.RFC822DateFormat, Constants.ISO8601DateFormat,_logger);
                     }
                 }
                 else
@@ -1742,7 +1744,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                 {
                     response.ExpirationDetail = new ExpirationDetail();
                     response.ExpirationDetail.RuleId = m.Groups["id"].Value;
-                    response.ExpirationDetail.ExpiryDate = CommonUtil.ParseToDateTime(m.Groups["date"].Value, Constants.RFC822DateFormat, Constants.ISO8601DateFormat);
+                    response.ExpirationDetail.ExpiryDate = CommonUtil.ParseToDateTime(m.Groups["date"].Value, Constants.RFC822DateFormat, Constants.ISO8601DateFormat,_logger);
                 }
             }
 

@@ -8,7 +8,7 @@ using Framework.OSS.Models.Policy;
 using Framework.OSS.Models.Qiniu;
 using Framework.OSS.Providers;
 using Framework.OSS.Utils;
-
+using Microsoft.Extensions.Logging;
 using Qiniu.Http;
 using Qiniu.Storage;
 using Qiniu.Util;

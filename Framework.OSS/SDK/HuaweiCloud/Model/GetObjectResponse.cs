@@ -13,7 +13,7 @@
 //----------------------------------------------------------------------------------*/
 using Framework.OSS.SDK.HuaweiCloud;
 using Framework.OSS.SDK.HuaweiCloud.Internal;
-using Framework.OSS.SDK.HuaweiCloud.Internal.Log;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 
@@ -26,7 +26,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Model
     /// </summary>
     public class GetObjectResponse : GetObjectMetadataResponse
     {
-
+        private static readonly ILogger _logger = OSSServiceFactory.CreateLogger<GetObjectResponse>();
         private bool _disposed = false;
         private Stream _outputStream;
 
@@ -123,17 +123,17 @@ namespace Framework.OSS.SDK.HuaweiCloud.Model
             }
             catch (ObsException ex)
             {
-                if (LoggerMgr.IsErrorEnabled)
+                if (_logger.IsEnabled(LogLevel.Error))
                 {
-                    LoggerMgr.Error(ex.Message, ex);
+                    _logger.LogError(ex, ex.Message);
                 }
                 throw ex;
             }
             catch (Exception ex)
             {
-                if (LoggerMgr.IsErrorEnabled)
+                if (_logger.IsEnabled(LogLevel.Error))
                 {
-                    LoggerMgr.Error(ex.Message, ex);
+                    _logger.LogError(ex, ex.Message);
                 }
                 ObsException exception = new ObsException(ex.Message, ex);
                 exception.ErrorType = ErrorType.Receiver;

@@ -19,13 +19,15 @@ using System.IO;
 using OBS.Model;
 using Framework.OSS.SDK.HuaweiCloud.Model;
 using Framework.OSS.SDK.HuaweiCloud.Internal.Negotiation;
-using Framework.OSS.SDK.HuaweiCloud.Internal.Log;
+using Microsoft.Extensions.Logging;
+
 
 namespace Framework.OSS.SDK.HuaweiCloud.Internal
 {
     internal class V2Convertor : IConvertor
     {
 
+        private static readonly ILogger _logger = OSSServiceFactory.CreateLogger<V2Convertor>();
         protected IHeaders iheaders;
 
         protected V2Convertor(IHeaders iheaders)
@@ -1531,7 +1533,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                     }
                     catch (Exception e)
                     {
-                        LoggerMgr.Warn("Cannot get content length from origin stream", e);
+                        _logger.LogWarning(e, "Cannot get content length from origin stream");
                     }
                 }
                 TransferStreamManager mgr;
@@ -1762,7 +1764,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                     }
                     catch (Exception e)
                     {
-                        LoggerMgr.Warn("Cannot get content length from origin stream", e);
+                        _logger.LogWarning(e, "Cannot get content length from origin stream");
                     }
                 }
                 TransferStreamManager mgr;

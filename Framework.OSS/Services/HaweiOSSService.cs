@@ -8,6 +8,7 @@ using Framework.OSS.Models.Huawei;
 using Framework.OSS.Models.Policy;
 using Framework.OSS.SDK.HuaweiCloud.Model;
 using Framework.OSS.Utils;
+using Microsoft.Extensions.Logging;
 using OBS;
 using OBS.Model;
 using System;

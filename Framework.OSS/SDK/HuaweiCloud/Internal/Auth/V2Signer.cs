@@ -11,11 +11,13 @@
 // CONDITIONS OF ANY KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations under the License.
 //----------------------------------------------------------------------------------*/
+using Microsoft.Extensions.Logging;
+
 namespace Framework.OSS.SDK.HuaweiCloud.Internal.Auth
 {
     internal class V2Signer : AbstractSigner
     {
-
+        private static readonly ILogger _logger = OSSServiceFactory.CreateLogger<V2Signer>();
         private static V2Signer instance = new V2Signer();
 
         private V2Signer()

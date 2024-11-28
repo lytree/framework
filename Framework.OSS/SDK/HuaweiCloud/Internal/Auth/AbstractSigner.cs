@@ -14,7 +14,6 @@
 using System;
 using System.Text;
 using System.Collections.Generic;
-using Framework.OSS.SDK.HuaweiCloud.Internal.Log;
 
 namespace Framework.OSS.SDK.HuaweiCloud.Internal.Auth
 {
@@ -170,11 +169,6 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal.Auth
                         stringToSign.Append("=").Append(kv.Value);
                     }
                 }
-            }
-
-            if (LoggerMgr.IsDebugEnabled)
-            {
-                LoggerMgr.Debug("StringToSign: ******");
             }
 
             IDictionary<string, string> ret = new Dictionary<string, string>();
