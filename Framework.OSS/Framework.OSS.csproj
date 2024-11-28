@@ -20,8 +20,8 @@
 		<PackageReference Include="Minio" VersionOverride="6.0.3" />
 		<PackageReference Include="Qiniu" VersionOverride="8.7.0" />
 		<PackageReference Include="Tencent.QCloud.Cos.Sdk" VersionOverride="5.4.40" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" VersionOverride="8.0.1" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" VersionOverride="8.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection"/>
 		<PackageReference Include="Microsoft.Extensions.Options" />
 	</ItemGroup>
