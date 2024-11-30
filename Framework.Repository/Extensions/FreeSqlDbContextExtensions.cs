@@ -34,4 +34,5 @@ public static class FreeSqlDbContextExtensions
     {
         return new RepositoryBase<TEntity, long>(that, filter);
     }
+
 }

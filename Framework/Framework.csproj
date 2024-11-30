@@ -13,7 +13,9 @@
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>		
 	</PropertyGroup>
 
+
 	<ItemGroup>
+		<PackageReference Include="BouncyCastle.Cryptography" VersionOverride="2.4.0" />
 		<PackageReference Include="SharpCompress" />
 		<PackageReference Include="System.IO.Pipelines" />
 	</ItemGroup>
