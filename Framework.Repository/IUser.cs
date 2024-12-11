@@ -15,15 +15,15 @@ public interface IUser
     /// <summary>
     /// 用户Id
     /// </summary>
-    long Id { get; }
+    public long Id { get; }
 
     /// <summary>
     /// 用户名
     /// </summary>
-    string UserName { get; }
+    public string UserName { get; }
 
     /// <summary>
     /// 姓名
     /// </summary>
-    string Name { get; }
+    public string Name { get; }
 }
