@@ -18,6 +18,11 @@
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 
+
+	<ItemGroup>
+	  <PackageReference Include="BouncyCastle.Cryptography" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\Framework\Framework.csproj" />
 	</ItemGroup>
