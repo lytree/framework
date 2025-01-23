@@ -7,7 +7,6 @@ namespace Framework.Repository.Repositories;
 
 public interface IRepositoryBase<TEntity, TKey> : IBaseRepository<TEntity, TKey> where TEntity : class
 {
-    IUser User { get; set; }
 
     /// <summary>
     /// 获得Dto
