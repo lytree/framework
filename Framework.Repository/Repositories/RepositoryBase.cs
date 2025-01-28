@@ -8,7 +8,6 @@ namespace Framework.Repository.Repositories;
 
 public class RepositoryBase<TEntity, TKey> : BaseRepository<TEntity, TKey>, IRepositoryBase<TEntity, TKey> where TEntity : class
 {
-    public IUser User { get; set; }
 
     public RepositoryBase(IFreeSql fsql) : base(fsql) { }
     //public RepositoryBase(IFreeSql fsql, Expression<Func<TEntity, bool>> filter) : base(fsql, filter) { }
@@ -38,8 +37,6 @@ public class RepositoryBase<TEntity, TKey> : BaseRepository<TEntity, TKey>, IRep
             .SetDto(new
             {
                 IsDeleted = true,
-                ModifiedUserId = User.Id,
-                ModifiedUserName = User.UserName
             })
             .WhereDynamic(id)
             .ExecuteAffrowsAsync();
@@ -53,8 +50,6 @@ public class RepositoryBase<TEntity, TKey> : BaseRepository<TEntity, TKey>, IRep
             .SetDto(new
             {
                 IsDeleted = true,
-                ModifiedUserId = User.Id,
-                ModifiedUserName = User.UserName
             })
             .WhereDynamic(ids)
             .ExecuteAffrowsAsync();
@@ -68,8 +63,6 @@ public class RepositoryBase<TEntity, TKey> : BaseRepository<TEntity, TKey>, IRep
             .SetDto(new
             {
                 IsDeleted = true,
-                ModifiedUserId = User.Id,
-                ModifiedUserName = User.UserName
             })
             .Where(exp)
             .DisableGlobalFilter(disableGlobalFilterNames)
@@ -100,8 +93,6 @@ public class RepositoryBase<TEntity, TKey> : BaseRepository<TEntity, TKey>, IRep
         .SetDto(new
         {
             IsDeleted = true,
-            ModifiedUserId = User.Id,
-            ModifiedUserName = User.UserName
         })
         .ExecuteAffrowsAsync();
 

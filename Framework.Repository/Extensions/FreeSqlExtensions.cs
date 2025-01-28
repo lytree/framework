@@ -6,15 +6,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
-/* 项目“Framework.Repository (net6.0)”的未合并的更改
-在此之前:
-using System.Threading.Tasks;
-在此之后:
-using System.Threading.Tasks;
-using Framework;
-using Framework.Repository;
-using Framework.Repository.Extensions;
-*/
 using System.Threading.Tasks;
 
 namespace Framework.Repository.Extensions;

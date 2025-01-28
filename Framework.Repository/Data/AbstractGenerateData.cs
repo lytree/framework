@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 namespace Framework.Repository.Data;
 
 
-public abstract class GenerateData
+public abstract class AbstractGenerateData
 {
 	private readonly string _tenantName = Helper.GetInterfacePropertyNames<ITenant>().FirstOrDefault()?.ToLower();
 	protected virtual void IgnorePropName(JsonTypeInfo ti, bool isTenant)

@@ -13,7 +13,7 @@ using Mapster;
 
 namespace Framework.Repository.Data;
 
-public abstract class SyncData
+public abstract class AbstractSyncData
 {
     /// <summary>
     /// 检查实体属性是否为自增长
