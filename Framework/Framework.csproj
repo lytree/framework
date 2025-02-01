@@ -15,7 +15,7 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="BouncyCastle.Cryptography" VersionOverride="2.4.0" />
+		<PackageReference Include="BouncyCastle.Cryptography"/>
 		<PackageReference Include="SharpCompress" />
 		<PackageReference Include="System.IO.Pipelines" />
 	</ItemGroup>
