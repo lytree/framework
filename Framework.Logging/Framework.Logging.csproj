@@ -16,7 +16,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-		<PackageReference Include="Serilog" />
+		<PackageReference Include="NLog" />
+		<PackageReference Include="NLog.Extensions.Logging" />
 	</ItemGroup>
 
 	<ItemGroup>
