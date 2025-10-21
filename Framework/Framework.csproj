@@ -15,9 +15,11 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="BouncyCastle.Cryptography"/>
+		<PackageReference Include="BouncyCastle.Cryptography" />
 		<PackageReference Include="SharpCompress" />
 		<PackageReference Include="System.IO.Pipelines" />
+		<PackageReference Include="SixLabors.ImageSharp" />
+		<PackageReference Include="SixLabors.ImageSharp.Drawing" />
 	</ItemGroup>
 
 	<ItemGroup>

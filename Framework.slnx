@@ -6,6 +6,7 @@
     <File Path="build/Directory.Packages.Microsoft.props" />
     <File Path="build/Directory.Packages.Repository.props" />
     <File Path="build/Directory.Packages.System.props" />
+    <File Path="build/Directory.Packages.Tool.props" />
     <File Path="build/LICENSE" />
     <File Path="build/README.md" />
   </Folder>
@@ -25,6 +26,7 @@
   <Project Path="Framework.Mvvm/Framework.Mvvm.csproj" />
   <Project Path="Framework.Net/Framework.Net.csproj" />
   <Project Path="Framework.OSS/Framework.OSS.csproj" />
+  <Project Path="Framework.Plot/Framework.Plot.csproj" />
   <Project Path="Framework.Repository/Framework.Repository.csproj" />
   <Project Path="Framework/Framework.csproj" />
 </Solution>
