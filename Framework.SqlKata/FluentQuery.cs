@@ -1,260 +1,237 @@
-using System.Collections.Concurrent;
+using SqlKata;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using SqlKata;
 
 namespace Framework.SqlKata;
 
-
-public static class FluentQuery
+public class FluentQuery : Query
 {
 
+    internal readonly IDictionary<string, string> Selects = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // <alias, column>
+    internal readonly IDictionary<string, string> SelectsRaw = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // <alias, raw_query>
+    internal readonly IDictionary<string, string> SelectAggrs = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // <alias, aggregation>
 
-    // 静态字典，缓存 Type 到生成的 Columns 字典的映射
-    private static readonly ConcurrentDictionary<Type, IDictionary<string, string>> ColumnsCache =
-        new ConcurrentDictionary<Type, IDictionary<string, string>>();
+
+    public FluentQuery() : base() { }
+
+    public FluentQuery(string table, string comment = null) : base(table, comment: comment) { }
 
     #region Query/From
 
-    public static Query Query()
+    public Join From<A>(Join query)
     {
-        return new FluentQueryWrapper();
+        return From($"{Table<A>()}");
     }
 
-    public static Query Query<A>()
+    public Q From<Q, A>(Expression<Func<A>> alias) where Q : BaseQuery<Q>
     {
-        return new FluentQueryWrapper($"{Table<A>()}");
+        return From(Table<A>(), alias);
     }
 
-    public static Query Query<A>(Expression<Func<A>> alias)
+    public Q From<Q, A>(string table, Expression<Func<A>> alias) where Q : BaseQuery<Q>
     {
-        return Query(Table<A>(), alias);
+        return From($"{table} AS {Alias(alias)}");
     }
 
-    public static Query Query<A>(string table, Expression<Func<A>> alias)
-    {
-        return new FluentQueryWrapper($"{table} AS {Alias(alias)}");
-    }
-
-    public static Query From<A>(this Query query)
-    {
-        return query.From($"{Table<A>()}");
-    }
-
-    public static Join From<A>(this Join query)
-    {
-        return query.From($"{Table<A>()}");
-    }
-
-    public static Q From<Q, A>(this Q query, Expression<Func<A>> alias) where Q : BaseQuery<Q>
-    {
-        return query.From(Table<A>(), alias);
-    }
-
-    public static Q From<Q, A>(this Q query, string table, Expression<Func<A>> alias) where Q : BaseQuery<Q>
-    {
-        return query.From($"{table} AS {Alias(alias)}");
-    }
-
-    public static Q FromRawFormat<Q>(this Q query, string queryFormat, params Expression<Func<object>>[] columns) where Q : BaseQuery<Q>
+    public Q FromRawFormat<Q>(this Q query, string queryFormat, params Expression<Func<object>>[] columns) where Q : BaseQuery<Q>
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns: columns);
-        return query.FromRaw(queryRaw);
+        return FromRaw(queryRaw);
     }
 
-    public static Q FromRawFormat<Q>(this Q query, string queryFormat, Expression<Func<object>>[] columns, object[] bindings) where Q : BaseQuery<Q>
+    public Q FromRawFormat<Q>(this Q query, string queryFormat, Expression<Func<object>>[] columns, object[] bindings) where Q : BaseQuery<Q>
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns: columns);
-        return query.FromRaw(queryRaw, bindings: bindings);
+        return FromRaw(queryRaw, bindings: bindings);
     }
 
-    public static Query As<A>(this Query query, Expression<Func<A>> alias)
+    public Query As<A>(Expression<Func<A>> alias)
     {
         var aliasName = Alias(alias);
-        return query.As(aliasName);
+        return As(aliasName);
     }
 
-    public static Query WithRawFormat<A>(this Query query, Expression<Func<A>> alias, string queryFormat, params Expression<Func<object>>[] columns)
+    public Query WithRawFormat<A>(Expression<Func<A>> alias, string queryFormat, params Expression<Func<object>>[] columns)
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns: columns);
-        return query.WithRaw(Alias(alias), queryRaw);
+        return WithRaw(Alias(alias), queryRaw);
     }
 
-    public static Query WithRawFormat<A>(this Query query, Expression<Func<A>> alias, string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
+    public Query WithRawFormat<A>(Expression<Func<A>> alias, string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns: columns);
-        return query.WithRaw(Alias(alias), queryRaw, bindings: bindings);
+        return WithRaw(Alias(alias), queryRaw, bindings: bindings);
     }
 
-    public static Query CombineRawFormat(this Query query, string queryFormat, params Expression<Func<object>>[] columns)
+    public Query CombineRawFormat(string queryFormat, params Expression<Func<object>>[] columns)
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns: columns);
-        return query.CombineRaw(queryRaw);
+        return CombineRaw(queryRaw);
     }
 
-    public static Query CombineRawFormat(this Query query, string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
+    public Query CombineRawFormat(string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns: columns);
-        return query.CombineRaw(queryRaw, bindings: bindings);
+        return CombineRaw(queryRaw, bindings: bindings);
     }
 
-    public static Query ExceptRawFormat(this Query query, string queryFormat, params Expression<Func<object>>[] columns)
+    public Query ExceptRawFormat(string queryFormat, params Expression<Func<object>>[] columns)
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns: columns);
-        return query.ExceptRaw(queryRaw);
+        return ExceptRaw(queryRaw);
     }
 
-    public static Query ExceptRawFormat(this Query query, string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
+    public Query ExceptRawFormat(string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns: columns);
-        return query.ExceptRaw(queryRaw, bindings: bindings);
+        return ExceptRaw(queryRaw, bindings: bindings);
     }
 
-    public static Query IntersectRawFormat(this Query query, string queryFormat, params Expression<Func<object>>[] columns)
+    public Query IntersectRawFormat(string queryFormat, params Expression<Func<object>>[] columns)
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns: columns);
-        return query.IntersectRaw(queryRaw);
+        return IntersectRaw(queryRaw);
     }
 
-    public static Query IntersectRawFormat(this Query query, string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
+    public Query IntersectRawFormat(string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns: columns);
-        return query.IntersectRaw(queryRaw, bindings: bindings);
+        return IntersectRaw(queryRaw, bindings: bindings);
     }
 
-    public static Query UnionRawFormat(this Query query, string queryFormat, params Expression<Func<object>>[] columns)
+    public Query UnionRawFormat(string queryFormat, params Expression<Func<object>>[] columns)
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns: columns);
-        return query.UnionRaw(queryRaw);
+        return UnionRaw(queryRaw);
     }
 
-    public static Query UnionRawFormat(this Query query, string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
+    public Query UnionRawFormat(string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns: columns);
-        return query.UnionRaw(queryRaw, bindings: bindings);
+        return UnionRaw(queryRaw, bindings: bindings);
     }
 
     #endregion Query/From
 
     #region Selects
 
-    public static Query Select<A>(this Query query, Expression<Func<A>> alias, Query subquery)
+    public Query Select<A>(Expression<Func<A>> alias, Query subquery)
     {
         var aliasName = Alias(alias);
-        query.Select(subquery, aliasName);
-        return query;
+        Select(subquery, aliasName);
+        return this;
     }
 
     /// <summary>
     /// Example: SelectRawFormat(() => dto.FullName, queryFormat: "{0} + ' ' + {1}", () => cnt.FirstName, () => cnt.LastName)
     /// Results: SELECT FirstName + ' ' + LastName AS FullName
     /// </summary>
-    public static Query SelectRawFormat<A>(this Query query, Expression<Func<A>> alias, string queryFormat, params Expression<Func<object>>[] columns)
+    public Query SelectRawFormat<A>(Expression<Func<A>> alias, string queryFormat, params Expression<Func<object>>[] columns)
     {
         var aliasName = Alias(alias);
-        return query.SelectRawFormat(aliasName, queryFormat, columns: columns);
+        return SelectRawFormat(aliasName, queryFormat, columns: columns);
     }
 
     /// <summary>
-    /// Example: SelectRawFormat(() => dto.Name, queryFormat: "ISNULL({0}, ?)", new[] { FluentQuery.Expression(() => cnt.FirstName) }, new[] { "John" })
+    /// Example: SelectRawFormat(() => dto.Name, queryFormat: "ISNULL({0}, ?)", new[] { FluentExpression(() => cnt.FirstName) }, new[] { "John" })
     /// Results: SELECT ISNULL(FirstName, 'John') AS Name
     /// </summary>
-    public static Query SelectRawFormat<A>(this Query query, Expression<Func<A>> alias, string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
+    public Query SelectRawFormat<A>(Expression<Func<A>> alias, string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
     {
         var aliasName = Alias(alias);
-        return query.SelectRawFormat(aliasName, queryFormat, columns: columns, bindings: bindings);
+        return SelectRawFormat(aliasName, queryFormat, columns: columns, bindings: bindings);
     }
 
     /// <summary>
     /// Example: SelectRawFormat("FullName", queryFormat: "{0} + ' ' + {1}", () => cnt.FirstName, () => cnt.LastName)
     /// Results: SELECT FirstName + ' ' + LastName AS FullName
     /// </summary>
-    public static Query SelectRawFormat(this Query query, string alias, string queryFormat, params Expression<Func<object>>[] columns)
+    public Query SelectRawFormat(string alias, string queryFormat, params Expression<Func<object>>[] columns)
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns: columns);
-        query.GetWrapper().SelectsRaw.Add(alias, queryRaw);
-        query.SelectRaw($"{queryRaw} AS {alias}");
-        return query;
+        SelectsRaw.Add(alias, queryRaw);
+        SelectRaw($"{queryRaw} AS {alias}");
+        return this;
     }
 
     /// <summary>
-    /// Example: SelectRawFormat("Name", queryFormat: "ISNULL({0}, ?)", new[] { FluentQuery.Expression(() => cnt.FirstName) }, new[] { "John" })
+    /// Example: SelectRawFormat("Name", queryFormat: "ISNULL({0}, ?)", new[] { FluentExpression(() => cnt.FirstName) }, new[] { "John" })
     /// Results: SELECT ISNULL(FirstName, 'John') AS Name
     /// </summary>
-    public static Query SelectRawFormat(this Query query, string alias, string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
+    public Query SelectRawFormat(string alias, string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns: columns);
-        query.GetWrapper().SelectsRaw.Add(alias, queryRaw);
-        query.SelectRaw($"{queryRaw} AS {alias}", bindings: bindings);
-        return query;
+        SelectsRaw.Add(alias, queryRaw);
+        SelectRaw($"{queryRaw} AS {alias}", bindings: bindings);
+        return this;
     }
 
-    public static Query Select<A, T>(this Query query, Expression<Func<A>> alias, Expression<Func<T>> column)
+    public Query Select<A, T>(Expression<Func<A>> alias, Expression<Func<T>> column)
     {
         var aliasName = Alias(alias);
-        return query.Select(aliasName, column);
+        return Select(aliasName, column);
     }
 
-    public static Query Select<T>(this Query query, string alias, Expression<Func<T>> column)
+    public Query Select<T>(string alias, Expression<Func<T>> column)
     {
         var columnName = $"{AliasFromColumn(column)}.{Property(column)}";
-        query.GetWrapper().Selects.Add(alias, columnName);
-        query.Select($"{columnName} AS {alias}");
-        return query;
+        Selects.Add(alias, columnName);
+        Select($"{columnName} AS {alias}");
+        return this;
     }
 
-    public static Query Select<T>(this Query query, Expression<Func<T>> column)
+    public Query Select<T>(Expression<Func<T>> column)
     {
         var columnName = Property(column);
         var fullName = $"{AliasFromColumn(column)}.{columnName}";
-        query.GetWrapper().Selects.Add(columnName, fullName);
-        return query.SelectRaw(fullName);
+        Selects.Add(columnName, fullName);
+        return SelectRaw(fullName);
     }
 
-    public static Query SelectAll<T>(this Query query)
+    public Query SelectAll<T>()
     {
-        query.From<T>();
-
         foreach (var col in GetColumns<T>())
         {
             var columnName = $"{col.Value}";
-            query.GetWrapper().Selects.Add(col.Key, columnName);
-            query.Select($"{columnName} AS {col.Key}");
+            Selects.Add(col.Key, columnName);
+            Select($"{columnName} AS {col.Key}");
         }
 
-        return query;
+        return this;
     }
 
-    public static Query SelectAll<T>(this Query query, Expression<Func<T>> alias)
+    public Query SelectAll<T>(Expression<Func<T>> alias)
     {
-        query.From(alias);
 
         foreach (var col in GetColumns<T>())
         {
             var columnName = $"{Alias(alias)}.{col.Value}";
-            query.GetWrapper().Selects.Add(col.Key, columnName);
-            query.Select($"{columnName} AS {col.Key}");
+            Selects.Add(col.Key, columnName);
+            Select($"{columnName} AS {col.Key}");
         }
 
-        return query;
+        return this;
     }
 
-    public static Query SelectFunc<A, T>(this Query query, Expression<Func<A>> alias, Expression<Func<T>> column, string func, bool aggregate = false)
+    public Query SelectFunc<A, T>(Expression<Func<A>> alias, Expression<Func<T>> column, string func, bool aggregate = false)
     {
         var aliasName = Alias<A>(alias);
-        query.SelectFunc(aliasName, column, func, aggregate);
-        return query;
+        SelectFunc(aliasName, column, func, aggregate);
+        return this;
     }
 
-    public static Query SelectFunc<T>(this Query query, string alias, Expression<Func<T>> column, string func, bool aggregate = false)
+    public Query SelectFunc<T>(string alias, Expression<Func<T>> column, string func, bool aggregate = false)
     {
         var columnName = $"{func}({AliasFromColumn(column)}.{Property(column)})";
         if (aggregate)
-            query.GetWrapper().SelectAggrs.Add(alias, columnName);
+            SelectAggrs.Add(alias, columnName);
         else
-            query.GetWrapper().Selects.Add(alias, columnName);
-        query.SelectRaw($"{columnName} AS {alias}");
-        return query;
+            Selects.Add(alias, columnName);
+        SelectRaw($"{columnName} AS {alias}");
+        return this;
     }
 
     #endregion Selects
@@ -265,1173 +242,1038 @@ public static class FluentQuery
     /// Example: WhereRawFormat("(LEN({0}) + LEN({1})) > 0", () => cnt.FirstName, () => cnt.LastName)
     /// Results: WHERE (LEN(FirstName) + LEN(LastName)) > 0
     /// </summary>
-    public static Q WhereRawFormat<Q>(this Q query, string queryFormat, params Expression<Func<object>>[] columns) where Q : BaseQuery<Q>
+    public Q WhereRawFormat<Q>(this Q query, string queryFormat, params Expression<Func<object>>[] columns) where Q : BaseQuery<Q>
     {
         queryFormat = FormatQueryRaw(queryFormat, columns: columns);
-        query.WhereRaw(queryFormat);
-        return query;
+        WhereRaw(queryFormat);
+        return this;
     }
 
     /// <summary>
     /// Example: WhereRawFormat("(LEN({0}) + LEN({1})) > 0", () => cnt.FirstName, () => cnt.LastName)
     /// Results: WHERE (LEN(FirstName) + LEN(LastName)) > 0
     /// </summary>
-    public static Q OrWhereRawFormat<Q>(this Q query, string queryFormat, params Expression<Func<object>>[] columns) where Q : BaseQuery<Q>
+    public Q OrWhereRawFormat<Q>(this Q query, string queryFormat, params Expression<Func<object>>[] columns) where Q : BaseQuery<Q>
     {
         queryFormat = FormatQueryRaw(queryFormat, columns: columns);
-        query.OrWhereRaw(queryFormat);
-        return query;
+        OrWhereRaw(queryFormat);
+        return this;
     }
 
     /// <summary>
-    /// Example: WhereRawFormat("LEN({0}) > ?", new[] { FluentQuery.Expression(() => cnt.FirstName) }, new[] { 5 })
+    /// Example: WhereRawFormat("LEN({0}) > ?", new[] { FluentExpression(() => cnt.FirstName) }, new[] { 5 })
     /// Results: WHERE LEN(FirstName) > 5
     /// </summary>
-    public static Q WhereRawFormat<Q>(this Q query, string queryFormat, Expression<Func<object>>[] columns, object[] bindings) where Q : BaseQuery<Q>
+    public Q WhereRawFormat<Q>(this Q query, string queryFormat, Expression<Func<object>>[] columns, object[] bindings) where Q : BaseQuery<Q>
     {
         queryFormat = FormatQueryRaw(queryFormat, columns: columns);
-        query.WhereRaw(queryFormat, bindings: bindings);
-        return query;
+        WhereRaw(queryFormat, bindings: bindings);
+        return this;
     }
 
     /// <summary>
-    /// Example: WhereRawFormat("LEN({0}) > ?", new[] { FluentQuery.Expression(() => cnt.FirstName) }, new[] { 5 })
+    /// Example: WhereRawFormat("LEN({0}) > ?", new[] { FluentExpression(() => cnt.FirstName) }, new[] { 5 })
     /// Results: WHERE LEN(FirstName) > 5
     /// </summary>
-    public static Q OrWhereRawFormat<Q>(this Q query, string queryFormat, Expression<Func<object>>[] columns, object[] bindings) where Q : BaseQuery<Q>
+    public Q OrWhereRawFormat<Q>(this Q query, string queryFormat, Expression<Func<object>>[] columns, object[] bindings) where Q : BaseQuery<Q>
     {
         queryFormat = FormatQueryRaw(queryFormat, columns: columns);
-        query.OrWhereRaw(queryFormat, bindings: bindings);
-        return query;
+        OrWhereRaw(queryFormat, bindings: bindings);
+        return this;
     }
 
-    public static Q Where<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q Where<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.Where($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        Where($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q OrWhere<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q OrWhere<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.OrWhere($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        OrWhere($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q WhereNot<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q WhereNot<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.WhereNot($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        WhereNot($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q OrWhereNot<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q OrWhereNot<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.OrWhereNot($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        OrWhereNot($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q WhereColumns<Q, T1, T2>(this Q query, Expression<Func<T1>> column1, Expression<Func<T2>> column2, string op = "=") where Q : BaseQuery<Q>
+    public Q WhereColumns<Q, T1, T2>(this Q query, Expression<Func<T1>> column1, Expression<Func<T2>> column2, string op = "=") where Q : BaseQuery<Q>
     {
-        query.WhereColumns(
+        WhereColumns(
             $"{AliasFromColumn(column1)}.{Property(column1)}",
             op,
             $"{AliasFromColumn(column2)}.{Property(column2)}");
-        return query;
+        return this;
     }
 
-    public static Q WhereColumns<Q, T1>(this Q query, Expression<Func<T1>> column1, string second, string op = "=") where Q : BaseQuery<Q>
+    public Q WhereColumns<Q, T1>(this Q query, Expression<Func<T1>> column1, string second, string op = "=") where Q : BaseQuery<Q>
     {
-        query.WhereColumns($"{AliasFromColumn(column1)}.{Property(column1)}", op, second);
-        return query;
+        WhereColumns($"{AliasFromColumn(column1)}.{Property(column1)}", op, second);
+        return this;
     }
 
-    public static Q OrWhereColumns<Q, T1, T2>(this Q query, Expression<Func<T1>> column1, Expression<Func<T2>> column2, string op = "=") where Q : BaseQuery<Q>
+    public Q OrWhereColumns<Q, T1, T2>(this Q query, Expression<Func<T1>> column1, Expression<Func<T2>> column2, string op = "=") where Q : BaseQuery<Q>
     {
-        query.OrWhereColumns(
+        OrWhereColumns(
             $"{AliasFromColumn(column1)}.{Property(column1)}",
             op,
             $"{AliasFromColumn(column2)}.{Property(column2)}");
-        return query;
+        return this;
     }
 
-    public static Q OrWhereColumns<Q, T1>(this Q query, Expression<Func<T1>> column1, string second, string op = "=") where Q : BaseQuery<Q>
+    public Q OrWhereColumns<Q, T1>(this Q query, Expression<Func<T1>> column1, string second, string op = "=") where Q : BaseQuery<Q>
     {
-        query.OrWhereColumns($"{AliasFromColumn(column1)}.{Property(column1)}", op, second);
-        return query;
+        OrWhereColumns($"{AliasFromColumn(column1)}.{Property(column1)}", op, second);
+        return this;
     }
 
-    public static Q WhereNull<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
+    public Q WhereNull<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
     {
-        query.WhereNull($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        WhereNull($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Q OrWhereNull<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
+    public Q OrWhereNull<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
     {
-        query.OrWhereNull($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        OrWhereNull($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Q WhereNotNull<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
+    public Q WhereNotNull<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
     {
-        query.WhereNotNull($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        WhereNotNull($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Q OrWhereNotNull<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
+    public Q OrWhereNotNull<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
     {
-        query.OrWhereNotNull($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        OrWhereNotNull($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Q WhereTrue<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
+    public Q WhereTrue<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
     {
-        query.WhereTrue($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        WhereTrue($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Q OrWhereTrue<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
+    public Q OrWhereTrue<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
     {
-        query.OrWhereTrue($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        OrWhereTrue($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Q WhereFalse<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
+    public Q WhereFalse<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
     {
-        query.WhereFalse($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        WhereFalse($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Q OrWhereFalse<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
+    public Q OrWhereFalse<Q, T>(this Q query, Expression<Func<T>> column) where Q : BaseQuery<Q>
     {
-        query.OrWhereFalse($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        OrWhereFalse($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Q WhereLike<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q WhereLike<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.WhereLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        WhereLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q OrWhereLike<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q OrWhereLike<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.OrWhereLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        OrWhereLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q WhereNotLike<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q WhereNotLike<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.WhereNotLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        WhereNotLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q OrWhereNotLike<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q OrWhereNotLike<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.OrWhereNotLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        OrWhereNotLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q WhereStarts<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q WhereStarts<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.WhereStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        WhereStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q OrWhereStarts<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q OrWhereStarts<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.OrWhereStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        OrWhereStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q WhereNotStarts<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q WhereNotStarts<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.WhereNotStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        WhereNotStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q OrWhereNotStarts<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q OrWhereNotStarts<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.OrWhereNotStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        OrWhereNotStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q WhereEnds<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q WhereEnds<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.WhereEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        WhereEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q OrWhereEnds<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q OrWhereEnds<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.OrWhereEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        OrWhereEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q WhereNotEnds<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q WhereNotEnds<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.WhereNotEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        WhereNotEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q OrWhereNotEnds<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q OrWhereNotEnds<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.OrWhereNotEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        OrWhereNotEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q WhereContains<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q WhereContains<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.WhereContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        WhereContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q OrWhereContains<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q OrWhereContains<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.OrWhereContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        OrWhereContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q WhereNotContains<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q WhereNotContains<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.WhereNotContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        WhereNotContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q OrWhereNotContains<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
+    public Q OrWhereNotContains<Q, T>(this Q query, Expression<Func<T>> column, object value, bool caseSensitive = false) where Q : BaseQuery<Q>
     {
-        query.OrWhereNotContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
-        return query;
+        OrWhereNotContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive: caseSensitive);
+        return this;
     }
 
-    public static Q WhereBetween<Q, T, TValue>(this Q query, Expression<Func<T>> column, TValue lower, TValue higher) where Q : BaseQuery<Q>
+    public Q WhereBetween<Q, T, TValue>(this Q query, Expression<Func<T>> column, TValue lower, TValue higher) where Q : BaseQuery<Q>
     {
-        query.WhereBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
-        return query;
+        WhereBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
+        return this;
     }
 
-    public static Q OrWhereBetween<Q, T, TValue>(this Q query, Expression<Func<T>> column, TValue lower, TValue higher) where Q : BaseQuery<Q>
+    public Q OrWhereBetween<Q, T, TValue>(this Q query, Expression<Func<T>> column, TValue lower, TValue higher) where Q : BaseQuery<Q>
     {
-        query.OrWhereBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
-        return query;
+        OrWhereBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
+        return this;
     }
 
-    public static Q WhereNotBetween<Q, T, TValue>(this Q query, Expression<Func<T>> column, TValue lower, TValue higher) where Q : BaseQuery<Q>
+    public Q WhereNotBetween<Q, T, TValue>(this Q query, Expression<Func<T>> column, TValue lower, TValue higher) where Q : BaseQuery<Q>
     {
-        query.WhereNotBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
-        return query;
+        WhereNotBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
+        return this;
     }
 
-    public static Q OrWhereNotBetween<Q, T, TValue>(this Q query, Expression<Func<T>> column, TValue lower, TValue higher) where Q : BaseQuery<Q>
+    public Q OrWhereNotBetween<Q, T, TValue>(this Q query, Expression<Func<T>> column, TValue lower, TValue higher) where Q : BaseQuery<Q>
     {
-        query.OrWhereNotBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
-        return query;
+        OrWhereNotBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
+        return this;
     }
 
-    public static Q WhereIn<Q, T, TValue>(this Q query, Expression<Func<T>> column, IEnumerable<TValue> values) where Q : BaseQuery<Q>
+    public Q WhereIn<Q, T, TValue>(this Q query, Expression<Func<T>> column, IEnumerable<TValue> values) where Q : BaseQuery<Q>
     {
-        query.WhereIn($"{AliasFromColumn(column)}.{Property(column)}", values);
-        return query;
+        WhereIn($"{AliasFromColumn(column)}.{Property(column)}", values);
+        return this;
     }
 
-    public static Q OrWhereIn<Q, T, TValue>(this Q query, Expression<Func<T>> column, IEnumerable<TValue> values) where Q : BaseQuery<Q>
+    public Q OrWhereIn<Q, T, TValue>(this Q query, Expression<Func<T>> column, IEnumerable<TValue> values) where Q : BaseQuery<Q>
     {
-        query.OrWhereIn($"{AliasFromColumn(column)}.{Property(column)}", values);
-        return query;
+        OrWhereIn($"{AliasFromColumn(column)}.{Property(column)}", values);
+        return this;
     }
 
-    public static Q WhereNotIn<Q, T, TValue>(this Q query, Expression<Func<T>> column, IEnumerable<TValue> values) where Q : BaseQuery<Q>
+    public Q WhereNotIn<Q, T, TValue>(this Q query, Expression<Func<T>> column, IEnumerable<TValue> values) where Q : BaseQuery<Q>
     {
-        query.WhereNotIn($"{AliasFromColumn(column)}.{Property(column)}", values);
-        return query;
+        WhereNotIn($"{AliasFromColumn(column)}.{Property(column)}", values);
+        return this;
     }
 
-    public static Q OrWhereNotIn<Q, T, TValue>(this Q query, Expression<Func<T>> column, IEnumerable<TValue> values) where Q : BaseQuery<Q>
+    public Q OrWhereNotIn<Q, T, TValue>(this Q query, Expression<Func<T>> column, IEnumerable<TValue> values) where Q : BaseQuery<Q>
     {
-        query.OrWhereNotIn($"{AliasFromColumn(column)}.{Property(column)}", values);
-        return query;
+        OrWhereNotIn($"{AliasFromColumn(column)}.{Property(column)}", values);
+        return this;
     }
 
-    public static Q WhereIn<Q, T>(this Q query, Expression<Func<T>> column, Query subquery) where Q : BaseQuery<Q>
+    public Q WhereIn<Q, T>(this Q query, Expression<Func<T>> column, Query subquery) where Q : BaseQuery<Q>
     {
-        query.WhereIn($"{AliasFromColumn(column)}.{Property(column)}", subquery);
-        return query;
+        WhereIn($"{AliasFromColumn(column)}.{Property(column)}", subquery);
+        return this;
     }
 
-    public static Q OrWhereIn<Q, T>(this Q query, Expression<Func<T>> column, Query subquery) where Q : BaseQuery<Q>
+    public Q OrWhereIn<Q, T>(this Q query, Expression<Func<T>> column, Query subquery) where Q : BaseQuery<Q>
     {
-        query.OrWhereIn($"{AliasFromColumn(column)}.{Property(column)}", subquery);
-        return query;
+        OrWhereIn($"{AliasFromColumn(column)}.{Property(column)}", subquery);
+        return this;
     }
 
-    public static Q WhereNotIn<Q, T>(this Q query, Expression<Func<T>> column, Query subquery) where Q : BaseQuery<Q>
+    public Q WhereNotIn<Q, T>(this Q query, Expression<Func<T>> column, Query subquery) where Q : BaseQuery<Q>
     {
-        query.WhereNotIn($"{AliasFromColumn(column)}.{Property(column)}", subquery);
-        return query;
+        WhereNotIn($"{AliasFromColumn(column)}.{Property(column)}", subquery);
+        return this;
     }
 
-    public static Q OrWhereNotIn<Q, T>(this Q query, Expression<Func<T>> column, Query subquery) where Q : BaseQuery<Q>
+    public Q OrWhereNotIn<Q, T>(this Q query, Expression<Func<T>> column, Query subquery) where Q : BaseQuery<Q>
     {
-        query.OrWhereNotIn($"{AliasFromColumn(column)}.{Property(column)}", subquery);
-        return query;
+        OrWhereNotIn($"{AliasFromColumn(column)}.{Property(column)}", subquery);
+        return this;
     }
 
-    public static Q WhereDatePart<Q, T>(this Q query, string part, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q WhereDatePart<Q, T>(this Q query, string part, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.WhereDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        WhereDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q OrWhereDatePart<Q, T>(this Q query, string part, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q OrWhereDatePart<Q, T>(this Q query, string part, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.OrWhereDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        OrWhereDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q WhereNotDatePart<Q, T>(this Q query, string part, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q WhereNotDatePart<Q, T>(this Q query, string part, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.WhereNotDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        WhereNotDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q OrWhereNotDatePart<Q, T>(this Q query, string part, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q OrWhereNotDatePart<Q, T>(this Q query, string part, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.OrWhereNotDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        OrWhereNotDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q WhereDate<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q WhereDate<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.WhereDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        WhereDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q OrWhereDate<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q OrWhereDate<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.OrWhereDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        OrWhereDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q WhereNotDate<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q WhereNotDate<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.WhereNotDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        WhereNotDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q OrWhereNotDate<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q OrWhereNotDate<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.OrWhereNotDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        OrWhereNotDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q WhereTime<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q WhereTime<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.WhereTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        WhereTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q OrWhereTime<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q OrWhereTime<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.OrWhereTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        OrWhereTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q WhereNotTime<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q WhereNotTime<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.WhereNotTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        WhereNotTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Q OrWhereNotTime<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
+    public Q OrWhereNotTime<Q, T>(this Q query, Expression<Func<T>> column, object value, string op = "=") where Q : BaseQuery<Q>
     {
-        query.OrWhereNotTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        OrWhereNotTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
     #endregion Where
 
-    #region Joins
 
-    public static Query Join<A, J1, J2>(this Query query, Expression<Func<A>> alias, Expression<Func<J1>> column1, Expression<Func<J2>> column2, string op = "=")
-    {
-        return query.Join(Table<A>(), alias, column1, column2, op);
-    }
-
-    public static Query Join<A, J1, J2>(this Query query, string table, Expression<Func<A>> alias, Expression<Func<J1>> column1, Expression<Func<J2>> column2, string op = "=")
-    {
-        query.Join(
-            $"{table} AS {Alias(alias)}",
-            $"{AliasFromColumn(column1)}.{Property(column1)}",
-            $"{AliasFromColumn(column2)}.{Property(column2)}",
-            op: op
-        );
-        return query;
-    }
-
-    public static Query Join<A>(this Query query, Expression<Func<A>> alias, Func<Join, Join> joinQuery, string type = "inner join")
-    {
-        return query.Join(Table<A>(), alias, joinQuery, type);
-    }
-
-    public static Query Join<A>(this Query query, string table, Expression<Func<A>> alias, Func<Join, Join> joinQuery, string type = "inner join")
-    {
-        query.Join(
-            $"{table} AS {Alias(alias)}",
-            joinQuery,
-            type: type
-        );
-        return query;
-    }
-
-    public static Query LeftJoin<A, J1, J2>(this Query query, Expression<Func<A>> alias, Expression<Func<J1>> firstColumn, Expression<Func<J2>> secondColumn, string op = "=")
-    {
-        return query.LeftJoin(Table<A>(), alias, firstColumn, secondColumn, op);
-    }
-
-    public static Query LeftJoin<A, J1, J2>(this Query query, string table, Expression<Func<A>> alias, Expression<Func<J1>> firstColumn, Expression<Func<J2>> secondColumn, string op = "=")
-    {
-        query.LeftJoin(
-            $"{table} AS {Alias(alias)}",
-            $"{AliasFromColumn(firstColumn)}.{Property(firstColumn)}",
-            $"{AliasFromColumn(secondColumn)}.{Property(secondColumn)}",
-            op: op
-        );
-        return query;
-    }
-
-    public static Query LeftJoin<A>(this Query query, Expression<Func<A>> alias, Func<Join, Join> joinQuery)
-    {
-        return query.LeftJoin(Table<A>(), alias, joinQuery);
-    }
-
-    public static Query LeftJoin<A>(this Query query, string table, Expression<Func<A>> alias, Func<Join, Join> joinQuery)
-    {
-        query.LeftJoin(
-            $"{table} AS {Alias(alias)}",
-            joinQuery
-        );
-        return query;
-    }
-
-    public static Query RightJoin<A, J1, J2>(this Query query, Expression<Func<A>> alias, Expression<Func<J1>> firstColumn, Expression<Func<J2>> secondColumn, string op = "=")
-    {
-        return query.RightJoin(Table<A>(), alias, firstColumn, secondColumn, op);
-    }
-
-    public static Query RightJoin<A, J1, J2>(this Query query, string table, Expression<Func<A>> alias, Expression<Func<J1>> firstColumn, Expression<Func<J2>> secondColumn, string op = "=")
-    {
-        query.RightJoin(
-            $"{table} AS {Alias(alias)}",
-            $"{AliasFromColumn(firstColumn)}.{Property(firstColumn)}",
-            $"{AliasFromColumn(secondColumn)}.{Property(secondColumn)}",
-            op: op
-        );
-        return query;
-    }
-
-    public static Query RightJoin<A>(this Query query, Expression<Func<A>> alias, Func<Join, Join> joinQuery)
-    {
-        return query.RightJoin(Table<A>(), alias, joinQuery);
-    }
-
-    public static Query RightJoin<A>(this Query query, string table, Expression<Func<A>> alias, Func<Join, Join> joinQuery)
-    {
-        query.RightJoin(
-            $"{table} AS {Alias(alias)}",
-            joinQuery
-        );
-        return query;
-    }
-
-    public static Query CrossJoin<A>(this Query query, Expression<Func<A>> alias)
-    {
-        query.CrossJoin(Alias(alias));
-        return query;
-    }
-
-    public static Query CrossJoin<A>(this Query query, string table)
-    {
-        query.CrossJoin(table);
-        return query;
-    }
-
-    public static Join On<J1, J2>(this Join join, Expression<Func<J1>> firstColumn, Expression<Func<J2>> secondColumn, string op = "=")
-    {
-        join.On(
-            $"{AliasFromColumn(firstColumn)}.{Property(firstColumn)}",
-            $"{AliasFromColumn(secondColumn)}.{Property(secondColumn)}",
-            op);
-        return join;
-    }
-
-    public static Join OrOn<J1, J2>(this Join join, Expression<Func<J1>> firstColumn, Expression<Func<J2>> secondColumn, string op = "=")
-    {
-        join.OrOn(
-            $"{AliasFromColumn(firstColumn)}.{Property(firstColumn)}",
-            $"{AliasFromColumn(secondColumn)}.{Property(secondColumn)}",
-            op);
-        return join;
-    }
-
-    public static Join JoinWith<A>(this Join join, Expression<Func<A>> alias)
-    {
-        join.JoinWith(Table<A>(), alias);
-        return join;
-    }
-
-    public static Join JoinWith<A>(this Join join, string table, Expression<Func<A>> alias)
-    {
-        join.JoinWith($"{table} AS {Alias(alias)}");
-        return join;
-    }
-
-    #endregion Joins
 
     #region Orders
 
-    public static Query OrderByColumn<T>(this Query query, Expression<Func<T>> column)
+    public Query OrderByColumn<T>(Expression<Func<T>> column)
     {
-        query.OrderBy($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        OrderBy($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Query OrderByAlias<T>(this Query query, Expression<Func<T>> alias)
+    public Query OrderByAlias<T>(Expression<Func<T>> alias)
     {
         var aliasName = Alias(alias);
-        query.OrderByAlias(aliasName);
-        return query;
+        OrderByAlias(aliasName);
+        return this;
     }
 
-    public static Query OrderByAlias(this Query query, string alias)
+    public Query OrderByAlias(string alias)
     {
-        if (query.GetWrapper().Selects.TryGetValue(alias, out var select))
+        if (Selects.TryGetValue(alias, out var select))
         {
-            query.OrderBy($"{select}");
+            OrderBy($"{select}");
         }
-        else if (query.GetWrapper().SelectsRaw.TryGetValue(alias, out var selectRaw))
+        else if (SelectsRaw.TryGetValue(alias, out var selectRaw))
         {
-            query.OrderByRaw(selectRaw);
+            OrderByRaw(selectRaw);
         }
-        else if (query.GetWrapper().SelectAggrs.TryGetValue(alias, out var selectAggr))
+        else if (SelectAggrs.TryGetValue(alias, out var selectAggr))
         {
-            query.OrderByRaw(selectAggr);
+            OrderByRaw(selectAggr);
         }
         else
         {
             throw new ArgumentException($"The alias name '{alias}' not found or not supported.");
         }
 
-        return query;
+        return this;
     }
 
-    public static Query OrderByColumnDesc<T>(this Query query, Expression<Func<T>> column)
+    public Query OrderByColumnDesc<T>(Expression<Func<T>> column)
     {
-        query.OrderByDesc($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        OrderByDesc($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Query OrderByAliasDesc<T>(this Query query, Expression<Func<T>> alias)
+    public Query OrderByAliasDesc<T>(Expression<Func<T>> alias)
     {
         var aliasName = Alias(alias);
-        query.OrderByAliasDesc(aliasName);
-        return query;
+        OrderByAliasDesc(aliasName);
+        return this;
     }
 
-    public static Query OrderByAliasDesc(this Query query, string alias)
+    public Query OrderByAliasDesc(string alias)
     {
-        if (query.GetWrapper().Selects.TryGetValue(alias, out var select))
+        if (Selects.TryGetValue(alias, out var select))
         {
-            query.OrderByDesc($"{select}");
+            OrderByDesc($"{select}");
         }
-        else if (query.GetWrapper().SelectsRaw.TryGetValue(alias, out var selectRaw))
+        else if (SelectsRaw.TryGetValue(alias, out var selectRaw))
         {
-            query.OrderByRaw(selectRaw + " desc");
+            OrderByRaw(selectRaw + " desc");
         }
-        else if (query.GetWrapper().SelectAggrs.TryGetValue(alias, out var selectAggr))
+        else if (SelectAggrs.TryGetValue(alias, out var selectAggr))
         {
-            query.OrderByRaw(selectAggr + " desc");
+            OrderByRaw(selectAggr + " desc");
         }
         else
         {
             throw new ArgumentException($"The alias '{alias}' not found or not supported.");
         }
 
-        return query;
+        return this;
     }
 
-    public static Query OrderByRawFormat(this Query query, string queryFormat, params Expression<Func<object>>[] columns)
+    public Query OrderByRawFormat(string queryFormat, params Expression<Func<object>>[] columns)
     {
         queryFormat = FormatQueryRaw(queryFormat, columns);
-        query.OrderByRaw(queryFormat);
-        return query;
+        OrderByRaw(queryFormat);
+        return this;
     }
 
-    public static Query OrderByRawFormat(this Query query, string queryFormat, Expression<Func<object>>[] columns, params object[] bindings)
+    public Query OrderByRawFormat(string queryFormat, Expression<Func<object>>[] columns, params object[] bindings)
     {
         queryFormat = FormatQueryRaw(queryFormat, columns);
-        query.OrderByRaw(queryFormat, bindings: bindings);
-        return query;
+        OrderByRaw(queryFormat, bindings: bindings);
+        return this;
     }
 
     #endregion Orders
 
     #region Aggregations
 
-    public static Query SelectCount<A, T>(this Query query, Expression<Func<A>> alias, Expression<Func<T>> column)
+    public Query SelectCount<A, T>(Expression<Func<A>> alias, Expression<Func<T>> column)
     {
-        query.SelectFunc(alias, column, "COUNT", aggregate: true);
-        return query;
+        SelectFunc(alias, column, "COUNT", aggregate: true);
+        return this;
     }
 
-    public static Query SelectCount<T>(this Query query, string alias, Expression<Func<T>> column)
+    public Query SelectCount<T>(string alias, Expression<Func<T>> column)
     {
-        query.SelectFunc(alias, column, "COUNT", aggregate: true);
-        return query;
+        SelectFunc(alias, column, "COUNT", aggregate: true);
+        return this;
     }
 
-    public static Query SelectCount<T>(this Query query, Expression<Func<T>> column)
+    public Query SelectCount<T>(Expression<Func<T>> column)
     {
-        query.SelectCount(column, column);
-        return query;
+        SelectCount(column, column);
+        return this;
     }
 
-    public static Query SelectMin<A, T>(this Query query, Expression<Func<A>> alias, Expression<Func<T>> column)
+    public Query SelectMin<A, T>(Expression<Func<A>> alias, Expression<Func<T>> column)
     {
-        query.SelectFunc(alias, column, "MIN", aggregate: true);
-        return query;
+        SelectFunc(alias, column, "MIN", aggregate: true);
+        return this;
     }
 
-    public static Query SelectMin<T>(this Query query, string alias, Expression<Func<T>> column)
+    public Query SelectMin<T>(string alias, Expression<Func<T>> column)
     {
-        query.SelectFunc(alias, column, "MIN", aggregate: true);
-        return query;
+        SelectFunc(alias, column, "MIN", aggregate: true);
+        return this;
     }
 
-    public static Query SelectMin<T>(this Query query, Expression<Func<T>> column)
+    public Query SelectMin<T>(Expression<Func<T>> column)
     {
-        query.SelectMin(column, column);
-        return query;
+        SelectMin(column, column);
+        return this;
     }
 
-    public static Query SelectMax<A, T>(this Query query, Expression<Func<A>> alias, Expression<Func<T>> column)
+    public Query SelectMax<A, T>(Expression<Func<A>> alias, Expression<Func<T>> column)
     {
-        query.SelectFunc(alias, column, "MAX", aggregate: true);
-        return query;
+        SelectFunc(alias, column, "MAX", aggregate: true);
+        return this;
     }
 
-    public static Query SelectMax<T>(this Query query, string alias, Expression<Func<T>> column)
+    public Query SelectMax<T>(string alias, Expression<Func<T>> column)
     {
-        query.SelectFunc(alias, column, "MAX", aggregate: true);
-        return query;
+        SelectFunc(alias, column, "MAX", aggregate: true);
+        return this;
     }
 
-    public static Query SelectMax<T>(this Query query, Expression<Func<T>> column)
+    public Query SelectMax<T>(Expression<Func<T>> column)
     {
-        query.SelectMax(column, column);
-        return query;
+        SelectMax(column, column);
+        return this;
     }
 
-    public static Query SelectAvg<A, T>(this Query query, Expression<Func<A>> alias, Expression<Func<T>> column)
+    public Query SelectAvg<A, T>(Expression<Func<A>> alias, Expression<Func<T>> column)
     {
-        query.SelectFunc(alias, column, "AVG", aggregate: true);
-        return query;
+        SelectFunc(alias, column, "AVG", aggregate: true);
+        return this;
     }
 
-    public static Query SelectAvg<T>(this Query query, string alias, Expression<Func<T>> column)
+    public Query SelectAvg<T>(string alias, Expression<Func<T>> column)
     {
-        query.SelectFunc(alias, column, "AVG", aggregate: true);
-        return query;
+        SelectFunc(alias, column, "AVG", aggregate: true);
+        return this;
     }
 
-    public static Query SelectAvg<T>(this Query query, Expression<Func<T>> column)
+    public Query SelectAvg<T>(Expression<Func<T>> column)
     {
-        query.SelectAvg(column, column);
-        return query;
+        SelectAvg(column, column);
+        return this;
     }
 
-    public static Query SelectSum<A, T>(this Query query, Expression<Func<A>> alias, Expression<Func<T>> column)
+    public Query SelectSum<A, T>(Expression<Func<A>> alias, Expression<Func<T>> column)
     {
-        query.SelectFunc(alias, column, "SUM", aggregate: true);
-        return query;
+        SelectFunc(alias, column, "SUM", aggregate: true);
+        return this;
     }
 
-    public static Query SelectSum<T>(this Query query, string alias, Expression<Func<T>> column)
+    public Query SelectSum<T>(string alias, Expression<Func<T>> column)
     {
-        query.SelectFunc(alias, column, "SUM", aggregate: true);
-        return query;
+        SelectFunc(alias, column, "SUM", aggregate: true);
+        return this;
     }
 
-    public static Query SelectSum<T>(this Query query, Expression<Func<T>> column)
+    public Query SelectSum<T>(Expression<Func<T>> column)
     {
-        query.SelectSum(column, column);
-        return query;
+        SelectSum(column, column);
+        return this;
     }
 
-    public static Query AsCount<A, T>(this Query query, Expression<Func<A>> alias, Expression<Func<T>> column)
-    {
-        var aliasName = Alias(alias);
-        return query.AsCount(aliasName, column);
-    }
-
-    public static Query AsCount<T>(this Query query, string alias, Expression<Func<T>> column)
-    {
-        var columnName = $"{AliasFromColumn(column)}.{Property(column)}";
-        query.GetWrapper().SelectAggrs.Add(alias, columnName);
-        query.AsCount(new[] { $"{columnName} AS {alias}" });
-        return query;
-    }
-
-    public static Query AsAvg<A, T>(this Query query, Expression<Func<A>> alias, Expression<Func<T>> column)
+    public Query AsCount<A, T>(Expression<Func<A>> alias, Expression<Func<T>> column)
     {
         var aliasName = Alias(alias);
-        return query.AsAvg(aliasName, alias);
+        return AsCount(aliasName, column);
     }
 
-    public static Query AsAvg<T>(this Query query, string alias, Expression<Func<T>> column)
+    public Query AsCount<T>(string alias, Expression<Func<T>> column)
     {
         var columnName = $"{AliasFromColumn(column)}.{Property(column)}";
-        query.GetWrapper().SelectAggrs.Add(alias, columnName);
-        query.AsAvg($"{columnName} AS {alias}");
-        return query;
+        SelectAggrs.Add(alias, columnName);
+        AsCount(new[] { $"{columnName} AS {alias}" });
+        return this;
     }
 
-    public static Query AsAverage<A, T>(this Query query, Expression<Func<A>> alias, Expression<Func<T>> column)
+    public Query AsAvg<A, T>(Expression<Func<A>> alias, Expression<Func<T>> column)
     {
         var aliasName = Alias(alias);
-        return query.AsAverage(aliasName, column);
+        return AsAvg(aliasName, alias);
     }
 
-    public static Query AsAverage<T>(this Query query, string alias, Expression<Func<T>> column)
+    public Query AsAvg<T>(string alias, Expression<Func<T>> column)
     {
         var columnName = $"{AliasFromColumn(column)}.{Property(column)}";
-        query.GetWrapper().SelectAggrs.Add(alias, columnName);
-        query.AsAverage($"{columnName} AS {alias}");
-        return query;
+        SelectAggrs.Add(alias, columnName);
+        AsAvg($"{columnName} AS {alias}");
+        return this;
     }
 
-    public static Query AsSum<A, T>(this Query query, Expression<Func<A>> alias, Expression<Func<T>> column)
+    public Query AsAverage<A, T>(Expression<Func<A>> alias, Expression<Func<T>> column)
     {
         var aliasName = Alias(alias);
-        return query.AsSum(aliasName, column);
+        return AsAverage(aliasName, column);
     }
 
-    public static Query AsSum<T>(this Query query, string alias, Expression<Func<T>> column)
+    public Query AsAverage<T>(string alias, Expression<Func<T>> column)
     {
         var columnName = $"{AliasFromColumn(column)}.{Property(column)}";
-        query.GetWrapper().SelectAggrs.Add(alias, columnName);
-        query.AsSum($"{columnName} AS {alias}");
-        return query;
+        SelectAggrs.Add(alias, columnName);
+        AsAverage($"{columnName} AS {alias}");
+        return this;
     }
 
-    public static Query AsMax<A, T>(this Query query, Expression<Func<A>> alias, Expression<Func<T>> column)
+    public Query AsSum<A, T>(Expression<Func<A>> alias, Expression<Func<T>> column)
     {
         var aliasName = Alias(alias);
-        return query.AsMax(aliasName, column);
+        return AsSum(aliasName, column);
     }
 
-    public static Query AsMax<T>(this Query query, string alias, Expression<Func<T>> column)
+    public Query AsSum<T>(string alias, Expression<Func<T>> column)
     {
         var columnName = $"{AliasFromColumn(column)}.{Property(column)}";
-        query.GetWrapper().SelectAggrs.Add(alias, columnName);
-        query.AsMax($"{columnName} AS {alias}");
-        return query;
+        SelectAggrs.Add(alias, columnName);
+        AsSum($"{columnName} AS {alias}");
+        return this;
     }
 
-    public static Query AsMin<A, T>(this Query query, Expression<Func<A>> alias, Expression<Func<T>> column)
+    public Query AsMax<A, T>(Expression<Func<A>> alias, Expression<Func<T>> column)
+    {
+        var aliasName = Alias(alias);
+        return AsMax(aliasName, column);
+    }
+
+    public Query AsMax<T>(string alias, Expression<Func<T>> column)
+    {
+        var columnName = $"{AliasFromColumn(column)}.{Property(column)}";
+        SelectAggrs.Add(alias, columnName);
+        AsMax($"{columnName} AS {alias}");
+        return this;
+    }
+
+    public Query AsMin<A, T>(Expression<Func<A>> alias, Expression<Func<T>> column)
     {
         var aliasName = Alias<A>(alias);
-        return query.AsMin(aliasName, column);
+        return AsMin(aliasName, column);
     }
 
-    public static Query AsMin<T>(this Query query, string alias, Expression<Func<T>> column)
+    public Query AsMin<T>(string alias, Expression<Func<T>> column)
     {
         var columnName = $"{AliasFromColumn(column)}.{Property(column)}";
-        query.GetWrapper().SelectAggrs.Add(alias, columnName);
-        query.AsMin($"{columnName} AS {alias}");
-        return query;
+        SelectAggrs.Add(alias, columnName);
+        AsMin($"{columnName} AS {alias}");
+        return this;
     }
 
-    public static Query GroupBy<T>(this Query query, Expression<Func<T>> column)
+    public Query GroupBy<T>(Expression<Func<T>> column)
     {
         var columnName = $"{AliasFromColumn(column)}.{Property(column)}";
-        query.GroupBy(new[] { columnName });
-        return query;
+        GroupBy(new[] { columnName });
+        return this;
     }
 
-    public static Query GroupByRaw<T>(this Query query, string queryFormat, params Expression<Func<object>>[] columns)
+    public Query GroupByRaw<T>(string queryFormat, params Expression<Func<object>>[] columns)
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns);
-        query.GroupByRaw(queryRaw);
-        return query;
+        GroupByRaw(queryRaw);
+        return this;
     }
 
-    public static Query GroupByRaw<T>(this Query query, string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
+    public Query GroupByRaw<T>(string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
     {
         var queryRaw = FormatQueryRaw(queryFormat, columns);
-        query.GroupByRaw(queryRaw, bindings: bindings);
-        return query;
+        GroupByRaw(queryRaw, bindings: bindings);
+        return this;
     }
 
     #endregion Aggregations
 
     #region Havings
 
-    public static Query Having<T>(this Query query, Expression<Func<T>> column, object value, string op = "=")
+    public Query Having<T>(Expression<Func<T>> column, object value, string op = "=")
     {
-        query.Having($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        Having($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Query HavingNot<T>(this Query query, Expression<Func<T>> column, object value, string op = "=")
+    public Query HavingNot<T>(Expression<Func<T>> column, object value, string op = "=")
     {
-        query.HavingNot($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        HavingNot($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Query OrHaving<T>(this Query query, Expression<Func<T>> column, object value, string op = "=")
+    public Query OrHaving<T>(Expression<Func<T>> column, object value, string op = "=")
     {
-        query.OrHaving($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        OrHaving($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Query OrHavingNot<T>(this Query query, Expression<Func<T>> column, object value, string op = "=")
+    public Query OrHavingNot<T>(Expression<Func<T>> column, object value, string op = "=")
     {
-        query.OrHavingNot($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        OrHavingNot($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Query HavingColumns<T1, T2>(this Query query, Expression<Func<T1>> firstColumn, Expression<Func<T2>> secondColumn, string op = "=")
+    public Query HavingColumns<T1, T2>(Expression<Func<T1>> firstColumn, Expression<Func<T2>> secondColumn, string op = "=")
     {
-        query.HavingColumns($"{AliasFromColumn(firstColumn)}.{Property(firstColumn)}", op, $"{AliasFromColumn(secondColumn)}.{Property(secondColumn)}");
-        return query;
+        HavingColumns($"{AliasFromColumn(firstColumn)}.{Property(firstColumn)}", op, $"{AliasFromColumn(secondColumn)}.{Property(secondColumn)}");
+        return this;
     }
 
-    public static Query OrHavingColumns<T1, T2>(this Query query, Expression<Func<T1>> firstColumn, Expression<Func<T2>> secondColumn, string op = "=")
+    public Query OrHavingColumns<T1, T2>(Expression<Func<T1>> firstColumn, Expression<Func<T2>> secondColumn, string op = "=")
     {
-        query.OrHavingColumns($"{AliasFromColumn(firstColumn)}.{Property(firstColumn)}", op, $"{AliasFromColumn(secondColumn)}.{Property(secondColumn)}");
-        return query;
+        OrHavingColumns($"{AliasFromColumn(firstColumn)}.{Property(firstColumn)}", op, $"{AliasFromColumn(secondColumn)}.{Property(secondColumn)}");
+        return this;
     }
 
-    public static Query HavingContains<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query HavingContains<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.HavingContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        HavingContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query OrHavingContains<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query OrHavingContains<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.OrHavingContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        OrHavingContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query HavingDate<T>(this Query query, Expression<Func<T>> column, object value, string op = "=")
+    public Query HavingDate<T>(Expression<Func<T>> column, object value, string op = "=")
     {
-        query.HavingDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        HavingDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Query OrHavingDate<T>(this Query query, Expression<Func<T>> column, object value, string op = "=")
+    public Query OrHavingDate<T>(Expression<Func<T>> column, object value, string op = "=")
     {
-        query.OrHavingDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        OrHavingDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Query HavingDatePart<T>(this Query query, Expression<Func<T>> column, object value, string part)
+    public Query HavingDatePart<T>(Expression<Func<T>> column, object value, string part)
     {
-        query.HavingDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", value);
-        return query;
+        HavingDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", value);
+        return this;
     }
 
-    public static Query OrHavingDatePart<T>(this Query query, Expression<Func<T>> column, object value, string part)
+    public Query OrHavingDatePart<T>(Expression<Func<T>> column, object value, string part)
     {
-        query.OrHavingDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", value);
-        return query;
+        OrHavingDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", value);
+        return this;
     }
 
-    public static Query HavingEnds<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query HavingEnds<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.HavingEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        HavingEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query OrHavingEnds<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query OrHavingEnds<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.OrHavingEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        OrHavingEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query HavingFalse<T>(this Query query, Expression<Func<T>> column)
+    public Query HavingFalse<T>(Expression<Func<T>> column)
     {
-        query.HavingFalse($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        HavingFalse($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Query OrHavingFalse<T>(this Query query, Expression<Func<T>> column)
+    public Query OrHavingFalse<T>(Expression<Func<T>> column)
     {
-        query.OrHavingFalse($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        OrHavingFalse($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Query HavingTrue<T>(this Query query, Expression<Func<T>> column)
+    public Query HavingTrue<T>(Expression<Func<T>> column)
     {
-        query.HavingTrue($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        HavingTrue($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Query OrHavingTrue<T>(this Query query, Expression<Func<T>> column)
+    public Query OrHavingTrue<T>(Expression<Func<T>> column)
     {
-        query.OrHavingTrue($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        OrHavingTrue($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Query HavingIn<T>(this Query query, Expression<Func<T>> column, IEnumerable<T> values)
+    public Query HavingIn<T>(Expression<Func<T>> column, IEnumerable<T> values)
     {
-        query.HavingIn($"{AliasFromColumn(column)}.{Property(column)}", values);
-        return query;
+        HavingIn($"{AliasFromColumn(column)}.{Property(column)}", values);
+        return this;
     }
 
-    public static Query HavingIn<T>(this Query query, Expression<Func<T>> column, Query subQuery)
+    public Query HavingIn<T>(Expression<Func<T>> column, Query subQuery)
     {
-        query.HavingIn($"{AliasFromColumn(column)}.{Property(column)}", subQuery);
-        return query;
+        HavingIn($"{AliasFromColumn(column)}.{Property(column)}", subQuery);
+        return this;
     }
 
-    public static Query OrHavingIn<T>(this Query query, Expression<Func<T>> column, IEnumerable<T> values)
+    public Query OrHavingIn<T>(Expression<Func<T>> column, IEnumerable<T> values)
     {
-        query.OrHavingIn($"{AliasFromColumn(column)}.{Property(column)}", values);
-        return query;
+        OrHavingIn($"{AliasFromColumn(column)}.{Property(column)}", values);
+        return this;
     }
 
-    public static Query OrHavingIn<T>(this Query query, Expression<Func<T>> column, Query subQuery)
+    public Query OrHavingIn<T>(Expression<Func<T>> column, Query subQuery)
     {
-        query.OrHavingIn($"{AliasFromColumn(column)}.{Property(column)}", subQuery);
-        return query;
+        OrHavingIn($"{AliasFromColumn(column)}.{Property(column)}", subQuery);
+        return this;
     }
 
-    public static Query HavingLike<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query HavingLike<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.HavingLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        HavingLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query OrHavingLike<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query OrHavingLike<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.OrHavingLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        OrHavingLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query HavingBetween<T>(this Query query, Expression<Func<T>> column, T lower, T higher)
+    public Query HavingBetween<T>(Expression<Func<T>> column, T lower, T higher)
     {
-        query.HavingBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
-        return query;
+        HavingBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
+        return this;
     }
 
-    public static Query OrHavingBetween<T>(this Query query, Expression<Func<T>> column, T lower, T higher)
+    public Query OrHavingBetween<T>(Expression<Func<T>> column, T lower, T higher)
     {
-        query.OrHavingBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
-        return query;
+        OrHavingBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
+        return this;
     }
 
-    public static Query HavingNotBetween<T>(this Query query, Expression<Func<T>> column, T lower, T higher)
+    public Query HavingNotBetween<T>(Expression<Func<T>> column, T lower, T higher)
     {
-        query.HavingNotBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
-        return query;
+        HavingNotBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
+        return this;
     }
 
-    public static Query OrHavingNotBetween<T>(this Query query, Expression<Func<T>> column, T lower, T higher)
+    public Query OrHavingNotBetween<T>(Expression<Func<T>> column, T lower, T higher)
     {
-        query.OrHavingNotBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
-        return query;
+        OrHavingNotBetween($"{AliasFromColumn(column)}.{Property(column)}", lower, higher);
+        return this;
     }
 
-    public static Query HavingNotContains<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query HavingNotContains<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.HavingNotContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        HavingNotContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query OrHavingNotContains<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query OrHavingNotContains<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.OrHavingNotContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        OrHavingNotContains($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query HavingNotDate<T>(this Query query, Expression<Func<T>> column, object value, string op = "=")
+    public Query HavingNotDate<T>(Expression<Func<T>> column, object value, string op = "=")
     {
-        query.HavingNotDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        HavingNotDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Query OrHavingNotDate<T>(this Query query, Expression<Func<T>> column, object value, string op = "=")
+    public Query OrHavingNotDate<T>(Expression<Func<T>> column, object value, string op = "=")
     {
-        query.OrHavingNotDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        OrHavingNotDate($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Query HavingNotDatePart<T>(this Query query, Expression<Func<T>> column, object value, string part)
+    public Query HavingNotDatePart<T>(Expression<Func<T>> column, object value, string part)
     {
-        query.HavingNotDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", value);
-        return query;
+        HavingNotDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", value);
+        return this;
     }
 
-    public static Query OrHavingNotDatePart<T>(this Query query, Expression<Func<T>> column, object value, string part)
+    public Query OrHavingNotDatePart<T>(Expression<Func<T>> column, object value, string part)
     {
-        query.OrHavingNotDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", value);
-        return query;
+        OrHavingNotDatePart(part, $"{AliasFromColumn(column)}.{Property(column)}", value);
+        return this;
     }
 
-    public static Query HavingNotEnds<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query HavingNotEnds<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.HavingNotEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        HavingNotEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query OrHavingNotEnds<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query OrHavingNotEnds<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.OrHavingNotEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        OrHavingNotEnds($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query HavingNotIn<T>(this Query query, Expression<Func<T>> column, IEnumerable<T> values)
+    public Query HavingNotIn<T>(Expression<Func<T>> column, IEnumerable<T> values)
     {
-        query.HavingNotIn($"{AliasFromColumn(column)}.{Property(column)}", values);
-        return query;
+        HavingNotIn($"{AliasFromColumn(column)}.{Property(column)}", values);
+        return this;
     }
 
-    public static Query HavingNotIn<T>(this Query query, Expression<Func<T>> column, Query subQuery)
+    public Query HavingNotIn<T>(Expression<Func<T>> column, Query subQuery)
     {
-        query.HavingNotIn($"{AliasFromColumn(column)}.{Property(column)}", subQuery);
-        return query;
+        HavingNotIn($"{AliasFromColumn(column)}.{Property(column)}", subQuery);
+        return this;
     }
 
-    public static Query OrHavingNotIn<T>(this Query query, Expression<Func<T>> column, IEnumerable<T> values)
+    public Query OrHavingNotIn<T>(Expression<Func<T>> column, IEnumerable<T> values)
     {
-        query.OrHavingNotIn($"{AliasFromColumn(column)}.{Property(column)}", values);
-        return query;
+        OrHavingNotIn($"{AliasFromColumn(column)}.{Property(column)}", values);
+        return this;
     }
 
-    public static Query OrHavingNotIn<T>(this Query query, Expression<Func<T>> column, Query subQuery)
+    public Query OrHavingNotIn<T>(Expression<Func<T>> column, Query subQuery)
     {
-        query.OrHavingNotIn($"{AliasFromColumn(column)}.{Property(column)}", subQuery);
-        return query;
+        OrHavingNotIn($"{AliasFromColumn(column)}.{Property(column)}", subQuery);
+        return this;
     }
 
-    public static Query HavingNotLike<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query HavingNotLike<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.HavingNotLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        HavingNotLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query OrHavingNotLike<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query OrHavingNotLike<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.OrHavingNotLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        OrHavingNotLike($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query HavingNull<T>(this Query query, Expression<Func<T>> column)
+    public Query HavingNull<T>(Expression<Func<T>> column)
     {
-        query.HavingNull($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        HavingNull($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Query HavingNotNull<T>(this Query query, Expression<Func<T>> column)
+    public Query HavingNotNull<T>(Expression<Func<T>> column)
     {
-        query.HavingNotNull($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        HavingNotNull($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Query OrHavingNull<T>(this Query query, Expression<Func<T>> column)
+    public Query OrHavingNull<T>(Expression<Func<T>> column)
     {
-        query.OrHavingNull($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        OrHavingNull($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Query OrHavingNotNull<T>(this Query query, Expression<Func<T>> column)
+    public Query OrHavingNotNull<T>(Expression<Func<T>> column)
     {
-        query.OrHavingNotNull($"{AliasFromColumn(column)}.{Property(column)}");
-        return query;
+        OrHavingNotNull($"{AliasFromColumn(column)}.{Property(column)}");
+        return this;
     }
 
-    public static Query HavingStarts<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query HavingStarts<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.HavingStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        HavingStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query HavingNotStarts<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query HavingNotStarts<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.HavingNotStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        HavingNotStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query OrHavingStarts<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query OrHavingStarts<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.OrHavingStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        OrHavingStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query OrHavingNotStarts<T>(this Query query, Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
+    public Query OrHavingNotStarts<T>(Expression<Func<T>> column, object value, bool caseSensitive = false, string escapeCharacter = null)
     {
-        query.OrHavingNotStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
-        return query;
+        OrHavingNotStarts($"{AliasFromColumn(column)}.{Property(column)}", value, caseSensitive, escapeCharacter);
+        return this;
     }
 
-    public static Query HavingTime<T>(this Query query, Expression<Func<T>> column, object value, string op = "=")
+    public Query HavingTime<T>(Expression<Func<T>> column, object value, string op = "=")
     {
-        query.HavingTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        HavingTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Query OrHavingTime<T>(this Query query, Expression<Func<T>> column, object value, string op = "=")
+    public Query OrHavingTime<T>(Expression<Func<T>> column, object value, string op = "=")
     {
-        query.OrHavingTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        OrHavingTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Query HavingNotTime<T>(this Query query, Expression<Func<T>> column, object value, string op = "=")
+    public Query HavingNotTime<T>(Expression<Func<T>> column, object value, string op = "=")
     {
-        query.HavingNotTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        HavingNotTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Query OrHavingNotTime<T>(this Query query, Expression<Func<T>> column, object value, string op = "=")
+    public Query OrHavingNotTime<T>(Expression<Func<T>> column, object value, string op = "=")
     {
-        query.OrHavingNotTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
-        return query;
+        OrHavingNotTime($"{AliasFromColumn(column)}.{Property(column)}", op, value);
+        return this;
     }
 
-    public static Query HavingRawFormat<T>(this Query query, string queryFormat, params Expression<Func<object>>[] columns)
+    public Query HavingRawFormat<T>(string queryFormat, params Expression<Func<object>>[] columns)
     {
         queryFormat = FormatQueryRaw(queryFormat, columns: columns);
-        query.HavingRaw(queryFormat);
-        return query;
+        HavingRaw(queryFormat);
+        return this;
     }
 
-    public static Query HavingRawFormat<T>(this Query query, string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
+    public Query HavingRawFormat<T>(string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
     {
         queryFormat = FormatQueryRaw(queryFormat, columns: columns);
-        query.HavingRaw(queryFormat, bindings: bindings);
-        return query;
+        HavingRaw(queryFormat, bindings: bindings);
+        return this;
     }
 
-    public static Query OrHavingRawFormat<T>(this Query query, string queryFormat, params Expression<Func<object>>[] columns)
+    public Query OrHavingRawFormat<T>(string queryFormat, params Expression<Func<object>>[] columns)
     {
         queryFormat = FormatQueryRaw(queryFormat, columns: columns);
-        query.OrHavingRaw(queryFormat);
-        return query;
+        OrHavingRaw(queryFormat);
+        return this;
     }
 
-    public static Query OrHavingRawFormat<T>(this Query query, string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
+    public Query OrHavingRawFormat<T>(string queryFormat, Expression<Func<object>>[] columns, object[] bindings)
     {
         queryFormat = FormatQueryRaw(queryFormat, columns: columns);
-        query.OrHavingRaw(queryFormat, bindings: bindings);
-        return query;
+        OrHavingRaw(queryFormat, bindings: bindings);
+        return this;
     }
 
     #endregion Havings
 
     #region Misc
 
-    public static Q If<Q>(this Q query, bool condition, Func<Q, Q> ifTrue, Func<Q, Q> ifFalse = null) where Q : BaseQuery<Q>
+    public Q If<Q>(this Q query, bool condition, Func<Q, Q> ifTrue, Func<Q, Q> ifFalse = null) where Q : BaseQuery<Q>
     {
         if (ifTrue == null)
             throw new ArgumentNullException(nameof(ifTrue));
@@ -1442,11 +1284,11 @@ public static class FluentQuery
             return ifFalse != null ? ifFalse.Invoke(query) : query;
     }
 
-    public static Query WithVariable(this Query query, string key, object value)
+    public Query WithVariable(string key, object value)
     {
-        query.Variables.Add(key, value);
+        Variables.Add(key, value);
 
-        return query;
+        return this;
     }
 
     #endregion Misc
@@ -1456,7 +1298,7 @@ public static class FluentQuery
     /// <summary>
     /// Gets a column name from the entity (poco) property (eg. Column(() => cnt.FirstName) gives 'FirstName')
     /// </summary>
-    public static string Column<T>(Expression<Func<T>> column)
+    public string Column<T>(Expression<Func<T>> column)
     {
         return Property<T>(column);
     }
@@ -1464,7 +1306,7 @@ public static class FluentQuery
     /// <summary>
     /// Gets the first part of the full column name (eg. AliasFromColumn(() => cnt.FirstName) gives 'cnt')
     /// </summary>
-    public static string AliasFromColumn<T>(Expression<Func<T>> property)
+    public string AliasFromColumn<T>(Expression<Func<T>> property)
     {
         return Property(property, parent: true);
     }
@@ -1472,7 +1314,7 @@ public static class FluentQuery
     /// <summary>
     /// Gets full column name from the entity (poco) property (eg. ColumnWithAlias(() => cnt.FirstName) gives 'cnt.FirstName')
     /// </summary>
-    public static string ColumnWithAlias<T>(Expression<Func<T>> column)
+    public string ColumnWithAlias<T>(Expression<Func<T>> column)
     {
         return $"{AliasFromColumn(column)}.{Column(column)}";
     }
@@ -1480,7 +1322,7 @@ public static class FluentQuery
     /// <summary>
     /// Gets alias name from populated dto model (eg. Alias(() => model.FullName) gives 'FullName')
     /// </summary>
-    public static string Alias<A>(Expression<Func<A>> model)
+    public string Alias<A>(Expression<Func<A>> model)
     {
         return Property(model);
     }
@@ -1488,7 +1330,7 @@ public static class FluentQuery
     /// <summary>
     /// Gets a table name from the entity (poco) property (eg. Table(() => cnt) gives 'Contacts')
     /// </summary>
-    public static string Table<A>(Expression<Func<A>> alias)
+    public string Table<A>(Expression<Func<A>> alias)
     {
         return Table<A>();
     }
@@ -1496,7 +1338,7 @@ public static class FluentQuery
     /// <summary>
     /// Gets a table name from the entity (poco) property (eg. Table<Contact>() gives 'Contacts')
     /// </summary>
-    public static string Table<A>()
+    public string Table<A>()
     {
         var attribute = typeof(A).GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.TableAttribute>();
 
@@ -1513,9 +1355,9 @@ public static class FluentQuery
     }
 
     /// <summary>
-    /// Used to describe an array of column expressions in a short way (eg. .WhereRawFormat("{0} LIKE 'John'", columns: new[] { FluentQuery.Expression(() => cnt.FirstName) }))
+    /// Used to describe an array of column expressions in a short way (eg. .WhereRawFormat("{0} LIKE 'John'", columns: new[] { FluentExpression(() => cnt.FirstName) }))
     /// </summary>
-    public static Expression<Func<object>> Expression(Expression<Func<object>> func)
+    public Expression<Func<object>> Expression(Expression<Func<object>> func)
     {
         return func;
     }
@@ -1523,11 +1365,6 @@ public static class FluentQuery
     #endregion Public Methods
 
     #region Private Methods
-
-    private static FluentQueryWrapper GetWrapper(this Query query)
-    {
-        return query as FluentQueryWrapper ?? throw new Exception("Cannot execute operation because SqlKata query wasn't instantiated from the FluentQuery. Use 'FluentQuery.Query()' instead of 'new Query()'.");
-    }
 
     /// <summary>
     /// 
@@ -1538,7 +1375,7 @@ public static class FluentQuery
     /// <param name="parent">Get parent member name (eg. customer.Id will return "customer" instead of "ID")</param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    private static string Property<T>(Expression<Func<T>> property, bool parent = false)
+    private string Property<T>(Expression<Func<T>> property, bool parent = false)
     {
         var memberName = GetMemberName(property, parent: parent);
 
@@ -1548,7 +1385,7 @@ public static class FluentQuery
             throw new ArgumentException($"The expression cannot be evaluated");
     }
 
-    private static string GetMemberName(Expression expression, bool parent = false)
+    private string GetMemberName(Expression expression, bool parent = false)
     {
         if (expression == null)
             throw new ArgumentNullException(nameof(expression));
@@ -1575,6 +1412,7 @@ public static class FluentQuery
                         ?? throw new NotSupportedException(expression.NodeType.ToString(), new Exception($"Cannot get parent member name from expression {expression}."));
                 else
                     return memberExpression.Member.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.ColumnAttribute>()?.Name
+                        ?? memberExpression.Member.GetCustomAttribute<ColumnAttribute>()?.Name
                         ?? FormatNestedMemberName(memberExpression);
 
             default:
@@ -1583,7 +1421,7 @@ public static class FluentQuery
         }
     }
 
-    private static string FormatNestedMemberName(MemberExpression expression)
+    private string FormatNestedMemberName(MemberExpression expression)
     {
         if (expression == null)
             throw new ArgumentNullException(nameof(expression));
@@ -1610,49 +1448,19 @@ public static class FluentQuery
         return name;
     }
 
-    private static string FormatQueryRaw(string queryFormat, params Expression<Func<object>>[] columns)
+    private string FormatQueryRaw(string queryFormat, params Expression<Func<object>>[] columns)
     {
         if (columns != null && columns.Length > 0)
             queryFormat = string.Format(queryFormat, columns.Select(x => $"{AliasFromColumn(x)}.{Alias(x)}").ToArray());
 
         return queryFormat;
     }
-    private static IDictionary<string, string> GetColumns<T>()
+
+    private IDictionary<string, string> GetColumns<T>()
     {
-        var type = typeof(T);
+        var columns = new Dictionary<string, string>();
 
-        // 1. 尝试从缓存中读取
-        if (ColumnsCache.TryGetValue(type, out var cachedColumns))
-        {
-            return cachedColumns;
-        }
 
-        // 2. 缓存未命中：使用约定和最小反射查找生成的静态类
-        var mapType = type.Assembly.GetType($"{type.FullName}Map");
-
-        if (mapType == null)
-        {
-            // 💥 Throw exception: Force the use of the Source Generator
-            throw new InvalidOperationException(
-                $"Source Generator mapping failure: The type '{type.FullName}' is missing its expected generated static map class '{type.FullName}Map'. " +
-                "Please ensure that the model has been scanned by the Source Generator and that the project configuration is correct."
-            );
-        }
-
-        // 3. 查找静态字段 'Columns'
-        var columnsField = mapType.GetField("Columns", BindingFlags.Public | BindingFlags.Static);
-
-        if (columnsField == null)
-        {
-            throw new InvalidOperationException(
-            $"Source Generator mapping failure: The generated map for '{type.Name}' was found but is missing the required static 'Columns' field."
-        );
-        }
-
-        var columns = (IDictionary<string, string>)columnsField.GetValue(null);
-
-        // 4. 缓存结果并返回
-        ColumnsCache.TryAdd(type, columns);
 
         return columns;
     }

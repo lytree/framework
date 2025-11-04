@@ -1,12 +1,21 @@
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
-// 标记为 Source Generator
-[Generator]
-public class ColumnMappingGenerator : IIncrementalGenerator
+#pragma warning disable RS1035 // Do not use banned APIs for analyzers
+
+namespace SqlKata.SourceGenerators;
+
+[Generator(LanguageNames.CSharp)]
+public class SourceGenerators : IIncrementalGenerator
 {
+    private const string TableAttribute = "System.ComponentModel.DataAnnotations.Schema.TableAttribute";
     // 假设您的 ColumnAttribute 位于这些命名空间
     private const string ColumnAttributeName = "System.ComponentModel.DataAnnotations.Schema.ColumnAttribute";
     private const string NotMappedAttributeName = "System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute";
@@ -15,45 +24,57 @@ public class ColumnMappingGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // 步骤 1: 筛选出所有标记了 ColumnAttribute 的类
-        var classDeclarations = context.SyntaxProvider
+        Debugger.Launch();
+        // 步骤 A: 筛选出 INamedTypeSymbol (就像您之前做的)
+        var classSymbolsProvider = context.SyntaxProvider
             .CreateSyntaxProvider(
-                // 谓词: 查找所有具有特性列表的类
-                predicate: static (s, _) => s is ClassDeclarationSyntax { AttributeLists.Count: > 0 } c,
-                // 转换器: 获取类的语义模型
-                transform: static (ctx, _) => GetClassWithRelevantAttributes(ctx.Node as ClassDeclarationSyntax, ctx.SemanticModel)
-            )
-            .Where(static c => c is not null);
+                // 谓词: 查找所有类声明
+                predicate: static (s, _) => s is ClassDeclarationSyntax c,
+                // 转换器: 将语法节点和语义模型打包
+                transform: static (ctx, ct) =>
+                {
+                    var symbol = ctx.SemanticModel.GetDeclaredSymbol(ctx.Node, cancellationToken: ct) as INamedTypeSymbol;
+                    if (symbol != null &&
+                        symbol.TypeKind == TypeKind.Class &&
+                        symbol.DeclaredAccessibility == Accessibility.Public)
+                    {
+                        // 语义过滤：检查该类是否包含 System.ComponentModel.DataAnnotations.Schema.TableAttribute
+                        if (symbol.GetAttributes().Any(attr =>
+                            attr.AttributeClass?.ToDisplayString() == TableAttribute))
+                        {
+                            return symbol;
+                        }
+                    }
+                    return null;
+                })
+            .Where(static s => s is not null);
 
-        // 步骤 2: 将筛选出的类分组并生成代码
-        context.RegisterSourceOutput(classDeclarations,
-            static (spc, source) => Execute(spc, source));
-    }
 
-    // 辅助方法：检查类是否包含任何我们关注的特性（或简单地检查所有公共类）
-    private static ClassDeclarationSyntax GetClassWithRelevantAttributes(ClassDeclarationSyntax classDeclaration, SemanticModel semanticModel)
-    {
-        // 简化的逻辑：为了生成所有类的映射，我们只需要确保它是公共非静态类
-        if (classDeclaration.Modifiers.Any(SyntaxKind.PublicKeyword) &&
-            !classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword))
-        {
-            return classDeclaration;
-        }
-        return null;
+        // 步骤 B: 将 Symbols 与 CompilationProvider 结合
+        var compilationAndSymbols = context.CompilationProvider
+            .Combine(classSymbolsProvider.Collect()); // Collect() 将所有符号收集到一个不可变数组 ImmutableArray 中
+
+        // 步骤 C: 注册 Source Output
+        context.RegisterSourceOutput(compilationAndSymbols,
+            static (spc, source) =>
+            {
+                // source 现在是 (Compilation, ImmutableArray<INamedTypeSymbol>)
+                var compilation = source.Left;
+                var symbols = source.Right;
+
+                foreach (var classSymbol in symbols)
+                {
+                    // 现在您拥有了 classSymbol (元数据) 和 compilation
+                    // ... 调用您的 Execute 逻辑
+                    Execute(spc, classSymbol);
+                }
+            });
     }
 
     // 执行生成代码的逻辑
-    private static void Execute(SourceProductionContext context, ClassDeclarationSyntax classDeclaration)
+    private static void Execute(SourceProductionContext context, INamedTypeSymbol classSymbol)
     {
-        if (classDeclaration == null) return;
-
-        var semanticModel = context.Compilation.GetSemanticModel(classDeclaration.SyntaxTree);
-        var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration);
-
-        if (classSymbol == null || classSymbol.TypeKind != TypeKind.Class) return;
-
-        // 确保类是公共的
-        if (classSymbol.DeclaredAccessibility != Accessibility.Public) return;
+        // 原始代码中的所有语义查找和检查已经被 IIncrementalGenerator 管道处理。
 
         // 获取命名空间和类名
         var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
@@ -75,6 +96,7 @@ public class ColumnMappingGenerator : IIncrementalGenerator
         sb.AppendLine("// <auto-generated/>");
         sb.AppendLine("using System.Collections.Generic;");
         sb.AppendLine("using System;");
+        sb.AppendLine("using Framework.SqlKata;");
         sb.AppendLine();
 
         if (!string.IsNullOrEmpty(namespaceName) && namespaceName != "<global namespace>")
@@ -84,15 +106,16 @@ public class ColumnMappingGenerator : IIncrementalGenerator
         }
 
         // 遵循约定：类名为 [ModelName]Map
-        sb.AppendLine($"    internal static class {className}Map");
+        sb.AppendLine($"    public partial class {className}");
         sb.AppendLine("    {");
 
         // ----------------------------------------------------
         // 生成 Columns 字典 (替换 GetColumns<T>() 的逻辑)
         // ----------------------------------------------------
-        sb.AppendLine($"        public static readonly IReadOnlyDictionary<string, string> Columns = ");
-        sb.AppendLine($"            new Dictionary<string, string>(StringComparer.Ordinal)");
-        sb.AppendLine("            {");
+        sb.AppendLine($"        static {className}()");
+        sb.AppendLine("         {");
+        sb.AppendLine($"               FluentQuery.AddColumns(typeof({namespaceName}.{className}), new Dictionary<string, string>(StringComparer.Ordinal)");
+        sb.AppendLine("                {");
 
         // 查找所有公共实例属性
         var properties = classSymbol.GetMembers().OfType<IPropertySymbol>()
@@ -132,26 +155,11 @@ public class ColumnMappingGenerator : IIncrementalGenerator
             // 如果没有特性，默认使用属性名
             columnName ??= propertyName;
 
-            sb.AppendLine($"                {{ \"{propertyName}\", \"{columnName}\" }},");
+            sb.AppendLine($"                        {{ \"{propertyName}\", \"{columnName}\" }},");
         }
 
-        sb.AppendLine("            };");
-
-        // ----------------------------------------------------
-        // 生成 GetColumnName 方法 (替换 GetMemberName 中的反射逻辑)
-        // ----------------------------------------------------
-        sb.AppendLine();
-        sb.AppendLine("        // Replaces single GetCustomAttribute<ColumnAttribute>() lookups");
-        sb.AppendLine("        public static string GetColumnName(string propertyName)");
-        sb.AppendLine("        {");
-        sb.AppendLine("            if (Columns.TryGetValue(propertyName, out var columnName))");
-        sb.AppendLine("            {");
-        sb.AppendLine("                return columnName;");
-        sb.AppendLine("            }");
-        sb.AppendLine("            // If not found (e.g., nested property access), return the original name for FormatNestedMemberName to handle.");
-        sb.AppendLine("            return propertyName;");
-        sb.AppendLine("        }");
-
+        sb.AppendLine("            });");
+        sb.AppendLine("    }");
         sb.AppendLine("    }");
 
         if (!string.IsNullOrEmpty(namespaceName) && namespaceName != "<global namespace>")
