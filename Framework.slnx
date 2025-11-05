@@ -29,6 +29,5 @@
   <Project Path="Framework.Plot/Framework.Plot.csproj" />
   <Project Path="Framework.Repository/Framework.Repository.csproj" />
   <Project Path="Framework.SourceGenerators/Framework.SourceGenerators.csproj" />
-  <Project Path="Framework.SqlKata/Framework.SqlKata.csproj" />
   <Project Path="Framework/Framework.csproj" />
 </Solution>
