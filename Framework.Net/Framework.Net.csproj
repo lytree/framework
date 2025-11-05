@@ -1,26 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-		<TargetFrameworks>net8.0</TargetFrameworks>
-	  <ImplicitUsings>enable</ImplicitUsings>
-	  <Nullable>enable</Nullable>
-	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
-	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-	  <Version>1.0.0</Version>
-	  <PackageId>Lytree.Framework.Net</PackageId>
-	  <SignAssembly>False</SignAssembly>
-	  <PackageReadmeFile>README.md</PackageReadmeFile>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>$(NetCore)</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<Version>1.0.0</Version>
+		<PackageId>Lytree.Framework.Net</PackageId>
+		<SignAssembly>False</SignAssembly>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="System.IO.Pipelines" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Resource Include="README.md">
-		<PackagePath>\</PackagePath>
-		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		<Pack>True</Pack>
-	  </Resource>
+		<Resource Include="README.md">
+			<PackagePath>\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Pack>True</Pack>
+		</Resource>
 	</ItemGroup>
 </Project>

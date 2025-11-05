@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0</TargetFrameworks>
+		<TargetFrameworks>$(NetCore)</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -21,10 +21,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Resource Include="README.md">
-	    <PackagePath>\</PackagePath>
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	    <Pack>True</Pack>
-	  </Resource>
+		<Resource Include="README.md">
+			<PackagePath>\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Pack>True</Pack>
+		</Resource>
 	</ItemGroup>
 </Project>

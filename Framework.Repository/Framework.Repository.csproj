@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net8.0</TargetFrameworks>
+		<TargetFrameworks>$(NetCore)</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -21,13 +21,13 @@
 		<PackageReference Include="Yitter.IdGenerator" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\Framework\Framework.csproj" />
+		<ProjectReference Include="..\Framework\Framework.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Resource Include="README.md">
-	    <PackagePath>\</PackagePath>
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	    <Pack>True</Pack>
-	  </Resource>
+		<Resource Include="README.md">
+			<PackagePath>\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Pack>True</Pack>
+		</Resource>
 	</ItemGroup>
 </Project>
