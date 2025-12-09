@@ -179,8 +179,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
         {
             GetBucketMetadataResponse response = new GetBucketMetadataResponse();
 
-            string storageClass;
-            httpResponse.Headers.TryGetValue(iheaders.DefaultStorageClassHeader(), out storageClass);
+            httpResponse.Headers.TryGetValue(iheaders.DefaultStorageClassHeader(), out string storageClass);
 
             response.StorageClass = ParseStorageClass(storageClass);
 
@@ -1710,7 +1709,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
             {
                 if (entry.Key != null && entry.Key.StartsWith(iheaders.HeaderMetaPrefix()))
                 {
-                    response.Metadata.Add(entry.Key.Substring(iheaders.HeaderMetaPrefix().Length), entry.Value);
+                    response.Metadata.Add(entry.Key[iheaders.HeaderMetaPrefix().Length..], entry.Value);
                 }
             }
             if (httpResponse.Headers.ContainsKey(iheaders.RestoreHeader()))

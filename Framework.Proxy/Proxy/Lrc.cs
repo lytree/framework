@@ -24,7 +24,7 @@ namespace ProxyLib
     /// <summary>
     /// Longitudinal Redundancy Check hash algorithm implementation.
     /// </summary>
-    public class Lrc : HashAlgorithm
+    internal class Lrc : HashAlgorithm
     {
         private byte _lrc;
 
@@ -57,8 +57,7 @@ namespace ProxyLib
         /// <returns>Finalize byte array.</returns>
         protected override byte[] HashFinal()
         {
-            byte[] finalHash = new byte[1];
-            finalHash[0] = _lrc;
+            byte[] finalHash = [_lrc];
             return finalHash;
         }
     }

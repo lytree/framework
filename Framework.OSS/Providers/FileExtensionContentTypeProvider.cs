@@ -439,7 +439,7 @@ namespace Framework.OSS.Providers
                 return null;
             }
 
-            return path.Substring(num);
+            return path[num..];
         }
     }
 }

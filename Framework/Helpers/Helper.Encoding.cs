@@ -39,7 +39,7 @@ public static partial class Helper
     public static byte[] HexToBytes(string s)
     {
         if (s.IsNull())
-            return Array.Empty<byte>();
+            return [];
         var bytes = new byte[s.Length / 2];
 
         for (int x = 0; x < s.Length / 2; x++)
@@ -89,7 +89,10 @@ public static partial class Helper
     {
         unicode = unicode.Replace("%", "\\");
 
-        return new Regex(@"\\u([0-9A-F]{4})", RegexOptions.IgnoreCase | RegexOptions.Compiled).Replace(
+        return MyRegex().Replace(
              unicode, x => string.Empty + Convert.ToChar(Convert.ToUInt16(x.Result("$1"), 16)));
     }
+
+    [GeneratedRegex(@"\\u([0-9A-F]{4})", RegexOptions.IgnoreCase | RegexOptions.Compiled, "zh-CN")]
+    private static partial Regex MyRegex();
 }

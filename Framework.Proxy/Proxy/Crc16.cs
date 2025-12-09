@@ -29,7 +29,7 @@ namespace ProxyLib
     /// inherits from the standard .NET HashAlgorithm
     /// class.
     /// </summary>
-    public class Crc16 : HashAlgorithm
+    internal class Crc16 : HashAlgorithm
     {
         // constants
         private const ushort Polynomial = 0xA001;

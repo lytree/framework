@@ -47,21 +47,15 @@ namespace Framework.OSS.Services
         {
             string extension = Path.GetExtension(filePath)?.ToLowerInvariant();
 
-            switch (extension)
+            return extension switch
             {
-                case ".txt":
-                    return "text/plain";
-                case ".pdf":
-                    return "application/pdf";
-                case ".jpg":
-                case ".jpeg":
-                    return "image/jpeg";
-                case ".png":
-                    return "image/png";
+                ".txt" => "text/plain",
+                ".pdf" => "application/pdf",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
                 // 添加其他文件扩展名和对应的 ContentType
-                default:
-                    return null; // 未知的 ContentType
-            }
+                _ => null,// 未知的 ContentType
+            };
         }
         private T DeserializeFromXml<T>(string xml)
         {

@@ -23,12 +23,9 @@ public static partial class Helper
 
 	public static string ToBase32String(byte[] bytes)
 	{
-		if (bytes == null)
-		{
-			throw new ArgumentNullException(nameof(bytes));
-		}
+        ArgumentNullException.ThrowIfNull(bytes);
 
-		int length = bytes.Length;
+        int length = bytes.Length;
 		if (length == 0)
 		{
 			return string.Empty;

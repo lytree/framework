@@ -615,7 +615,7 @@ public static partial class Extensions
 	public static double StandardDeviation(this IEnumerable<double> @this)
 	{
 		double result = 0;
-		var list = @this as ICollection<double> ?? @this.ToList();
+		var list = @this as ICollection<double> ?? [.. @this];
 		int count = list.Count;
 		if (count > 1)
 		{
@@ -731,8 +731,8 @@ public static partial class Extensions
 	{
 		first ??= new List<T1>();
 		second ??= new List<T2>();
-		var firstSource = first as ICollection<T1> ?? first.ToList();
-		var secondSource = second as ICollection<T2> ?? second.ToList();
+		var firstSource = first as ICollection<T1> ?? [.. first];
+		var secondSource = second as ICollection<T2> ?? [.. second];
 		var add = firstSource.ExceptBy(secondSource, condition).ToList();
 		var remove = secondSource.ExceptBy(firstSource, (s, f) => condition(f, s)).ToList();
 		var update = firstSource.IntersectBy(secondSource, condition).ToList();
@@ -752,8 +752,8 @@ public static partial class Extensions
 	{
 		first ??= new List<T1>();
 		second ??= new List<T2>();
-		var firstSource = first as ICollection<T1> ?? first.ToList();
-		var secondSource = second as ICollection<T2> ?? second.ToList();
+		var firstSource = first as ICollection<T1> ?? [.. first];
+		var secondSource = second as ICollection<T2> ?? [.. second];
 		var add = firstSource.ExceptBy(secondSource, condition).ToList();
 		var remove = secondSource.ExceptBy(firstSource, (s, f) => condition(f, s)).ToList();
 		var updates = firstSource.IntersectBy(secondSource, condition).Select(t1 => (t1, secondSource.FirstOrDefault(t2 => condition(t1, t2)))).ToList();
@@ -768,7 +768,7 @@ public static partial class Extensions
 	/// <returns></returns>
 	public static List<T> AsNotNull<T>(this List<T> list)
 	{
-		return list ?? new List<T>();
+		return list ?? [];
 	}
 
 	/// <summary>

@@ -242,7 +242,7 @@ public static partial class Extensions
 	/// <typeparam name="T"></typeparam>
 	public static T Merge<T>(this IEnumerable<T> objects) where T : class
 	{
-		var list = objects as List<T> ?? objects.ToList();
+		var list = objects as List<T> ?? [.. objects];
 		switch (list.Count)
 		{
 			case 0:

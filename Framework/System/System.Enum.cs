@@ -37,12 +37,12 @@ public static class EnumExtension
 		if (!enumType.IsEnum)
 			return null;
 
-		return Enum.GetValues(enumType).Cast<Enum>()
+		return [.. Enum.GetValues(enumType).Cast<Enum>()
 			.Where(m => !ignoreNull || !m.ToString().Equals("Null")).Select(x => new Dictionary<string, object>
 			{
 				["Label"] = x.GetDescription(),
 				["Value"] = x
-			}).ToList();
+			})];
 	}
 
 	public static List<Dictionary<string, object>> ToList<T>(bool ignoreNull = false)
@@ -52,11 +52,11 @@ public static class EnumExtension
 		if (!enumType.IsEnum)
 			return null;
 
-		return Enum.GetValues(enumType).Cast<Enum>()
+		return [.. Enum.GetValues(enumType).Cast<Enum>()
 			 .Where(m => !ignoreNull || !m.ToString().Equals("Null")).Select(x => new Dictionary<string, object>
 			 {
 				 ["Label"] = x.GetDescription(),
 				 ["Value"] = x
-			 }).ToList();
+			 })];
 	}
 }

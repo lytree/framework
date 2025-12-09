@@ -116,8 +116,7 @@ namespace ProxyLib.Proxy
         /// <param name="tcpClient">A TcpClient connection object.</param>
         public HttpProxyClient(TcpClient tcpClient)
         {
-            if (tcpClient == null)
-                throw new ArgumentNullException(nameof(tcpClient));
+            ArgumentNullException.ThrowIfNull(tcpClient);
 
             _tcpClientCached = tcpClient;
         }
@@ -258,9 +257,11 @@ namespace ProxyLib.Proxy
                         throw new ProxyException("ProxyPort value must be greater than zero and less than 65535");
 
                     //  create new tcp client object to the proxy server
-                    _tcpClient = new TcpClient();
-                    _tcpClient.SendTimeout = _sendTimeout;
-                    _tcpClient.ReceiveTimeout = _receiveTimeout;
+                    _tcpClient = new TcpClient
+                    {
+                        SendTimeout = _sendTimeout,
+                        ReceiveTimeout = _receiveTimeout
+                    };
 
                     // attempt to open the connection
                     _tcpClient.Connect(_proxyHost, _proxyPort);
@@ -292,7 +293,7 @@ namespace ProxyLib.Proxy
 
             string connectCmd = CreateCommandString(host, port);
 
-            byte[] request = ASCIIEncoding.ASCII.GetBytes(connectCmd);
+            byte[] request = Encoding.ASCII.GetBytes(connectCmd);
 
             // send the connect request
             stream.Write(request, 0, request.Length);
@@ -309,7 +310,7 @@ namespace ProxyLib.Proxy
 
             // create an byte response array  
             byte[] response = new byte[_tcpClient.ReceiveBufferSize];
-            StringBuilder sbuilder = new StringBuilder();
+            StringBuilder sbuilder = new();
             int bytes = 0;
             long total = 0;
 
@@ -362,23 +363,12 @@ namespace ProxyLib.Proxy
 
         private void HandleProxyCommandError(string host, int port)
         {
-            string msg;
-
-            switch (_respCode)
+            string msg = _respCode switch
             {
-                case HttpResponseCodes.None:
-                    msg = string.Format(CultureInfo.InvariantCulture, "Proxy destination {0} on port {1} failed to return a recognized HTTP response code.  Server response: {2}", Utils.GetHost(_tcpClient), Utils.GetPort(_tcpClient), _respText);
-                    break;
-
-                case HttpResponseCodes.BadGateway:
-                    //HTTP/1.1 502 Proxy Error (The specified Secure Sockets Layer (SSL) port is not allowed. ISA Server is not configured to allow SSL requests from this port. Most Web browsers use port 443 for SSL requests.)
-                    msg = string.Format(CultureInfo.InvariantCulture, "Proxy destination {0} on port {1} responded with a 502 code - Bad Gateway.  If you are connecting to a Microsoft ISA destination please refer to knowledge based article Q283284 for more information.  Server response: {2}", Utils.GetHost(_tcpClient), Utils.GetPort(_tcpClient), _respText);
-                    break;
-
-                default:
-                    msg = string.Format(CultureInfo.InvariantCulture, "Proxy destination {0} on port {1} responded with a {2} code - {3}", Utils.GetHost(_tcpClient), Utils.GetPort(_tcpClient), ((int)_respCode).ToString(CultureInfo.InvariantCulture), _respText);
-                    break;
-            }
+                HttpResponseCodes.None => string.Format(CultureInfo.InvariantCulture, "Proxy destination {0} on port {1} failed to return a recognized HTTP response code.  Server response: {2}", Utils.GetHost(_tcpClient), Utils.GetPort(_tcpClient), _respText),
+                HttpResponseCodes.BadGateway => string.Format(CultureInfo.InvariantCulture, "Proxy destination {0} on port {1} responded with a 502 code - Bad Gateway.  If you are connecting to a Microsoft ISA destination please refer to knowledge based article Q283284 for more information.  Server response: {2}", Utils.GetHost(_tcpClient), Utils.GetPort(_tcpClient), _respText),//HTTP/1.1 502 Proxy Error (The specified Secure Sockets Layer (SSL) port is not allowed. ISA Server is not configured to allow SSL requests from this port. Most Web browsers use port 443 for SSL requests.)
+                _ => string.Format(CultureInfo.InvariantCulture, "Proxy destination {0} on port {1} responded with a {2} code - {3}", Utils.GetHost(_tcpClient), Utils.GetPort(_tcpClient), ((int)_respCode).ToString(CultureInfo.InvariantCulture), _respText),
+            };
 
             //  throw a new application exception 
             throw new ProxyException(msg);
@@ -398,34 +388,27 @@ namespace ProxyLib.Proxy
 
         private void ParseResponse(string response)
         {
-            string[] data = null;
 
             //  get rid of the LF character if it exists and then split the string on all CR
-            data = response.Replace('\n', ' ').Split('\r');
+            string[] data = response.Replace('\n', ' ').Split('\r');
 
             ParseCodeAndText(data[0]);
         }
 
         private void ParseCodeAndText(string line)
         {
-            int begin = 0;
-            int end = 0;
-            string val = null;
-
-            if (line.IndexOf("HTTP") == -1)
+            if (!line.Contains("HTTP", StringComparison.CurrentCulture))
                 throw new ProxyException(string.Format("No HTTP response received from proxy destination.  Server response: {0}.", line));
 
-            begin = line.IndexOf(" ") + 1;
-            end = line.IndexOf(" ", begin);
+            int begin = line.IndexOf(" ") + 1;
+            int end = line.IndexOf(" ", begin);
 
-            val = line.Substring(begin, end - begin);
-            Int32 code = 0;
-
-            if (!Int32.TryParse(val, out code))
+            string val = line[begin..end];
+            if (!int.TryParse(val, out int code))
                 throw new ProxyException(string.Format("An invalid response code was received from proxy destination.  Server response: {0}.", line));
 
             _respCode = (HttpResponseCodes)code;
-            _respText = line.Substring(end + 1).Trim();
+            _respText = line[(end + 1)..].Trim();
         }
 
 
@@ -506,9 +489,7 @@ namespace ProxyLib.Proxy
             _asyncWorker.WorkerSupportsCancellation = true;
             _asyncWorker.DoWork += new DoWorkEventHandler(CreateConnectionAsync_DoWork);
             _asyncWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(CreateConnectionAsync_RunWorkerCompleted);
-            Object[] args = new Object[2];
-            args[0] = destinationHost;
-            args[1] = destinationPort;
+            object[] args = [destinationHost, destinationPort];
             _asyncWorker.RunWorkerAsync(args);
         }
 
@@ -516,7 +497,7 @@ namespace ProxyLib.Proxy
         {
             try
             {
-                Object[] args = (Object[])e.Argument;
+                object[] args = (object[])e.Argument;
                 e.Result = CreateConnection((string)args[0], (int)args[1]);
             }
             catch (Exception ex)
@@ -527,8 +508,7 @@ namespace ProxyLib.Proxy
 
         private void CreateConnectionAsync_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (CreateConnectionAsyncCompleted != null)
-                CreateConnectionAsyncCompleted(this, new CreateConnectionAsyncCompletedEventArgs(_asyncException, _asyncCancelled, (TcpClient)e.Result));
+            CreateConnectionAsyncCompleted?.Invoke(this, new CreateConnectionAsyncCompletedEventArgs(_asyncException, _asyncCancelled, (TcpClient)e.Result));
         }
 
         #endregion

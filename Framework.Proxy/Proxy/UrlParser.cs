@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 namespace Telegram.Core.App;
 
-public static class UrlParser
+public static partial class UrlParser
 {
     const string pattern = @"^(?:(?<scheme>[a-z][a-z0-9+.-]*)://)?(?:(?<user>[^:@/?#]+)(?::(?<pass>[^@/?#]*))?@)?(?<host>\[[0-9a-fA-F:]+\]|localhost|(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|\d{1,3}(?:\.\d{1,3}){3})(?::(?<port>\d{1,5}))?(?<path>/[^?#]*)?(?:\?(?<query>[^#]*))?(?:#(?<fragment>.*))?$";
 
@@ -10,7 +10,7 @@ public static class UrlParser
     // (?:(?<user>[^:]+)(?::(?<pass>[^@]+))?@)? -> 可选的 user:pass@
     // (?<host>[^:]+)           -> 主机名 (e.g., 192.168.1.10)
     // (?::(?<port>\d+))?       -> 可选的 :port
-    private static readonly Regex ProxyRegex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex ProxyRegex = UrlRegex();
 
     public static ParsedUrl Parse(string urlString)
     {
@@ -77,6 +77,9 @@ public static class UrlParser
         // 如果所有尝试都失败
         return new ParsedUrl { IsValid = false };
     }
+
+    [GeneratedRegex(pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled, "zh-CN")]
+    private static partial Regex UrlRegex();
 }
 /// <summary>
 /// 存储通用 URL 解析结果的结构体。

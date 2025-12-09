@@ -23,7 +23,7 @@ public static partial class Helper
 
 		PropertyInfo[] properties = interfaceType.GetProperties();
 
-		string[] propertyNames = properties.Select(p => p.Name).ToArray();
+		string[] propertyNames = [.. properties.Select(p => p.Name)];
 
 		return propertyNames;
 	}

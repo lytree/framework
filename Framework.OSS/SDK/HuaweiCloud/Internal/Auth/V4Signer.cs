@@ -83,7 +83,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal.Auth
                 longDate = DateTime.UtcNow.ToString(Constants.LongDateFormat, Constants.CultureInfo);
             }
 
-            string shortDate = longDate.Substring(0, longDate.IndexOf("T"));
+            string shortDate = longDate[..longDate.IndexOf("T")];
             IDictionary<string, string> tempDict = new Dictionary<string, string>();
             tempDict.Add("LongDate", longDate);
             tempDict.Add("ShortDate", shortDate);

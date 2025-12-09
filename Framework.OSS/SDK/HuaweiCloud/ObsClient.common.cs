@@ -97,26 +97,20 @@ namespace OBS
 
         internal IParser GetIParser(HttpContext context)
         {
-            switch (context.ChooseAuthType)
+            return context.ChooseAuthType switch
             {
-                case AuthTypeEnum.V2:
-                case AuthTypeEnum.V4:
-                    return V2Parser.GetInstance(this.httpClient.GetIHeaders(context));
-                default:
-                    return ObsParser.GetInstance(this.httpClient.GetIHeaders(context));
-            }
+                AuthTypeEnum.V2 or AuthTypeEnum.V4 => V2Parser.GetInstance(this.httpClient.GetIHeaders(context)),
+                _ => ObsParser.GetInstance(this.httpClient.GetIHeaders(context)),
+            };
         }
 
         internal IConvertor GetIConvertor(HttpContext context)
         {
-            switch (context.ChooseAuthType)
+            return context.ChooseAuthType switch
             {
-                case AuthTypeEnum.V2:
-                case AuthTypeEnum.V4:
-                    return V2Convertor.GetInstance(this.httpClient.GetIHeaders(context));
-                default:
-                    return ObsConvertor.GetInstance(this.httpClient.GetIHeaders(context));
-            }
+                AuthTypeEnum.V2 or AuthTypeEnum.V4 => V2Convertor.GetInstance(this.httpClient.GetIHeaders(context)),
+                _ => ObsConvertor.GetInstance(this.httpClient.GetIHeaders(context)),
+            };
         }
 
 

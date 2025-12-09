@@ -47,8 +47,8 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                 else
                 {
                     int index = url.IndexOf("//");
-                    string prefix = url.Substring(0, index + 2);
-                    string suffix = url.Substring(index + 2);
+                    string prefix = url[..(index + 2)];
+                    string suffix = url[(index + 2)..];
 
                     url = prefix + BucketName + "." + suffix;
                 }
@@ -83,8 +83,8 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                 else
                 {
                     int index = url.IndexOf("//");
-                    string prefix = url.Substring(0, index + 2);
-                    string suffix = url.Substring(index + 2);
+                    string prefix = url[..(index + 2)];
+                    string suffix = url[(index + 2)..];
 
                     url = prefix + BucketName + "." + suffix;
                 }

@@ -27,8 +27,7 @@ namespace ProxyLib.Proxy
     {
         internal static string GetHost(TcpClient client)
         {
-            if (client == null)
-                throw new ArgumentNullException(nameof(client));
+            ArgumentNullException.ThrowIfNull(client);
 
             string host = "";
             try
@@ -44,8 +43,7 @@ namespace ProxyLib.Proxy
 
         internal static string GetPort(TcpClient client)
         {
-            if (client == null)
-                throw new ArgumentNullException(nameof(client));
+            ArgumentNullException.ThrowIfNull(client);
 
             string port = "";
             try

@@ -28,7 +28,7 @@ namespace ProxyLib.Proxy.EventArgs
     /// </summary>
     public class CreateConnectionAsyncCompletedEventArgs : AsyncCompletedEventArgs
     {
-        private TcpClient _proxyConnection;
+        private readonly TcpClient _proxyConnection;
         
         /// <summary>
         /// Constructor.

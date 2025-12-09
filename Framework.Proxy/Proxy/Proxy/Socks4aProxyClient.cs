@@ -147,10 +147,9 @@ namespace ProxyLib.Proxy
 
             //  userId needs to be a zero length string so that the GetBytes method
             //  works properly
-            if (userId == null)
-                userId = "";
+            userId ??= "";
 
-            byte[] destIp = { 0, 0, 0, 1 };  // build the invalid ip address as specified in the 4a protocol
+            byte[] destIp = [0, 0, 0, 1];  // build the invalid ip address as specified in the 4a protocol
             byte[] destPort = GetDestinationPortBytes(destinationPort);
             byte[] userIdBytes = Encoding.ASCII.GetBytes(userId);
             byte[] hostBytes = Encoding.ASCII.GetBytes(destinationHost);
@@ -170,7 +169,7 @@ namespace ProxyLib.Proxy
             proxy.Write(request, 0, request.Length);
 
             // wait for the proxy server to send a response
-            base.WaitForData(proxy);
+            WaitForData(proxy);
 
             // PROXY SERVER RESPONSE
             // The SOCKS server checks to see whether such a request should be granted
@@ -208,7 +207,7 @@ namespace ProxyLib.Proxy
             byte[] response = new byte[8];
 
             // read the resonse from the network stream
-            proxy.Read(response, 0, 8);
+            proxy.ReadExactly(response, 0, 8);
             // int totalRead = 0;
             // while (totalRead < response.Length)
             // {

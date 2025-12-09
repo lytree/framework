@@ -57,8 +57,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
 
         public static MethodInfo GetTransMethodInfo(Type requestType, object iconvertor)
         {
-            MethodInfo info;
-            TransMethodsHolder.TryGetValue(requestType, out info);
+            TransMethodsHolder.TryGetValue(requestType, out MethodInfo info);
             if (info == null)
             {
                 lock (TransMethodsHolderLock)
@@ -409,11 +408,11 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
             foreach (byte b in bytes)
             {
                 char ch = (char)b;
-                if (Constants.AllowedInUrl.IndexOf(ch) != -1)
+                if (Constants.AllowedInUrl.Contains(ch))
                 {
                     encodedUri.Append(ch);
                 }
-                else if (safe != null && safe.IndexOf(ch) != -1)
+                else if (safe != null && safe.Contains(ch))
                 {
                     encodedUri.Append(ch);
                 }

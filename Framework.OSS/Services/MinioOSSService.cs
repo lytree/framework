@@ -786,8 +786,7 @@ namespace Framework.OSS.Services
                 throw new Exception("File not exist.");
             }
             string fileName = Path.GetFileName(filePath);
-            string contentType = null;
-            if (!new FileExtensionContentTypeProvider().TryGetContentType(fileName, out contentType))
+            if (!new FileExtensionContentTypeProvider().TryGetContentType(fileName, out string contentType))
             {
                 contentType = "application/octet-stream";
             }

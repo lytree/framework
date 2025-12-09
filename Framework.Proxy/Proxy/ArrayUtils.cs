@@ -28,7 +28,7 @@ namespace ProxyLib
     /// <summary>
     /// Parity options.
     /// </summary>
-    public enum ParityOptions
+    internal enum ParityOptions
     {
         /// <summary>
         /// Odd parity.
@@ -43,7 +43,7 @@ namespace ProxyLib
     /// <summary>
     /// Array utility class for working with byte arrays.
     /// </summary>
-    public class ArrayUtils
+    internal class ArrayUtils
     {
 
         /// <summary>
@@ -198,7 +198,7 @@ namespace ProxyLib
         /// <param name="value">32-bit integer.</param>
         /// <returns>24-bit integer as a byte array.</returns>
         /// <exception cref="ArgumentOutOfRangeException">If value is greater than 16777215.</exception>
-        public static byte[] GetInt24(Int32 value)
+        public static byte[] GetInt24(int value)
         {
             if (value > 16777215)
                 throw new ArgumentOutOfRangeException(nameof(value), "value can not be greater than 16777215 (max unsigned 24-bit integer)");
@@ -214,7 +214,7 @@ namespace ProxyLib
         /// </summary>
         /// <param name="int24">24-bit integer value.</param>
         /// <returns>Unsigned 32-bit integer value.</returns>
-        public static Int32 GetInt32(byte[] int24)
+        public static int GetInt32(byte[] int24)
         {
             if (int24 == null)
                 throw new ArgumentNullException(nameof(int24));

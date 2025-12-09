@@ -314,8 +314,7 @@ namespace ProxyLib.Proxy
 
             //  userId needs to be a zero length string so that the GetBytes method
             //  works properly
-            if (userId == null)
-                userId = "";
+            userId ??= "";
 
             byte[] destIp = GetIPAddressBytes(destinationHost);
             byte[] destPort = GetDestinationPortBytes(destinationPort);
@@ -372,7 +371,7 @@ namespace ProxyLib.Proxy
             byte[] response = new byte[8];
 
             // read the resonse from the network stream
-            proxy.Read(response, 0, 8);
+            proxy.ReadExactly(response, 0, 8);
 
             //  evaluate the reply code for an error condition
             if (response[1] != SOCKS4_CMD_REPLY_REQUEST_GRANTED)
@@ -386,10 +385,9 @@ namespace ProxyLib.Proxy
         /// <returns>Byte array representing IP address in bytes.</returns>
         internal byte[] GetIPAddressBytes(string destinationHost)
         {
-            IPAddress ipAddr = null;
 
             //  if the address doesn't parse then try to resolve with dns
-            if (!IPAddress.TryParse(destinationHost, out ipAddr))
+            if (!IPAddress.TryParse(destinationHost, out IPAddress ipAddr))
             {
                 try
                 {
@@ -412,9 +410,7 @@ namespace ProxyLib.Proxy
         /// <returns>Byte array representing an 16 bit port number as two bytes.</returns>
         internal byte[] GetDestinationPortBytes(int value)
         {
-            byte[] array = new byte[2];
-            array[0] = Convert.ToByte(value / 256);
-            array[1] = Convert.ToByte(value % 256);
+            byte[] array = [Convert.ToByte(value / 256), Convert.ToByte(value % 256)];
             return array;
         }
 
@@ -445,25 +441,16 @@ namespace ProxyLib.Proxy
             byte[] portBytes = new byte[2];
             portBytes[0] = response[3];
             portBytes[1] = response[2];
-            Int16 port = BitConverter.ToInt16(portBytes, 0);
+            short port = BitConverter.ToInt16(portBytes, 0);
 
             // translate the reply code error number to human readable text
-            string proxyErrorText;
-            switch (replyCode)
+            string proxyErrorText = replyCode switch
             {
-                case SOCKS4_CMD_REPLY_REQUEST_REJECTED_OR_FAILED:
-                    proxyErrorText = "connection request was rejected or failed";
-                    break;
-                case SOCKS4_CMD_REPLY_REQUEST_REJECTED_CANNOT_CONNECT_TO_IDENTD:
-                    proxyErrorText = "connection request was rejected because SOCKS destination cannot connect to identd on the client";
-                    break;
-                case SOCKS4_CMD_REPLY_REQUEST_REJECTED_DIFFERENT_IDENTD:
-                    proxyErrorText = "connection request rejected because the client program and identd report different user-ids";
-                    break;
-                default:
-                    proxyErrorText = string.Format(CultureInfo.InvariantCulture, "proxy client received an unknown reply with the code value '{0}' from the proxy destination", replyCode.ToString(CultureInfo.InvariantCulture));
-                    break;
-            }
+                SOCKS4_CMD_REPLY_REQUEST_REJECTED_OR_FAILED => "connection request was rejected or failed",
+                SOCKS4_CMD_REPLY_REQUEST_REJECTED_CANNOT_CONNECT_TO_IDENTD => "connection request was rejected because SOCKS destination cannot connect to identd on the client",
+                SOCKS4_CMD_REPLY_REQUEST_REJECTED_DIFFERENT_IDENTD => "connection request rejected because the client program and identd report different user-ids",
+                _ => string.Format(CultureInfo.InvariantCulture, "proxy client received an unknown reply with the code value '{0}' from the proxy destination", replyCode.ToString(CultureInfo.InvariantCulture)),
+            };
 
             //  build the exeception message string
             string exceptionMsg = string.Format(CultureInfo.InvariantCulture, "The {0} concerning destination host {1} port number {2}.  The destination reported the host as {3} port {4}.", proxyErrorText, destinationHost, destinationPort, ipAddr.ToString(), port.ToString(CultureInfo.InvariantCulture));
@@ -562,9 +549,7 @@ namespace ProxyLib.Proxy
             _asyncWorker.WorkerSupportsCancellation = true;
             _asyncWorker.DoWork += new DoWorkEventHandler(CreateConnectionAsync_DoWork);
             _asyncWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(CreateConnectionAsync_RunWorkerCompleted);
-            Object[] args = new Object[2];
-            args[0] = destinationHost;
-            args[1] = destinationPort;
+            object[] args = [destinationHost, destinationPort];
             _asyncWorker.RunWorkerAsync(args);
         }
 
@@ -572,7 +557,7 @@ namespace ProxyLib.Proxy
         {
             try
             {
-                Object[] args = (Object[])e.Argument;
+                object[] args = (object[])e.Argument;
                 e.Result = CreateConnection((string)args[0], (int)args[1]);
             }
             catch (Exception ex)
@@ -583,8 +568,7 @@ namespace ProxyLib.Proxy
 
         private void CreateConnectionAsync_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (CreateConnectionAsyncCompleted != null)
-                CreateConnectionAsyncCompleted(this, new CreateConnectionAsyncCompletedEventArgs(_asyncException, _asyncCancelled, (TcpClient)e.Result));
+            CreateConnectionAsyncCompleted?.Invoke(this, new CreateConnectionAsyncCompletedEventArgs(_asyncException, _asyncCancelled, (TcpClient)e.Result));
         }
 
         #endregion

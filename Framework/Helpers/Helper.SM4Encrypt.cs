@@ -42,21 +42,14 @@ public static partial class Helper
 		var cipher = new SM4Engine();
 		byte[] nonce = new byte[16];
 		Array.Copy(Encoding.UTF8.GetBytes(iv), 0, nonce, 0, Math.Min(iv.Length, nonce.Length));
-		PaddedBufferedBlockCipher cipherMode;
-		switch (mode)
-		{
-			case "ECB":
-				cipherMode = new PaddedBufferedBlockCipher(new EcbBlockCipher(cipher), new Pkcs7Padding());
-				break;
-			case "CBC":
-				cipherMode = new PaddedBufferedBlockCipher(new CbcBlockCipher(cipher), new Pkcs7Padding());
-				break;
-			// ... [其他模式的情况] ...  
-			default:
-				throw new ArgumentException("Unsupported mode: " + mode);
-		}
-
-		byte[] keyBytes = Encoding.UTF8.GetBytes(key); // 假设的密钥，实际中应该使用安全的方式生成和存储  
+        PaddedBufferedBlockCipher cipherMode = mode switch
+        {
+            "ECB" => new PaddedBufferedBlockCipher(new EcbBlockCipher(cipher), new Pkcs7Padding()),
+            "CBC" => new PaddedBufferedBlockCipher(new CbcBlockCipher(cipher), new Pkcs7Padding()),
+            // ... [其他模式的情况] ...  
+            _ => throw new ArgumentException("Unsupported mode: " + mode),
+        };
+        byte[] keyBytes = Encoding.UTF8.GetBytes(key); // 假设的密钥，实际中应该使用安全的方式生成和存储  
 		KeyParameter keyParam = ParameterUtilities.CreateKeyParameter("SM4", keyBytes);
 		ICipherParameters keyParamIV = new ParametersWithIV(keyParam, nonce);
 
@@ -101,21 +94,14 @@ public static partial class Helper
 		var cipher = new SM4Engine();
 		byte[] nonce = new byte[16];
 		Array.Copy(Encoding.UTF8.GetBytes(iv), 0, nonce, 0, Math.Min(iv.Length, nonce.Length));
-		PaddedBufferedBlockCipher cipherMode;
-		switch (mode)
-		{
-			case "ECB":
-				cipherMode = new PaddedBufferedBlockCipher(new EcbBlockCipher(cipher), new Pkcs7Padding());
-				break;
-			case "CBC":
-				cipherMode = new PaddedBufferedBlockCipher(new CbcBlockCipher(cipher), new Pkcs7Padding());
-				break;
-			// ... [其他模式的情况] ...  
-			default:
-				throw new ArgumentException("Unsupported mode: " + mode);
-		}
-
-		byte[] keyBytes = Encoding.UTF8.GetBytes(key); // 假设的密钥，实际中应该使用安全的方式生成和存储  
+        PaddedBufferedBlockCipher cipherMode = mode switch
+        {
+            "ECB" => new PaddedBufferedBlockCipher(new EcbBlockCipher(cipher), new Pkcs7Padding()),
+            "CBC" => new PaddedBufferedBlockCipher(new CbcBlockCipher(cipher), new Pkcs7Padding()),
+            // ... [其他模式的情况] ...  
+            _ => throw new ArgumentException("Unsupported mode: " + mode),
+        };
+        byte[] keyBytes = Encoding.UTF8.GetBytes(key); // 假设的密钥，实际中应该使用安全的方式生成和存储  
 		KeyParameter keyParam = ParameterUtilities.CreateKeyParameter("SM4", keyBytes);
 		ICipherParameters keyParamIV = new ParametersWithIV(keyParam, nonce);
 		// 解密操作  
@@ -157,23 +143,16 @@ public static partial class Helper
 		byte[] plainTextData = Encoding.UTF8.GetBytes(msg);
 
 		var cipher = new SM4Engine();
-		PaddedBufferedBlockCipher cipherMode;
+        PaddedBufferedBlockCipher cipherMode = mode switch
+        {
+            "ECB" => new PaddedBufferedBlockCipher(new EcbBlockCipher(cipher), new Pkcs7Padding()),
+            "CBC" => new PaddedBufferedBlockCipher(new CbcBlockCipher(cipher), new Pkcs7Padding()),
+            // ... [其他模式的情况] ...  
+            _ => throw new ArgumentException("Unsupported mode: " + mode),
+        };
 
-		switch (mode)
-		{
-			case "ECB":
-				cipherMode = new PaddedBufferedBlockCipher(new EcbBlockCipher(cipher), new Pkcs7Padding());
-				break;
-			case "CBC":
-				cipherMode = new PaddedBufferedBlockCipher(new CbcBlockCipher(cipher), new Pkcs7Padding());
-				break;
-			// ... [其他模式的情况] ...  
-			default:
-				throw new ArgumentException("Unsupported mode: " + mode);
-		}
-
-		// 创建密钥参数  
-		KeyParameter keyParam = ParameterUtilities.CreateKeyParameter("SM4", key);
+        // 创建密钥参数  
+        KeyParameter keyParam = ParameterUtilities.CreateKeyParameter("SM4", key);
 		ICipherParameters parameters = mode == "ECB" ? keyParam : new ParametersWithIV(keyParam, iv);
 
 		// 初始化加密器  
@@ -231,23 +210,16 @@ public static partial class Helper
 		}
 
 		var cipher = new SM4Engine();
-		PaddedBufferedBlockCipher cipherMode;
+        PaddedBufferedBlockCipher cipherMode = mode switch
+        {
+            "ECB" => new PaddedBufferedBlockCipher(new EcbBlockCipher(cipher), new Pkcs7Padding()),
+            "CBC" => new PaddedBufferedBlockCipher(new CbcBlockCipher(cipher), new Pkcs7Padding()),
+            // ... [其他模式的情况] ...  
+            _ => throw new ArgumentException("Unsupported mode: " + mode),
+        };
 
-		switch (mode)
-		{
-			case "ECB":
-				cipherMode = new PaddedBufferedBlockCipher(new EcbBlockCipher(cipher), new Pkcs7Padding());
-				break;
-			case "CBC":
-				cipherMode = new PaddedBufferedBlockCipher(new CbcBlockCipher(cipher), new Pkcs7Padding());
-				break;
-			// ... [其他模式的情况] ...  
-			default:
-				throw new ArgumentException("Unsupported mode: " + mode);
-		}
-
-		// 创建密钥参数  
-		KeyParameter keyParam = ParameterUtilities.CreateKeyParameter("SM4", key);
+        // 创建密钥参数  
+        KeyParameter keyParam = ParameterUtilities.CreateKeyParameter("SM4", key);
 		ICipherParameters parameters = mode == "ECB" ? keyParam : new ParametersWithIV(keyParam, iv);
 
 		// 初始化解密器  

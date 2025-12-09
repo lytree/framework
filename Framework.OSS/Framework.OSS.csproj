@@ -17,7 +17,6 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 		<PackageReference Include="Aliyun.OSS.SDK.NetCore" VersionOverride="2.14.1" />
 		<PackageReference Include="Microsoft.CSharp" VersionOverride="4.7.0" />
-		<PackageReference Include="Minio" VersionOverride="6.0.5" />
 		<PackageReference Include="Qiniu" VersionOverride="8.7.0" />
 		<PackageReference Include="Tencent.QCloud.Cos.Sdk" VersionOverride="5.4.49" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" />

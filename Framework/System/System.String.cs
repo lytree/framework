@@ -125,7 +125,7 @@ public static partial class Extensions
     {
         if (string.IsNullOrEmpty(str))
             return Array.Empty<T>();
-        T[] arr = str.Split(new string[] { split.ToString() }, StringSplitOptions.RemoveEmptyEntries).Cast<T>().ToArray();
+        T[] arr = [.. str.Split(new string[] { split.ToString() }, StringSplitOptions.RemoveEmptyEntries).Cast<T>()];
         return arr;
     }
 }

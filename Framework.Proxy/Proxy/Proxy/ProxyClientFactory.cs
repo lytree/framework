@@ -76,20 +76,15 @@ namespace ProxyLib.Proxy
         /// <returns>Proxy client object.</returns>
         public IProxyClient CreateProxyClient(ParsedUrl proxy)
         {
-            
-            switch (proxy.Scheme)
+
+            return proxy.Scheme switch
             {
-                case "http":
-                    return new HttpProxyClient(proxy.Host, proxy.Port, proxy.Username, proxy.Password);
-                case "socket4":
-                    return new Socks4ProxyClient(proxy.Host, proxy.Port, proxy.Username);
-                case "socket4a":
-                    return new Socks4aProxyClient(proxy.Host, proxy.Port, proxy.Username);
-                case "socket5":
-                    return new Socks5ProxyClient(proxy.Host, proxy.Port, proxy.Username, proxy.Password);
-                default:
-                    throw new ProxyException(string.Format("Unknown proxy type {0}.", proxy.Scheme));
-            }
+                "http" => new HttpProxyClient(proxy.Host, proxy.Port, proxy.Username, proxy.Password),
+                "socket4" => new Socks4ProxyClient(proxy.Host, proxy.Port, proxy.Username),
+                "socket4a" => new Socks4aProxyClient(proxy.Host, proxy.Port, proxy.Username),
+                "socket5" => new Socks5ProxyClient(proxy.Host, proxy.Port, proxy.Username, proxy.Password),
+                _ => throw new ProxyException(string.Format("Unknown proxy type {0}.", proxy.Scheme)),
+            };
         }
 
         /// <summary>
@@ -103,19 +98,14 @@ namespace ProxyLib.Proxy
             if (type == ProxyType.None)
                 throw new ArgumentOutOfRangeException(nameof(type));
 
-            switch (type)
+            return type switch
             {
-                case ProxyType.Http:
-                    return new HttpProxyClient(tcpClient);
-                case ProxyType.Socks4:
-                    return new Socks4ProxyClient(tcpClient);
-                case ProxyType.Socks4a:
-                    return new Socks4aProxyClient(tcpClient);
-                case ProxyType.Socks5:
-                    return new Socks5ProxyClient(tcpClient);
-                default:
-                    throw new ProxyException(string.Format("Unknown proxy type {0}.", type.ToString()));
-            }
+                ProxyType.Http => new HttpProxyClient(tcpClient),
+                ProxyType.Socks4 => new Socks4ProxyClient(tcpClient),
+                ProxyType.Socks4a => new Socks4aProxyClient(tcpClient),
+                ProxyType.Socks5 => new Socks5ProxyClient(tcpClient),
+                _ => throw new ProxyException(string.Format("Unknown proxy type {0}.", type.ToString())),
+            };
         }
 
         /// <summary>
@@ -130,19 +120,14 @@ namespace ProxyLib.Proxy
             if (type == ProxyType.None)
                 throw new ArgumentOutOfRangeException(nameof(type));
 
-            switch (type)
+            return type switch
             {
-                case ProxyType.Http:
-                    return new HttpProxyClient(proxyHost, proxyPort);
-                case ProxyType.Socks4:
-                    return new Socks4ProxyClient(proxyHost, proxyPort);
-                case ProxyType.Socks4a:
-                    return new Socks4aProxyClient(proxyHost, proxyPort);
-                case ProxyType.Socks5:
-                    return new Socks5ProxyClient(proxyHost, proxyPort);
-                default:
-                    throw new ProxyException(string.Format("Unknown proxy type {0}.", type.ToString()));
-            }
+                ProxyType.Http => new HttpProxyClient(proxyHost, proxyPort),
+                ProxyType.Socks4 => new Socks4ProxyClient(proxyHost, proxyPort),
+                ProxyType.Socks4a => new Socks4aProxyClient(proxyHost, proxyPort),
+                ProxyType.Socks5 => new Socks5ProxyClient(proxyHost, proxyPort),
+                _ => throw new ProxyException(string.Format("Unknown proxy type {0}.", type.ToString())),
+            };
         }
 
         /// <summary>
@@ -159,19 +144,14 @@ namespace ProxyLib.Proxy
             if (type == ProxyType.None)
                 throw new ArgumentOutOfRangeException(nameof(type));
 
-            switch (type)
+            return type switch
             {
-                case ProxyType.Http:
-                    return new HttpProxyClient(proxyHost, proxyPort, proxyUsername, proxyPassword);
-                case ProxyType.Socks4:
-                    return new Socks4ProxyClient(proxyHost, proxyPort, proxyUsername);
-                case ProxyType.Socks4a:
-                    return new Socks4aProxyClient(proxyHost, proxyPort, proxyUsername);
-                case ProxyType.Socks5:
-                    return new Socks5ProxyClient(proxyHost, proxyPort, proxyUsername, proxyPassword);
-                default:
-                    throw new ProxyException(string.Format("Unknown proxy type {0}.", type.ToString()));
-            }
+                ProxyType.Http => new HttpProxyClient(proxyHost, proxyPort, proxyUsername, proxyPassword),
+                ProxyType.Socks4 => new Socks4ProxyClient(proxyHost, proxyPort, proxyUsername),
+                ProxyType.Socks4a => new Socks4aProxyClient(proxyHost, proxyPort, proxyUsername),
+                ProxyType.Socks5 => new Socks5ProxyClient(proxyHost, proxyPort, proxyUsername, proxyPassword),
+                _ => throw new ProxyException(string.Format("Unknown proxy type {0}.", type.ToString())),
+            };
         }
 
         /// <summary>

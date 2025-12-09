@@ -159,18 +159,18 @@ public static partial class Helper
 		/// <summary>
 		/// 自定义的工作日
 		/// </summary>
-		public static HashSet<DateTime> CustomWorkDays { get; } = new();
+		public static HashSet<DateTime> CustomWorkDays { get; } = [];
 
 		/// <summary>
 		/// 自定义的节假日
 		/// </summary>
-		public static Dictionary<DateTime, string> CustomHolidays { get; } = new();
+		public static Dictionary<DateTime, string> CustomHolidays { get; } = [];
 
 		/// <summary>
 		/// 按公历计算的通用节假日
 		/// </summary>
 		private static HashSet<DateInfoStruct> SolarHolidayInfo { get; } =
-		new() {
+		[
 			new DateInfoStruct(1, 1, 1, "元旦"),
 		new DateInfoStruct(2, 2, 0, "世界湿地日"),
 		new DateInfoStruct(2, 10, 0, "国际气象节"),
@@ -218,13 +218,13 @@ public static partial class Helper
 		new DateInfoStruct(12, 24, 0, "平安夜"),
 		new DateInfoStruct(12, 25, 0, "圣诞节"),
 		new DateInfoStruct(12, 26, 0, " 诞辰纪念")
-		};
+		];
 
 		/// <summary>
 		/// 按农历计算的通用节假日
 		/// </summary>
 		private static HashSet<DateInfoStruct> LunarHolidayInfo { get; } =
-		new() {
+		[
 			new DateInfoStruct(1, 1, 6, "春节"),
 		new DateInfoStruct(1, 15, 0, "元宵节"),
 		new DateInfoStruct(5, 5, 1, "端午节"),
@@ -237,7 +237,7 @@ public static partial class Helper
 		new DateInfoStruct(12, 24, 0, "南方小年(掸尘)")
 
 			//new HolidayStruct(12, 30, 0, "除夕")  //注意除夕需要其它方法进行计算
-			};
+			];
 
 		private static readonly WeekHolidayStruct[] WHolidayInfo =
 		{
@@ -487,7 +487,7 @@ public static partial class Helper
 			var ts = Date - GanZhiStartDay;
 			var i = ts.Days % 60;
 			var indexGan = ((i % 10 + 1) * 2 - 1) % 10 - 1;
-			var tmpGan = TianGan.Substring(indexGan) + TianGan.Substring(0, indexGan + 2);
+			var tmpGan = TianGan[indexGan..] + TianGan[..(indexGan + 2)];
 			return tmpGan[offset].ToString() + DiZhi[offset];
 		}
 

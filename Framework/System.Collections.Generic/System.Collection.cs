@@ -254,7 +254,7 @@ public static partial class Extensions
 	/// <param name="predicate">The predicate.</param>
 	public static void RemoveWhere<T>(this ICollection<T> @this, Func<T, bool> predicate)
 	{
-		List<T> list = @this.Where(predicate).ToList();
+		List<T> list = [.. @this.Where(predicate)];
 		foreach (T item in list)
 		{
 			@this.Remove(item);

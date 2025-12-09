@@ -19,11 +19,11 @@ public static partial class Helper
     /// <returns></returns>
     public static Assembly[] GetAssemblyList(string[] assemblyNames)
     {
-        List<Assembly> assemblies = new();
+        List<Assembly> assemblies = [];
 
         if (!(assemblyNames?.Length > 0))
         {
-            return assemblies.ToArray();
+            return [.. assemblies];
         }
 
         foreach (var assemblyName in assemblyNames)
@@ -35,6 +35,6 @@ public static partial class Helper
             }
         }
 
-        return assemblies.ToArray();
+        return [.. assemblies];
     }
 }

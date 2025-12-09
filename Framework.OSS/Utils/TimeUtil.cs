@@ -42,7 +42,7 @@ namespace Framework.OSS.Utils
                 var temp = timeStamp.ToString();
                 if (temp.Length >= 10)
                 {
-                    temp = temp.Substring(0, 10);
+                    temp = temp[..10];
                 }
                 timeStamp = long.Parse(temp);
             }

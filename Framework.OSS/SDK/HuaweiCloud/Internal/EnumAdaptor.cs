@@ -33,8 +33,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                 return "";
             }
 
-            string ret;
-            EnumValueDict.TryGetValue(value, out ret);
+            EnumValueDict.TryGetValue(value, out string ret);
             if (ret == null)
             {
                 lock (_lock)

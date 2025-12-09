@@ -39,7 +39,7 @@ public static partial class Helper
 	public static string GenerateRandomNumber(int length = 6)
 	{
 		var random = new Random();
-		return new string(Enumerable.Repeat(_chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
+		return new string([.. Enumerable.Repeat(_chars, length).Select(s => s[random.Next(s.Length)])]);
 	}
 
 	public static string Format(string str, object obj)

@@ -223,12 +223,12 @@ public static partial class Helper
 				fileList.Add(s);
 			}
 		});
-		if (!fileList.Any())
+		if (fileList.Count == 0)
 		{
-			return new Dictionary<string, string>();
+			return [];
 		}
 
-		var dirname = new string(fileList.First()[..fileList.Min(s => s.Length)].TakeWhile((c, i) => fileList.All(s => s[i] == c)).ToArray());
+		var dirname = new string([.. fileList.First()[..fileList.Min(s => s.Length)].TakeWhile((c, i) => fileList.All(s => s[i] == c))]);
 		if (!Directory.Exists(dirname))
 		{
 			dirname = Directory.GetParent(dirname).FullName;

@@ -1474,7 +1474,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
 
             if (string.IsNullOrEmpty(request.ContentType))
             {
-                string suffix = request.ObjectKey.Substring(request.ObjectKey.LastIndexOf(".") + 1);
+                string suffix = request.ObjectKey[(request.ObjectKey.LastIndexOf(".") + 1)..];
                 if (Constants.MimeTypes.ContainsKey(suffix))
                 {
                     request.ContentType = Constants.MimeTypes[suffix];
@@ -1495,7 +1495,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
             {
                 if (string.IsNullOrEmpty(request.ContentType))
                 {
-                    string suffix = request.FilePath.Substring(request.FilePath.LastIndexOf(".") + 1);
+                    string suffix = request.FilePath[(request.FilePath.LastIndexOf(".") + 1)..];
                     if (Constants.MimeTypes.ContainsKey(suffix))
                     {
                         request.ContentType = Constants.MimeTypes[suffix];
@@ -1650,7 +1650,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
 
             if (string.IsNullOrEmpty(request.ContentType))
             {
-                string suffix = request.ObjectKey.Substring(request.ObjectKey.LastIndexOf(".") + 1);
+                string suffix = request.ObjectKey[(request.ObjectKey.LastIndexOf(".") + 1)..];
                 if (Constants.MimeTypes.ContainsKey(suffix))
                 {
                     request.ContentType = Constants.MimeTypes[suffix];

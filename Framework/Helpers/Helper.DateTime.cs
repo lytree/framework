@@ -430,7 +430,7 @@ public static partial class Helper
     /// <returns></returns>
     public static Dictionary<DateTime, DateTimeRange> GetDateTimeRanges(DateTime startTime, DateTime endTime, DateTimeRangeType type)
     {
-        Dictionary<DateTime, DateTimeRange> timeDic = new();
+        Dictionary<DateTime, DateTimeRange> timeDic = [];
         switch (type)
         {
             case DateTimeRangeType.Solar:

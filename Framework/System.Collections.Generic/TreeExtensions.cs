@@ -23,8 +23,8 @@ public static partial class TreeExtensions
 	{
 		foreach (var item in items.Where(i => i != null))
 		{
-			item.Children ??= new List<T>();
-			item.Children = item.Children.Filter(func).ToList();
+			item.Children ??= [];
+			item.Children = [.. item.Children.Filter(func)];
 			if (item.Children.Any() || func(item))
 			{
 				yield return item;
@@ -43,8 +43,8 @@ public static partial class TreeExtensions
 	{
 		foreach (var item in items.Where(i => i != null))
 		{
-			item.Children ??= new List<Tree<T>>();
-			item.Children = item.Children.Filter(func).ToList();
+			item.Children ??= [];
+			item.Children = [.. item.Children.Filter(func)];
 			if (item.Children.Any() || func(item))
 			{
 				yield return item;
@@ -88,7 +88,7 @@ public static partial class TreeExtensions
 		foreach (var item in items)
 		{
 			yield return item;
-			item.Children ??= new List<T>();
+			item.Children ??= [];
 			item.Children.ForEach(c => optionAction?.Invoke(c, item));
 			foreach (var children in item.Children.Flatten(optionAction))
 			{
@@ -110,7 +110,7 @@ public static partial class TreeExtensions
 		foreach (var item in p.Children)
 		{
 			yield return item;
-			item.Children ??= new List<T>();
+			item.Children ??= [];
 			item.Children.ForEach(c => optionAction?.Invoke(c, item));
 			foreach (var children in item.Children.Flatten())
 			{
@@ -152,7 +152,7 @@ public static partial class TreeExtensions
 		foreach (var item in items)
 		{
 			yield return item;
-			item.Children ??= new List<Tree<T>>();
+			item.Children ??= [];
 			item.Children.ForEach(c => optionAction?.Invoke(c, item));
 			foreach (var tree in item.Children.Flatten())
 			{
@@ -174,7 +174,7 @@ public static partial class TreeExtensions
 		foreach (var item in p.Children)
 		{
 			yield return item;
-			item.Children ??= new List<Tree<T>>();
+			item.Children ??= [];
 			item.Children.ForEach(c => optionAction?.Invoke(c, item));
 			foreach (var tree in item.Children.Flatten())
 			{
@@ -577,7 +577,7 @@ public static partial class TreeExtensions
 	/// <returns></returns>
 	private static List<T> GetChildren<T>(T t, Func<T, IEnumerable<T>> selector)
 	{
-		return selector(t).Union(selector(t).Where(c => selector(c).Any()).SelectMany(c => GetChildren(c, selector))).ToList();
+		return [.. selector(t).Union(selector(t).Where(c => selector(c).Any()).SelectMany(c => GetChildren(c, selector)))];
 	}
 
 	/// <summary>
@@ -590,7 +590,7 @@ public static partial class TreeExtensions
 		var list = new List<T>() { selector(t) };
 		if (selector(t) != null)
 		{
-			return list.Union(GetParents(selector(t), selector)).Where(x => x != null).ToList();
+			return [.. list.Union(GetParents(selector(t), selector)).Where(x => x != null)];
 		}
 
 		list.RemoveAll(x => x == null);

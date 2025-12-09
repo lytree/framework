@@ -10,7 +10,7 @@ public class Stopwatcher
 {
     private readonly Type type;
     private readonly Stopwatch watch;
-    private readonly Dictionary<string, long> times = new();
+    private readonly Dictionary<string, long> times = [];
 
     private Stopwatcher(Type type)
     {

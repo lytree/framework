@@ -46,27 +46,21 @@ namespace OBS.Internal
 
         internal Signer GetSigner(HttpContext context)
         {
-            switch (context.ChooseAuthType)
+            return context.ChooseAuthType switch
             {
-                case AuthTypeEnum.V2:
-                    return V2Signer.GetInstance();
-                case AuthTypeEnum.V4:
-                    return V4Signer.GetInstance();
-                default:
-                    return ObsSigner.GetInstance();
-            }
+                AuthTypeEnum.V2 => V2Signer.GetInstance(),
+                AuthTypeEnum.V4 => V4Signer.GetInstance(),
+                _ => ObsSigner.GetInstance(),
+            };
         }
 
         internal IHeaders GetIHeaders(HttpContext context)
         {
-            switch (context.ChooseAuthType)
+            return context.ChooseAuthType switch
             {
-                case AuthTypeEnum.V2:
-                case AuthTypeEnum.V4:
-                    return V2Headers.GetInstance();
-                default:
-                    return ObsHeaders.GetInstance();
-            }
+                AuthTypeEnum.V2 or AuthTypeEnum.V4 => V2Headers.GetInstance(),
+                _ => ObsHeaders.GetInstance(),
+            };
         }
 
         internal HttpResponse DoRequest(HttpRequest httpRequest, HttpContext context)

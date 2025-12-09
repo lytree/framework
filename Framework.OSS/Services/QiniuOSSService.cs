@@ -53,26 +53,15 @@ namespace Framework.OSS.Services
             _config = new Config();
             _auth = new Auth(_mac);
             _http = new HttpManager();
-            switch (Options.Region.ToLower())
+            _config.Zone = Options.Region.ToLower() switch
             {
-                case "cn_east":
-                    _config.Zone = Zone.ZONE_CN_East;
-                    break;
-                case "cn_north":
-                    _config.Zone = Zone.ZONE_CN_North;
-                    break;
-                case "cn_south":
-                    _config.Zone = Zone.ZONE_CN_South;
-                    break;
-                case "us_north":
-                    _config.Zone = Zone.ZONE_US_North;
-                    break;
-                case "asia_south":
-                    _config.Zone = Zone.ZONE_AS_Singapore;
-                    break;
-                default:
-                    throw new InvalidOperationException("Incorrect regional configuration. Qiniu oss only supports the following regional configurations：CN_East(华东)/CN_South(华南)/CN_North(华北)/US_North(北美)/Asia_South(东南亚)");
-            }
+                "cn_east" => Zone.ZONE_CN_East,
+                "cn_north" => Zone.ZONE_CN_North,
+                "cn_south" => Zone.ZONE_CN_South,
+                "us_north" => Zone.ZONE_US_North,
+                "asia_south" => Zone.ZONE_AS_Singapore,
+                _ => throw new InvalidOperationException("Incorrect regional configuration. Qiniu oss only supports the following regional configurations：CN_East(华东)/CN_South(华南)/CN_North(华北)/US_North(北美)/Asia_South(东南亚)"),
+            };
         }
 
         #region bucket

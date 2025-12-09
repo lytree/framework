@@ -39,19 +39,19 @@ namespace Framework.OSS.SDK.HuaweiCloud.Internal
                 string key = header.Key;
                 if (key.StartsWith(iheaders.HeaderMetaPrefix()))
                 {
-                    key = key.Substring(iheaders.HeaderMetaPrefix().Length);
+                    key = key[iheaders.HeaderMetaPrefix().Length..];
                 }
                 else if (key.StartsWith(iheaders.HeaderPrefix()))
                 {
-                    key = key.Substring(iheaders.HeaderPrefix().Length);
+                    key = key[iheaders.HeaderPrefix().Length..];
                 }
                 else if (key.StartsWith(Constants.ObsHeaderMetaPrefix))
                 {
-                    key = key.Substring(Constants.ObsHeaderMetaPrefix.Length);
+                    key = key[Constants.ObsHeaderMetaPrefix.Length..];
                 }
                 else if (key.StartsWith(Constants.ObsHeaderPrefix))
                 {
-                    key = key.Substring(Constants.ObsHeaderPrefix.Length);
+                    key = key[Constants.ObsHeaderPrefix.Length..];
                 }
                 response.Headers.Add(key, header.Value);
             }

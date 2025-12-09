@@ -31,7 +31,7 @@ public static partial class  Extensions
 	/// <returns>T类型</returns>
 	public static T InvokeMethod<T>(this object obj, string methodName, object[] args)
 	{
-		return (T)obj.GetType().GetMethod(methodName, args.Select(o => o.GetType()).ToArray()).Invoke(obj, args);
+		return (T)obj.GetType().GetMethod(methodName, [.. args.Select(o => o.GetType())]).Invoke(obj, args);
 	}
 
 	/// <summary>
@@ -44,7 +44,7 @@ public static partial class  Extensions
 	public static void InvokeMethod(this object obj, string methodName, object[] args)
 	{
 		var type = obj.GetType();
-		type.GetMethod(methodName, args.Select(o => o.GetType()).ToArray()).Invoke(obj, args);
+		type.GetMethod(methodName, [.. args.Select(o => o.GetType())]).Invoke(obj, args);
 	}
 
 	/// <summary>
@@ -441,7 +441,7 @@ public static partial class  Extensions
 
 	private static class InstanceCreationFactory<TArg1, TArg2, TArg3, TObject> where TObject : class, new()
 	{
-		private static readonly Dictionary<Type, Func<TArg1, TArg2, TArg3, TObject>> InstanceCreationMethods = new();
+		private static readonly Dictionary<Type, Func<TArg1, TArg2, TArg3, TObject>> InstanceCreationMethods = [];
 
 		public static TObject CreateInstanceOf(Type type, TArg1 arg1, TArg2 arg2, TArg3 arg3)
 		{
@@ -463,7 +463,7 @@ public static partial class  Extensions
 				typeof(TArg3)
 			};
 
-			Type[] constructorArgumentTypes = argumentTypes.Where(t => t != typeof(TypeToIgnore)).ToArray();
+			Type[] constructorArgumentTypes = [.. argumentTypes.Where(t => t != typeof(TypeToIgnore))];
 			var constructor = type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, CallingConventions.HasThis, constructorArgumentTypes, Array.Empty<ParameterModifier>());
 			var lamdaParameterExpressions = new[]
 			{

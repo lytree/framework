@@ -34,8 +34,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Model
         {
             get
             {
-                string value;
-                if (values.TryGetValue(name, out value))
+                if (values.TryGetValue(name, out string value))
                 {
                     return value;
                 }

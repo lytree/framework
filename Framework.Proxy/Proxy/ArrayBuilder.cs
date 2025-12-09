@@ -25,7 +25,7 @@ namespace ProxyLib
     /// Builds a one-dimensional byte array of a fixed size and allows the consumer to easily
     /// append data to that byte array.
     /// </summary>
-    public class ArrayBuilder
+    internal class ArrayBuilder
     {
         private byte[] _buffer;
         private long _index;
@@ -65,7 +65,7 @@ namespace ProxyLib
         {
             if (_index + data.Length - startIndex > _buffer.Length)
             {
-                throw new Exception(String.Format("Data is too large to append.  Current size is {0} bytes.", _buffer.Length.ToString()));
+                throw new Exception(string.Format("Data is too large to append.  Current size is {0} bytes.", _buffer.Length.ToString()));
             }
 
             Array.Copy(data, startIndex, _buffer, _index, data.Length - startIndex);

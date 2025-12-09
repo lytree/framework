@@ -286,9 +286,11 @@ namespace ProxyLib.Proxy
                         throw new ProxyException("ProxyPort value must be greater than zero and less than 65535");
 
                     //  create new tcp client object to the proxy server
-                    _tcpClient = new TcpClient();
-                    _tcpClient.SendTimeout = _sendTimeout;
-                    _tcpClient.ReceiveTimeout = _receiveTimeout;
+                    _tcpClient = new TcpClient
+                    {
+                        SendTimeout = _sendTimeout,
+                        ReceiveTimeout = _receiveTimeout
+                    };
 
                     // attempt to open the connection
                     _tcpClient.Connect(_proxyHost, _proxyPort);
@@ -376,7 +378,7 @@ namespace ProxyLib.Proxy
 
             //  receive the server response 
             byte[] response = new byte[2];
-            stream.Read(response, 0, response.Length);
+            stream.ReadExactly(response, 0, response.Length);
 
             //  the first byte contains the socks version number (e.g. 5)
             //  the second byte contains the auth method acceptable to the proxy server
@@ -445,7 +447,7 @@ namespace ProxyLib.Proxy
                 byte[] crResponse = new byte[2];
 
                 // byte[] crResponse = new byte[2];
-                stream.Read(crResponse, 0, 2);
+                stream.ReadExactly(crResponse, 0, 2);
 
                 // check to see if the proxy server accepted the credentials
                 if (crResponse[1] != 0)
@@ -459,23 +461,17 @@ namespace ProxyLib.Proxy
 
         private byte GetDestAddressType(string host)
         {
-            IPAddress ipAddr = null;
-
-            bool result = IPAddress.TryParse(host, out ipAddr);
+            bool result = IPAddress.TryParse(host, out IPAddress ipAddr);
 
             if (!result)
                 return SOCKS5_ADDRTYPE_DOMAIN_NAME;
 
-            switch (ipAddr.AddressFamily)
+            return ipAddr.AddressFamily switch
             {
-                case AddressFamily.InterNetwork:
-                    return SOCKS5_ADDRTYPE_IPV4;
-                case AddressFamily.InterNetworkV6:
-                    return SOCKS5_ADDRTYPE_IPV6;
-                default:
-                    throw new ProxyException(string.Format(CultureInfo.InvariantCulture, "The host addess {0} of type '{1}' is not a supported address type.  The supported types are InterNetwork and InterNetworkV6.", host, Enum.GetName(typeof(AddressFamily), ipAddr.AddressFamily)));
-            }
-
+                AddressFamily.InterNetwork => SOCKS5_ADDRTYPE_IPV4,
+                AddressFamily.InterNetworkV6 => SOCKS5_ADDRTYPE_IPV6,
+                _ => throw new ProxyException(string.Format(CultureInfo.InvariantCulture, "The host addess {0} of type '{1}' is not a supported address type.  The supported types are InterNetwork and InterNetworkV6.", host, Enum.GetName(typeof(AddressFamily), ipAddr.AddressFamily))),
+            };
         }
 
         private byte[] GetDestAddressBytes(byte addressType, string host)
@@ -501,9 +497,7 @@ namespace ProxyLib.Proxy
 
         private byte[] GetDestPortBytes(int value)
         {
-            byte[] array = new byte[2];
-            array[0] = Convert.ToByte(value / 256);
-            array[1] = Convert.ToByte(value % 256);
+            byte[] array = [Convert.ToByte(value / 256), Convert.ToByte(value % 256)];
             return array;
         }
 
@@ -582,12 +576,10 @@ namespace ProxyLib.Proxy
         }
         private void HandleProxyCommandError(byte[] response, string destinationHost, int destinationPort)
         {
-            string proxyErrorText;
             byte replyCode = response[1];
             byte addrType = response[3];
-            string addr = "";
-            short port = 0;
-
+            string addr;
+            short port;
             switch (addrType)
             {
                 case SOCKS5_ADDRTYPE_DOMAIN_NAME:
@@ -596,9 +588,7 @@ namespace ProxyLib.Proxy
                     for (int i = 0; i < addrLen; i++)
                         addrBytes[i] = response[i + 5];
                     addr = Encoding.ASCII.GetString(addrBytes);
-                    byte[] portBytesDomain = new byte[2];
-                    portBytesDomain[0] = response[6 + addrLen];
-                    portBytesDomain[1] = response[5 + addrLen];
+                    byte[] portBytesDomain = [response[6 + addrLen], response[5 + addrLen]];
                     port = BitConverter.ToInt16(portBytesDomain, 0);
                     break;
 
@@ -606,11 +596,9 @@ namespace ProxyLib.Proxy
                     byte[] ipv4Bytes = new byte[4];
                     for (int i = 0; i < 4; i++)
                         ipv4Bytes[i] = response[i + 4];
-                    IPAddress ipv4 = new IPAddress(ipv4Bytes);
+                    IPAddress ipv4 = new(ipv4Bytes);
                     addr = ipv4.ToString();
-                    byte[] portBytesIpv4 = new byte[2];
-                    portBytesIpv4[0] = response[9];
-                    portBytesIpv4[1] = response[8];
+                    byte[] portBytesIpv4 = [response[9], response[8]];
                     port = BitConverter.ToInt16(portBytesIpv4, 0);
                     break;
 
@@ -618,46 +606,25 @@ namespace ProxyLib.Proxy
                     byte[] ipv6Bytes = new byte[16];
                     for (int i = 0; i < 16; i++)
                         ipv6Bytes[i] = response[i + 4];
-                    IPAddress ipv6 = new IPAddress(ipv6Bytes);
+                    IPAddress ipv6 = new(ipv6Bytes);
                     addr = ipv6.ToString();
-                    byte[] portBytesIpv6 = new byte[2];
-                    portBytesIpv6[0] = response[21];
-                    portBytesIpv6[1] = response[20];
+                    byte[] portBytesIpv6 = [response[21], response[20]];
                     port = BitConverter.ToInt16(portBytesIpv6, 0);
                     break;
             }
 
-
-            switch (replyCode)
+            string proxyErrorText = replyCode switch
             {
-                case SOCKS5_CMD_REPLY_GENERAL_SOCKS_SERVER_FAILURE:
-                    proxyErrorText = "a general socks destination failure occurred";
-                    break;
-                case SOCKS5_CMD_REPLY_CONNECTION_NOT_ALLOWED_BY_RULESET:
-                    proxyErrorText = "the connection is not allowed by proxy destination rule set";
-                    break;
-                case SOCKS5_CMD_REPLY_NETWORK_UNREACHABLE:
-                    proxyErrorText = "the network was unreachable";
-                    break;
-                case SOCKS5_CMD_REPLY_HOST_UNREACHABLE:
-                    proxyErrorText = "the host was unreachable";
-                    break;
-                case SOCKS5_CMD_REPLY_CONNECTION_REFUSED:
-                    proxyErrorText = "the connection was refused by the remote network";
-                    break;
-                case SOCKS5_CMD_REPLY_TTL_EXPIRED:
-                    proxyErrorText = "the time to live (TTL) has expired";
-                    break;
-                case SOCKS5_CMD_REPLY_COMMAND_NOT_SUPPORTED:
-                    proxyErrorText = "the command issued by the proxy client is not supported by the proxy destination";
-                    break;
-                case SOCKS5_CMD_REPLY_ADDRESS_TYPE_NOT_SUPPORTED:
-                    proxyErrorText = "the address type specified is not supported";
-                    break;
-                default:
-                    proxyErrorText = string.Format(CultureInfo.InvariantCulture, "an unknown SOCKS reply with the code value '{0}' was received", replyCode.ToString(CultureInfo.InvariantCulture));
-                    break;
-            }
+                SOCKS5_CMD_REPLY_GENERAL_SOCKS_SERVER_FAILURE => "a general socks destination failure occurred",
+                SOCKS5_CMD_REPLY_CONNECTION_NOT_ALLOWED_BY_RULESET => "the connection is not allowed by proxy destination rule set",
+                SOCKS5_CMD_REPLY_NETWORK_UNREACHABLE => "the network was unreachable",
+                SOCKS5_CMD_REPLY_HOST_UNREACHABLE => "the host was unreachable",
+                SOCKS5_CMD_REPLY_CONNECTION_REFUSED => "the connection was refused by the remote network",
+                SOCKS5_CMD_REPLY_TTL_EXPIRED => "the time to live (TTL) has expired",
+                SOCKS5_CMD_REPLY_COMMAND_NOT_SUPPORTED => "the command issued by the proxy client is not supported by the proxy destination",
+                SOCKS5_CMD_REPLY_ADDRESS_TYPE_NOT_SUPPORTED => "the address type specified is not supported",
+                _ => string.Format(CultureInfo.InvariantCulture, "an unknown SOCKS reply with the code value '{0}' was received", replyCode.ToString(CultureInfo.InvariantCulture)),
+            };
             string responseText = response != null ? ArrayUtils.HexEncode(response) : "";
             string exceptionMsg = string.Format(CultureInfo.InvariantCulture, "proxy error: {0} for destination host {1} port number {2}.  Server response (hex): {3}.", proxyErrorText, destinationHost, destinationPort, responseText);
 
@@ -744,7 +711,7 @@ namespace ProxyLib.Proxy
             _asyncWorker.WorkerSupportsCancellation = true;
             _asyncWorker.DoWork += new DoWorkEventHandler(CreateConnectionAsync_DoWork);
             _asyncWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(CreateConnectionAsync_RunWorkerCompleted);
-            Object[] args = new Object[2];
+            object[] args = new object[2];
             args[0] = destinationHost;
             args[1] = destinationPort;
             _asyncWorker.RunWorkerAsync(args);
@@ -765,8 +732,7 @@ namespace ProxyLib.Proxy
 
         private void CreateConnectionAsync_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (CreateConnectionAsyncCompleted != null)
-                CreateConnectionAsyncCompleted(this, new CreateConnectionAsyncCompletedEventArgs(_asyncException, _asyncCancelled, (TcpClient)e.Result));
+            CreateConnectionAsyncCompleted?.Invoke(this, new CreateConnectionAsyncCompletedEventArgs(_asyncException, _asyncCancelled, (TcpClient)e.Result));
         }
 
 

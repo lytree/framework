@@ -21,9 +21,7 @@ public static partial class Helper
     {
         if (password.IsNull())
             return string.Empty;
-
-        using var md5 = MD5.Create();
-        return Helper.ToHex(md5.ComputeHash(Encoding.UTF8.GetBytes(password)), lowerCase);
+        return Helper.ToHex(MD5.HashData(Encoding.UTF8.GetBytes(password)), lowerCase);
     }
 
     /// <summary>
@@ -36,10 +34,8 @@ public static partial class Helper
     {
         if (password.IsNull())
             return string.Empty;
-
-        using var md5 = MD5.Create();
         string pwd = string.Empty;
-        byte[] s = md5.ComputeHash(Encoding.UTF8.GetBytes(password));
+        byte[] s = MD5.HashData(Encoding.UTF8.GetBytes(password));
         var format = lowerCase ? "x2" : "X2";
         foreach (var item in s)
         {
@@ -57,9 +53,7 @@ public static partial class Helper
     {
         if (password.IsNull())
             return string.Empty;
-
-        using var md5 = MD5.Create();
-        byte[] s = md5.ComputeHash(Encoding.UTF8.GetBytes(password));
+        byte[] s = MD5.HashData(Encoding.UTF8.GetBytes(password));
         return Helper.ToBase64(s);
     }
 

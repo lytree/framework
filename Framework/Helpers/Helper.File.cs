@@ -12,7 +12,7 @@ namespace Framework;
 public static partial class Helper
 {
 
-    private static readonly ConcurrentBag<FileInfo> tempFiles = new();
+    private static readonly ConcurrentBag<FileInfo> tempFiles = [];
 
     public static FileInfo CreateTempFile(string baseFolder, string? desiredFileExtension)
     {
@@ -38,7 +38,7 @@ public static partial class Helper
     {
         DateTime startTime = DateTime.UtcNow;
 
-        FileInfo[] files = tempFiles.ToArray();
+        FileInfo[] files = [.. tempFiles];
         foreach (FileInfo tempFile in files)
         {
             try

@@ -106,9 +106,8 @@ namespace Framework.OSS.SDK.HuaweiCloud.Model
                 return;
             }
 
-            IList<string> domainIds;
 
-            ExtensionPermissionMap.TryGetValue(extensionPermissionEnum, out domainIds);
+            ExtensionPermissionMap.TryGetValue(extensionPermissionEnum, out IList<string> domainIds);
 
             if (domainIds == null)
             {
@@ -135,8 +134,7 @@ namespace Framework.OSS.SDK.HuaweiCloud.Model
                 return;
             }
 
-            IList<string> domainIds;
-            ExtensionPermissionMap.TryGetValue(extensionPermissionEnum, out domainIds);
+            ExtensionPermissionMap.TryGetValue(extensionPermissionEnum, out IList<string> domainIds);
             domainId = domainId.Trim();
             if (domainIds != null && domainIds.Contains(domainId))
             {

@@ -76,7 +76,7 @@ namespace OBS
                 int index;
                 while ((index = this._endpoint.LastIndexOf("/")) == this._endpoint.Length - 1)
                 {
-                    this._endpoint = this._endpoint.Substring(0, index);
+                    this._endpoint = this._endpoint[..index];
                 }
 
                 if (CommonUtil.IsIP(this._endpoint))

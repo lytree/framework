@@ -8,7 +8,7 @@ public static partial class Extensions
     /// </summary>
     /// <param name="inArray">An array of 8-bit unsigned integers.</param>
     /// <returns>The string representation, in base 64, of the contents of .</returns>
-    public static String ToBase64String(this Byte[] inArray)
+    public static string ToBase64String(this byte[] inArray)
     {
         return Convert.ToBase64String(inArray);
     }
@@ -20,7 +20,7 @@ public static partial class Extensions
     /// <param name="inArray">An array of 8-bit unsigned integers.</param>
     /// <param name="options">to insert a line break every 76 characters, or  to not insert line breaks.</param>
     /// <returns>The string representation in base 64 of the elements in .</returns>
-    public static String ToBase64String(this Byte[] inArray, Base64FormattingOptions options)
+    public static string ToBase64String(this byte[] inArray, Base64FormattingOptions options)
     {
         return Convert.ToBase64String(inArray, options);
     }
@@ -34,7 +34,7 @@ public static partial class Extensions
     /// <param name="offset">An offset in .</param>
     /// <param name="length">The number of elements of  to convert.</param>
     /// <returns>The string representation in base 64 of  elements of , starting at position .</returns>
-    public static String ToBase64String(this Byte[] inArray, Int32 offset, Int32 length)
+    public static string ToBase64String(this byte[] inArray, int offset, int length)
     {
         return Convert.ToBase64String(inArray, offset, length);
     }
@@ -49,7 +49,7 @@ public static partial class Extensions
     /// <param name="length">The number of elements of  to convert.</param>
     /// <param name="options">to insert a line break every 76 characters, or  to not insert line breaks.</param>
     /// <returns>The string representation in base 64 of  elements of , starting at position .</returns>
-    public static String ToBase64String(this Byte[] inArray, Int32 offset, Int32 length, Base64FormattingOptions options)
+    public static string ToBase64String(this byte[] inArray, int offset, int length, Base64FormattingOptions options)
     {
         return Convert.ToBase64String(inArray, offset, length, options);
     }
