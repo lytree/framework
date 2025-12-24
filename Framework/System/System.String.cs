@@ -124,8 +124,8 @@ public static partial class Extensions
     public static T[] SplitToArray<T>(string str, char split)
     {
         if (string.IsNullOrEmpty(str))
-            return Array.Empty<T>();
-        T[] arr = [.. str.Split(new string[] { split.ToString() }, StringSplitOptions.RemoveEmptyEntries).Cast<T>()];
+            return [];
+        T[] arr = [.. str.Split([split.ToString()], StringSplitOptions.RemoveEmptyEntries).Cast<T>()];
         return arr;
     }
 }
