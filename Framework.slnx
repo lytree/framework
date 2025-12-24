@@ -25,7 +25,6 @@
   <Project Path="Framework.MQTT/Framework.MQTT.csproj" />
   <Project Path="Framework.Mvvm/Framework.Mvvm.csproj" />
   <Project Path="Framework.Net/Framework.Net.csproj" />
-  <Project Path="Framework.OSS/Framework.OSS.csproj" />
   <Project Path="Framework.Plot/Framework.Plot.csproj" />
   <Project Path="Framework.Proxy/Framework.Proxy.csproj" />
   <Project Path="Framework.Repository/Framework.Repository.csproj" />
