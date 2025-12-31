@@ -42,7 +42,7 @@ public class BuildContext : FrostingContext
     {
         HasVersion = context.Arguments.HasArgument("Version");
         NuGetApiKey = context.Arguments.GetArgument(BuildParameters.NuGetApiKey);
-        NugetSource = context.Arguments.HasArgument(nameof(BuildParameters.NugetSource)) ? BuildParameters.NugetSource : context.Arguments.GetArgument(nameof(BuildParameters.NugetSource));
+        NugetSource = context.Arguments.HasArgument(nameof(BuildParameters.NugetSource)) ? context.Arguments.GetArgument(nameof(BuildParameters.NugetSource)) : BuildParameters.NugetSource;
 
     }
 }
@@ -150,7 +150,7 @@ public class PushTask : FrostingTask<BuildContext>
         // 4. 循环并推送每个包
         foreach (var package in packages)
         {
-            context.Information($"Publishing package: {package.GetFilename()}");
+            context.Information($"Publishing package: {package.GetFilename()} Source {context.NugetSource}");
 
             context.DotNetNuGetPush(package.FullPath, new DotNetNuGetPushSettings
             {
