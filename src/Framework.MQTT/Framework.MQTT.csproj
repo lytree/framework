@@ -8,14 +8,16 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Version>1.0.0</Version>
-		<PackageId>Lytree.Framework.Net</PackageId>
+		<PackageId>YLFramework.MQTT</PackageId>
 		<SignAssembly>False</SignAssembly>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
+
 	<ItemGroup>
-		<PackageReference Include="System.IO.Pipelines" />
+		<PackageReference Include="MQTTnet" />
 	</ItemGroup>
+
 	<ItemGroup>
 		<Resource Include="README.md">
 			<PackagePath>\</PackagePath>
@@ -23,4 +25,5 @@
 			<Pack>True</Pack>
 		</Resource>
 	</ItemGroup>
+
 </Project>

@@ -1,37 +1,33 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
-				<TargetFrameworks>$(NetCore)</TargetFrameworks>
+		<TargetFrameworks>$(NetCore)</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Version>1.0.0</Version>
-		<PackageId>Lytree.Framework.AspNetCore</PackageId>
+		<PackageId>YLFramework</PackageId>
 		<SignAssembly>False</SignAssembly>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>		
 	</PropertyGroup>
 
 
 	<ItemGroup>
-		<FrameworkReference Include="Microsoft.AspNetCore.App" />
-	</ItemGroup>
-
-
-	<ItemGroup>
-	  <PackageReference Include="BouncyCastle.Cryptography" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\Framework\Framework.csproj" />
+		<PackageReference Include="BouncyCastle.Cryptography" />
+		<PackageReference Include="SharpCompress" />
+		<PackageReference Include="System.IO.Pipelines" />
+		<PackageReference Include="SixLabors.ImageSharp" />
+		<PackageReference Include="SixLabors.ImageSharp.Drawing" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Resource Include="README.md">
+	    <Pack>True</Pack>
 	    <PackagePath>\</PackagePath>
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	    <Pack>True</Pack>
 	  </Resource>
 	</ItemGroup>
+
 </Project>

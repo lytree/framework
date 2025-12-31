@@ -1,5 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFrameworks>$(NetCore)</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -8,25 +7,27 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Version>1.0.0</Version>
-		<PackageId>Lytree.Framework.AspNetCore.Middleware</PackageId>
+		<PackageId>YLFramework.Repository</PackageId>
 		<SignAssembly>False</SignAssembly>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
-
 	<ItemGroup>
 		<PackageReference Include="BouncyCastle.Cryptography" />
-		<PackageReference Include="Yarp.ReverseProxy" />
+		<PackageReference Include="FreeSql.DbContext" />
+		<PackageReference Include="Mapster" />
+		<PackageReference Include="FreeSql" />
+		<PackageReference Include="FreeSql.Repository" />
+		<PackageReference Include="System.Text.Json" />
+		<PackageReference Include="Yitter.IdGenerator" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\Framework.AspNetCore\Framework.AspNetCore.csproj" />
 		<ProjectReference Include="..\Framework\Framework.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Resource Include="README.md">
-	    <PackagePath>\</PackagePath>
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	    <Pack>True</Pack>
-	  </Resource>
+		<Resource Include="README.md">
+			<PackagePath>\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Pack>True</Pack>
+		</Resource>
 	</ItemGroup>
-
 </Project>

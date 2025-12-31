@@ -1,32 +1,37 @@
 <Solution>
-  <Folder Name="/Build/">
-    <File Path="build/Directory.Packages.All.props" />
-    <File Path="build/Directory.Packages.AspNet.props" />
-    <File Path="build/Directory.Packages.Logging.props" />
-    <File Path="build/Directory.Packages.Microsoft.props" />
-    <File Path="build/Directory.Packages.Repository.props" />
-    <File Path="build/Directory.Packages.System.props" />
-    <File Path="build/Directory.Packages.Tool.props" />
-    <File Path="build/LICENSE" />
-    <File Path="build/README.md" />
+  <Folder Name="/packages/">
+    <File Path="Packages/Directory.Packages.All.props" />
+    <File Path="Packages/Directory.Packages.AspNet.props" />
+    <File Path="Packages/Directory.Packages.Logging.props" />
+    <File Path="Packages/Directory.Packages.Microsoft.props" />
+    <File Path="Packages/Directory.Packages.Repository.props" />
+    <File Path="Packages/Directory.Packages.System.props" />
+    <File Path="Packages/Directory.Packages.Tool.props" />
+    <File Path="Packages/LICENSE" />
+    <File Path="Packages/README.md" />
   </Folder>
-  <Folder Name="/Document/">
+  <Folder Name="/build/">
+    <Project Path="build/Build.csproj" />
+  </Folder>
+  <Folder Name="/document/">
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
-    <File Path="Directory.Build.props" />
-    <File Path="Directory.Build.targets" />
-    <File Path="Directory.Packages.props" />
+    <File Path="src/Directory.Build.props" />
+    <File Path="src/Directory.Build.targets" />
+    <File Path="src/Directory.Packages.props" />
     <File Path="NuGet.config" />
     <File Path="Readme.md" />
   </Folder>
-  <Project Path="Framework.AspNetCore.Middleware/Framework.AspNetCore.Middleware.csproj" />
-  <Project Path="Framework.AspNetCore/Framework.AspNetCore.csproj" />
-  <Project Path="Framework.Logging/Framework.Logging.csproj" />
-  <Project Path="Framework.MQTT/Framework.MQTT.csproj" />
-  <Project Path="Framework.Mvvm/Framework.Mvvm.csproj" />
-  <Project Path="Framework.Net/Framework.Net.csproj" />
-  <Project Path="Framework.Plot/Framework.Plot.csproj" />
-  <Project Path="Framework.Proxy/Framework.Proxy.csproj" />
-  <Project Path="Framework.Repository/Framework.Repository.csproj" />
-  <Project Path="Framework/Framework.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/Framework.AspNetCore.Middleware/Framework.AspNetCore.Middleware.csproj" />
+    <Project Path="src/Framework.AspNetCore/Framework.AspNetCore.csproj" />
+    <Project Path="src/Framework.Logging/Framework.Logging.csproj" />
+    <Project Path="src/Framework.MQTT/Framework.MQTT.csproj" />
+    <Project Path="src/Framework.Mvvm/Framework.Mvvm.csproj" />
+    <Project Path="src/Framework.Net/Framework.Net.csproj" />
+    <Project Path="src/Framework.Plot/Framework.Plot.csproj" />
+    <Project Path="src/Framework.Proxy/Framework.Proxy.csproj" />
+    <Project Path="src/Framework/Framework.csproj" />
+    <Project Path="src/Framework.Repository/Framework.Repository.csproj" />
+  </Folder>
 </Solution>

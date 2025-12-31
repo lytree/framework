@@ -1,4 +1,12 @@
 using System.Threading.Tasks;
+using Cake.Common.Diagnostics;
+using Cake.Common.IO;
+using Cake.Common.Tools.DotNet;
+using Cake.Common.Tools.DotNet.Build;
+using Cake.Common.Tools.DotNet.Clean;
+using Cake.Common.Tools.DotNet.NuGet.Push;
+using Cake.Common.Tools.DotNet.Pack;
+using Cake.Common.Tools.GitVersion;
 using Cake.Core;
 using Cake.Core.Diagnostics;
 using Cake.Frosting;
@@ -15,9 +23,9 @@ public static class Program
 // 定义构建中使用的常量
 public static class BuildParameters
 {
-    public const string SolutionPath = "../Tools.slnx"; // 确保路径正确
+    public const string SolutionPath = "../Framework.slnx"; // 确保路径正确
     public const string Configuration = "Release";
-    public const string PackageOutputDirectory = "../packages";
+    public const string PackageOutputDirectory = "../nugets";
     public const string ProjectPath = "../src/";
     public const string NuGetApiKey = "NUGET_API_KEY";
     public const string Version = "Version";
@@ -97,9 +105,9 @@ public class PackTask : FrostingTask<BuildContext>
         // 运行 GitVersion 并获取结果对象
         var version = context.GitVersion(gitVersionSettings);
 
-        var projectFiles = context.GetFiles(BuildParameters.ProjectPath + "**/*Cli.csproj");
+        var projectFiles = context.GetFiles(BuildParameters.ProjectPath + "**/*.csproj");
 
-        context.Information($"Found {projectFiles.Count} project(s) matching '**/*Cli.csproj':");
+        context.Information($"Found {projectFiles.Count} project(s) matching '**/*.csproj':");
         foreach (var projectPath in projectFiles)
         {
 
