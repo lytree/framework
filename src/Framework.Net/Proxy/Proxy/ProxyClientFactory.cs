@@ -72,7 +72,7 @@ namespace ProxyLib.Proxy
         /// <summary>
         /// Factory method for creating new proxy client objects.
         /// </summary>
-        /// <param name="type">The type of proxy client to create.</param>
+        /// <param name="proxy">The type of proxy client to create.</param>
         /// <returns>Proxy client object.</returns>
         public IProxyClient CreateProxyClient(ParsedUrl proxy)
         {

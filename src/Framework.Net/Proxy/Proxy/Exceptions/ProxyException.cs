@@ -56,16 +56,6 @@ namespace ProxyLib.Proxy.Exceptions
         {
         }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="info">Serialization information.</param>
-        /// <param name="context">Stream context information.</param>
-        protected ProxyException(SerializationInfo info,
-           StreamingContext context)
-            : base(info, context)
-        {
-        }
     }
 
 }

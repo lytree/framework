@@ -33,7 +33,7 @@ public static partial class Extensions
 	///     Adds <paramref name="value" /> to it lacks this value.
 	/// </summary>
 	/// <typeparam name="T">Type of generic <see cref="ICollection{T}" /></typeparam>
-	/// <param name="value">Value to be inserted in <paramref name="source" /> if it is a distinct one.</param>
+	/// <param name="value">Value to be inserted in <paramref name="value" /> if it is a distinct one.</param>
 	public static void AddIfNotContains<T>(this ICollection<T> @this, T value)
 	{
 		if (!@this.Contains(value)) @this.Add(value);
@@ -191,7 +191,7 @@ public static partial class Extensions
 		}
 	}
 	/// <summary>
-	///     Removes the elements of the specified collection from the end of the <paramref name="source"/>.
+	///     Removes the elements of the specified collection from the end of the <paramref name="collection"/>.
 	/// </summary>
 	/// <typeparam name="T">Type of generic <see cref="ICollection{T}" />.</typeparam>
 	/// <param name="this">
@@ -199,17 +199,17 @@ public static partial class Extensions
 	///     parameter.
 	/// </param>
 	/// <param name="collection">
-	///     The collection whose elements should be removed from the <paramref name="source" />.
+	///     The collection whose elements should be removed from the <paramref name="collection" />.
 	///     The collection itself cannot be <see langword="null" />, but it
 	///     can contain elements that are <see langword="null" />, if type <typeparamref name="T" /> is a reference type.
 	/// </param>
 	/// <exception cref="ArgumentNullException"><paramref name="collection" /> is <see langword="null" />.</exception>
-	/// <returns>Reference to the <paramref name="source"/> object.</returns>
+	/// <returns>Reference to the <paramref name="collection"/> object.</returns>
 	public static ICollection<T> RemoveRange<T>(this ICollection<T> @this, IEnumerable<T> collection)
 	{
-		if (collection == null) throw new ArgumentNullException(nameof(collection));
+        ArgumentNullException.ThrowIfNull(collection);
 
-		foreach (T item in collection) @this.Remove(item);
+        foreach (T item in collection) @this.Remove(item);
 
 		return @this;
 	}
