@@ -4,7 +4,7 @@
 		<!-- Keep generated code in `obj` folder -->
 		<!--<EmitCompilerGeneratedFiles>True</EmitCompilerGeneratedFiles>-->
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<PackageOutputPath>$(RepoRoot)package\</PackageOutputPath>
+		<!-- <PackageOutputPath>$(RepoRoot)package\</PackageOutputPath> -->
 		<PublishRelease>true</PublishRelease>
 	</PropertyGroup>
 </Project>
