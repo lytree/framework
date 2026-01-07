@@ -29,7 +29,7 @@
     <Project Path="src/Framework.MQTT/Framework.MQTT.csproj" />
     <Project Path="src/Framework.Mvvm/Framework.Mvvm.csproj" />
     <Project Path="src/Framework.Net/Framework.Net.csproj" />
-    <Project Path="src/Framework.Plot/Framework.Plot.csproj" />
+    <Project Path="src/Framework.Charts/Framework.Charts.csproj" />
     <Project Path="src/Framework/Framework.csproj" />
     <Project Path="src/Framework.Repository/Framework.Repository.csproj" />
   </Folder>
