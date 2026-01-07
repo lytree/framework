@@ -1,14 +1,14 @@
 <Solution>
   <Folder Name="/packages/">
-    <File Path="Packages/Directory.Packages.All.props" />
-    <File Path="Packages/Directory.Packages.AspNet.props" />
-    <File Path="Packages/Directory.Packages.Logging.props" />
-    <File Path="Packages/Directory.Packages.Microsoft.props" />
-    <File Path="Packages/Directory.Packages.Repository.props" />
-    <File Path="Packages/Directory.Packages.System.props" />
-    <File Path="Packages/Directory.Packages.Tool.props" />
-    <File Path="Packages/LICENSE" />
-    <File Path="Packages/README.md" />
+    <File Path="packages/Directory.Packages.All.props" />
+    <File Path="packages/Directory.Packages.AspNet.props" />
+    <File Path="packages/Directory.Packages.Logging.props" />
+    <File Path="packages/Directory.Packages.Microsoft.props" />
+    <File Path="packages/Directory.Packages.Repository.props" />
+    <File Path="packages/Directory.Packages.System.props" />
+    <File Path="packages/Directory.Packages.Tool.props" />
+    <File Path="packages/LICENSE" />
+    <File Path="packages/README.md" />
   </Folder>
   <Folder Name="/build/">
     <Project Path="build/Build.csproj" />
