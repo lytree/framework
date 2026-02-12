@@ -8,7 +8,7 @@ public static partial class Plots
 {
     public static readonly LabelStyle defaultLabelStyle = new()
     {
-        FontName = "SimSun",
+        FontName = GetSafeFont(),
         FontSize = 18,
 
     };
@@ -18,7 +18,6 @@ public static partial class Plots
     };
     public static readonly NumericAutomatic defaultNumberFormat = new()
     {
-        LabelFormatter = (dt) => dt.ToString("F3")
 
     };
 }

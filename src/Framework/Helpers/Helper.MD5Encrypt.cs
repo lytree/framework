@@ -54,7 +54,7 @@ public static partial class Helper
         if (password.IsNull())
             return string.Empty;
         byte[] s = MD5.HashData(Encoding.UTF8.GetBytes(password));
-        return Helper.ToBase64(s);
+        return ToBase64(s);
     }
 
     public static string GetHash(Stream stream)

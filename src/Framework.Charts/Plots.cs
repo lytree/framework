@@ -7,11 +7,31 @@ using System.Linq;
 using System.Text;
 using ScottPlot.TickGenerators;
 using Framework.Charts.TickGenerators;
+using SkiaSharp;
 
 namespace Framework.Charts;
 
 public static partial class Plots
 {
+    #region Avalonia 加载字体
+
+    public static string GetSafeFont()
+    {
+        var installed = SKFontManager.Default.GetFontFamilies();
+
+        // 优先搜索 Linux 常用开源字体
+        string[] linuxFonts = ["SimSun", "SimKai", "DejaVu Sans", "Liberation Sans", "Noto Sans", "FreeSans"];
+
+        foreach (var font in linuxFonts)
+        {
+            if (installed.Contains(font)) return font;
+        }
+
+        // 如果都没有，返回第一个可用的字体
+        return installed.Length > 0 ? installed[0] : "sans-serif";
+    }
+    #endregion
+
     /// <summary>
     /// 时序图
     /// </summary>
@@ -21,7 +41,7 @@ public static partial class Plots
     {
         Plot plt = new();
         plt.Font.Automatic();
-        plt.Font.Set("SimSun");
+        plt.Font.Set(GetSafeFont());
         plt.Axes.Margins(0.02, 0.02);
         plt.Axes.Bottom.TickLabelStyle = defaultLabelStyle;
         plt.Axes.Bottom.TickGenerator = defaultTimeFormat;
@@ -45,7 +65,8 @@ public static partial class Plots
     {
         Plot plt = new();
         plt.Font.Automatic();
-        plt.Font.Set("SimSun"); plt.Axes.Margins(0.02, 0.02);
+        plt.Font.Set(GetSafeFont());
+        plt.Axes.Margins(0.02, 0.02);
         plt.Axes.Bottom.TickLabelStyle = defaultLabelStyle;
         plt.Axes.Bottom.TickGenerator = defaultTimeFormat;
         plt.Axes.Left.TickLabelStyle = defaultLabelStyle;
@@ -68,9 +89,10 @@ public static partial class Plots
     {
         Plot plt = new();
         plt.Font.Automatic();
-        plt.Font.Set("SimSun");
+        plt.Font.Set(GetSafeFont());
         plt.Axes.Left.Min = 0;
-        plt.Axes.Left.Max = y.Max() * 1.1; plt.Axes.Margins(0.02, 0.02);
+        plt.Axes.Left.Max = y.Max() * 1.1;
+        plt.Axes.Margins(0.02, 0.02);
         plt.Axes.Bottom.TickLabelStyle = defaultLabelStyle;
         plt.Axes.Bottom.TickGenerator = new FixedNumericManual(10, 0, x.Max() * 1.1);
         plt.Axes.Left.TickLabelStyle = defaultLabelStyle;
@@ -89,7 +111,9 @@ public static partial class Plots
     /// <returns></returns>
     public static byte[] WaveformChart(List<double> x, List<double> y, int width = 2250, int height = 350)
     {
-        Plot plt = new(); plt.Font.Automatic(); plt.Font.Set("SimSun");
+        Plot plt = new();
+        plt.Font.Automatic();
+        plt.Font.Set(GetSafeFont());
 
         plt.Axes.Margins(0.02, 0.02);
         plt.Axes.Bottom.TickLabelStyle = defaultLabelStyle;
@@ -110,9 +134,9 @@ public static partial class Plots
     {
         Plot plt = new();
         plt.Font.Automatic();
-
-        plt.Font.Set("SimSun");
-        plt.Title(title, size: 20); plt.Axes.Margins(0.02, 0.02);
+        plt.Font.Set(GetSafeFont());
+        plt.Title(title, size: 20);
+        plt.Axes.Margins(0.02, 0.02);
         plt.Axes.Bottom.TickLabelStyle = defaultLabelStyle;
         plt.Axes.Bottom.TickGenerator = new FixedNumericManual(10, 0, x.Max() * 1.1);
         plt.Axes.Left.TickLabelStyle = defaultLabelStyle;

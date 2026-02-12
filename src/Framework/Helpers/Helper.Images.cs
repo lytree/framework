@@ -19,8 +19,8 @@ public static partial class Helper
 	public static string VerticalMergeImageByte(params byte[][] bitmaps)
 	{
 		var images = bitmaps.ToList().Select(image => Image.Load(new MemoryStream(image))).ToList();
-		var height = images.Select(image => image.Height).Sum();
-		var width = images.Select(image => image.Width).Max();
+		var height = images.Sum(image => image.Height);
+		var width = images.Max(image => image.Width);
 		using (var mergeImage = new Image<Rgba32>(width, height))
 		{
 			int y = 0;//y坐标
@@ -35,8 +35,8 @@ public static partial class Helper
 	public static string VerticalMergeImageStream(params Stream[] bitmaps)
 	{
 		var images = bitmaps.ToList().Select(Image.Load).ToList();
-		var height = images.Select(image => image.Height).Sum();
-		var width = images.Select(image => image.Width).Max();
+		var height = images.Sum(image => image.Height);
+		var width = images.Max(image => image.Width);
 		using (var mergeImage = new Image<Rgba32>(width, height))
 		{
 			int y = 0;//y坐标

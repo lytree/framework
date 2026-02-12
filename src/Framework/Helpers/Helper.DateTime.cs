@@ -98,16 +98,6 @@ public static partial class Helper
     }
 
     /// <summary>
-    /// 得到当前农历月的起始日和截止日
-    /// </summary>
-    /// <param name="dt"></param>
-    public static DateTimeRange GetCurrentLunarMonth(this DateTime dt)
-    {
-        var calendar = new ChineseCalendar(dt);
-        return new DateTimeRange(new ChineseCalendar(calendar.ChineseYear, calendar.ChineseMonth, 1).Date, new ChineseCalendar(calendar.ChineseYear, calendar.ChineseMonth, calendar.GetChineseMonthDays()).Date.AddSeconds(86399));
-    }
-
-    /// <summary>
     /// 得到当前年的起始日和截止日
     /// </summary>
     /// <param name="dt"></param>
@@ -116,15 +106,6 @@ public static partial class Helper
         return new DateTimeRange(new DateTime(dt.Year, 1, 1), new DateTime(dt.Year, 12, 31, 23, 59, 59));
     }
 
-    /// <summary>
-    /// 得到当前农历年的起始日和截止日
-    /// </summary>
-    /// <param name="dt"></param>
-    public static DateTimeRange GetCurrentLunarYear(this DateTime dt)
-    {
-        var calendar = new ChineseCalendar(dt);
-        return new DateTimeRange(new ChineseCalendar(calendar.ChineseYear, 1, 1).Date, new ChineseCalendar(calendar.ChineseYear, 12, calendar.GetChineseMonthDays(calendar.ChineseYear, 12)).Date.AddSeconds(86399));
-    }
 
     /// <summary>
     /// 得到当前季度的起始日和截止日
@@ -143,46 +124,6 @@ public static partial class Helper
     }
 
     /// <summary>
-    /// 得到当前农历季度的起始日和截止日
-    /// </summary>
-    /// <param name="dt"></param>
-    public static DateTimeRange GetCurrentLunarQuarter(this DateTime dt)
-    {
-        var calendar = new ChineseCalendar(dt);
-        return dt.Month switch
-        {
-            >= 1 and <= 3 => new DateTimeRange(new ChineseCalendar(calendar.ChineseYear, 1, 1).Date, new ChineseCalendar(calendar.ChineseYear, 3, calendar.GetChineseMonthDays(calendar.ChineseYear, 3)).Date.AddSeconds(86399)),
-            >= 4 and <= 6 => new DateTimeRange(new ChineseCalendar(calendar.ChineseYear, 4, 1).Date, new ChineseCalendar(calendar.ChineseYear, 6, calendar.GetChineseMonthDays(calendar.ChineseYear, 6)).Date.AddSeconds(86399)),
-            >= 7 and <= 9 => new DateTimeRange(new ChineseCalendar(calendar.ChineseYear, 7, 1).Date, new ChineseCalendar(calendar.ChineseYear, 9, calendar.GetChineseMonthDays(calendar.ChineseYear, 9)).Date.AddSeconds(86399)),
-            >= 10 and <= 12 => new DateTimeRange(new ChineseCalendar(calendar.ChineseYear, 10, 1).Date, new ChineseCalendar(calendar.ChineseYear, 12, calendar.GetChineseMonthDays(calendar.ChineseYear, 12)).Date.AddSeconds(86399)),
-            _ => throw new ArgumentOutOfRangeException()
-        };
-    }
-
-    /// <summary>
-    /// 得到当前农历季度的起始日和截止日
-    /// </summary>
-    /// <param name="dt"></param>
-    public static DateTimeRange GetCurrentSolar(this DateTime dt)
-    {
-        var calendar = new ChineseCalendar(dt);
-        ChineseCalendar[] quarters =
-        {
-            calendar.ChineseTwentyFourPrevDay.ChineseTwentyFourPrevDay.ChineseTwentyFourPrevDay,
-                calendar.ChineseTwentyFourPrevDay.ChineseTwentyFourPrevDay,
-                calendar.ChineseTwentyFourPrevDay,
-                calendar,
-                calendar.ChineseTwentyFourNextDay,
-                calendar.ChineseTwentyFourNextDay.ChineseTwentyFourNextDay,
-                calendar.ChineseTwentyFourNextDay.ChineseTwentyFourNextDay.ChineseTwentyFourNextDay
-        };
-        var solar = quarters.LastOrDefault(c => new[] { "春分", "夏至", "秋分", "冬至" }.Contains(c.ChineseTwentyFourDay));
-        var start = solar.ChineseTwentyFourPrevDay.ChineseTwentyFourPrevDay.ChineseTwentyFourPrevDay;
-        var end = solar.ChineseTwentyFourNextDay.ChineseTwentyFourNextDay.ChineseTwentyFourNextDay;
-        return new DateTimeRange(start.Date, end.Date.AddSeconds(-1));
-    }
-
-    /// <summary>
     /// 得到当前范围的起始日和截止日
     /// </summary>
     /// <param name="dt"></param>
@@ -195,10 +136,6 @@ public static partial class Helper
             DateRangeType.Month => GetCurrentMonth(dt),
             DateRangeType.Quarter => GetCurrentQuarter(dt),
             DateRangeType.Year => GetCurrentYear(dt),
-            DateRangeType.LunarMonth => GetCurrentLunarMonth(dt),
-            DateRangeType.LunarQuarter => GetCurrentLunarQuarter(dt),
-            DateRangeType.Solar => GetCurrentSolar(dt),
-            DateRangeType.LunarYear => GetCurrentLunarYear(dt),
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
     }
@@ -433,7 +370,6 @@ public static partial class Helper
         Dictionary<DateTime, DateTimeRange> timeDic = [];
         switch (type)
         {
-            case DateTimeRangeType.Solar:
             case DateTimeRangeType.Day://天分割
                 var nextTime = startTime.AddDays(1).AddHours(-startTime.Hour).AddMinutes(-startTime.Minute).AddSeconds(-startTime.Second);
                 timeDic.Add(startTime, new(startTime, nextTime));
@@ -447,7 +383,6 @@ public static partial class Helper
                 }
 
                 break;
-            case DateTimeRangeType.LunarMonth:
             case DateTimeRangeType.Month://月分割
 
                 var start = startTime;
@@ -462,7 +397,6 @@ public static partial class Helper
                     startTime = nextTime2;
                 }
                 break;
-            case DateTimeRangeType.LunarQuarter:
             case DateTimeRangeType.Quarter://季度分割
                 var nextTime1 = startTime.AddDays(1 - startTime.Day).AddMonths(3).AddHours(-startTime.Hour).AddMinutes(-startTime.Minute).AddSeconds(-startTime.Second);
                 timeDic.Add(startTime, new(startTime, nextTime1));
@@ -474,8 +408,6 @@ public static partial class Helper
                     startTime = nextTime1;
                 }
                 break;
-
-            case DateTimeRangeType.LunarYear: 
             case DateTimeRangeType.Year:
                 var nextTime3 = startTime.AddDays(1 - startTime.Day).AddYears(1).AddHours(-startTime.Hour).AddMinutes(-startTime.Minute).AddSeconds(-startTime.Second);
                 timeDic.Add(startTime, new(startTime, nextTime3));
@@ -674,23 +606,7 @@ public static partial class Helper
         /// <summary>
         /// 年
         /// </summary>
-        Year = 5,
-        /// <summary>
-        /// 农历月
-        /// </summary>
-        LunarMonth,
-        /// <summary>
-        /// 农历季
-        /// </summary>
-        LunarQuarter,
-        /// <summary>
-        /// 农历日
-        /// </summary>
-        Solar,
-        /// <summary>
-        /// 农历年
-        /// </summary>
-        LunarYear,
+        Year = 5
 
     }
 
@@ -718,5 +634,12 @@ public static partial class Helper
         /// 左闭右开区间
         /// </summary>
         CloseOpen
+    }
+    public enum DateRangeType
+    {
+        Week,
+        Month,
+        Quarter,
+        Year,
     }
 }
