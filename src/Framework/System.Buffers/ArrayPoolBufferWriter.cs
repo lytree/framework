@@ -17,33 +17,33 @@ public sealed class ArrayPoolBufferWriter<T> : IWrittenBufferWriter<T>, IDisposa
     /// <summary>
     /// 获取已数入的数据长度
     /// </summary>
-    public int WrittenCount => this.index;
+    public int WrittenCount => index;
 
     /// <summary>
     /// 获取已数入的数据
     /// </summary>
-    public ReadOnlySpan<T> WrittenSpan => this.buffer.AsSpan(0, this.index);
+    public ReadOnlySpan<T> WrittenSpan => buffer.AsSpan(0, index);
 
     /// <summary>
     /// 获取已数入的数据
     /// </summary>
-    public ReadOnlyMemory<T> WrittenMemory => this.buffer.AsMemory(0, this.index);
+    public ReadOnlyMemory<T> WrittenMemory => buffer.AsMemory(0, index);
 
     /// <summary>
     /// 获取已数入的数据
     /// </summary>
     /// <returns></returns>
-    public ArraySegment<T> WrittenSegment => new(this.buffer, 0, this.index);
+    public ArraySegment<T> WrittenSegment => new(buffer, 0, index);
 
     /// <summary>
     /// 获取容量
     /// </summary>
-    public int Capacity => this.buffer.Length;
+    public int Capacity => buffer.Length;
 
     /// <summary>
     /// 获取剩余容量
     /// </summary>
-    public int FreeCapacity => this.buffer.Length - this.index;
+    public int FreeCapacity => buffer.Length - index;
 
 
     /// <summary>
@@ -57,7 +57,7 @@ public sealed class ArrayPoolBufferWriter<T> : IWrittenBufferWriter<T>, IDisposa
         {
             throw new ArgumentOutOfRangeException(nameof(initialCapacity));
         }
-        this.buffer = ArrayPool<T>.Shared.Rent(initialCapacity);
+        buffer = ArrayPool<T>.Shared.Rent(initialCapacity);
     }
 
     /// <summary>
@@ -65,8 +65,8 @@ public sealed class ArrayPoolBufferWriter<T> : IWrittenBufferWriter<T>, IDisposa
     /// </summary>
     public void Clear()
     {
-        this.buffer.AsSpan(0, this.index).Clear();
-        this.index = 0;
+        buffer.AsSpan(0, index).Clear();
+        index = 0;
     }
 
     /// <summary>
@@ -76,12 +76,12 @@ public sealed class ArrayPoolBufferWriter<T> : IWrittenBufferWriter<T>, IDisposa
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public void Advance(int count)
     {
-        if (count < 0 || this.index > this.buffer.Length - count)
+        if (count < 0 || index > buffer.Length - count)
         {
             throw new ArgumentOutOfRangeException(nameof(count));
         }
 
-        this.index += count;
+        index += count;
     }
 
     /// <summary>
@@ -92,8 +92,8 @@ public sealed class ArrayPoolBufferWriter<T> : IWrittenBufferWriter<T>, IDisposa
     /// <returns></returns>
     public Memory<T> GetMemory(int sizeHint = 0)
     {
-        this.CheckAndResizeBuffer(sizeHint);
-        return this.buffer.AsMemory(this.index);
+        CheckAndResizeBuffer(sizeHint);
+        return buffer.AsMemory(index);
     }
 
     /// <summary>
@@ -104,8 +104,8 @@ public sealed class ArrayPoolBufferWriter<T> : IWrittenBufferWriter<T>, IDisposa
     /// <returns></returns>
     public Span<T> GetSpan(int sizeHint = 0)
     {
-        this.CheckAndResizeBuffer(sizeHint);
-        return buffer.AsSpan(this.index);
+        CheckAndResizeBuffer(sizeHint);
+        return buffer.AsSpan(index);
     }
 
     /// <summary>
@@ -114,8 +114,8 @@ public sealed class ArrayPoolBufferWriter<T> : IWrittenBufferWriter<T>, IDisposa
     /// <param name="value"></param>
     public void Write(T value)
     {
-        this.GetSpan(1)[0] = value;
-        this.index += 1;
+        GetSpan(1)[0] = value;
+        index += 1;
     }
 
     /// <summary>
@@ -126,8 +126,8 @@ public sealed class ArrayPoolBufferWriter<T> : IWrittenBufferWriter<T>, IDisposa
     {
         if (value.IsEmpty == false)
         {
-            value.CopyTo(this.GetSpan(value.Length));
-            this.index += value.Length;
+            value.CopyTo(GetSpan(value.Length));
+            index += value.Length;
         }
     }
 
@@ -149,17 +149,17 @@ public sealed class ArrayPoolBufferWriter<T> : IWrittenBufferWriter<T>, IDisposa
             sizeHint = defaultSizeHint;
         }
 
-        if (sizeHint > this.FreeCapacity)
+        if (sizeHint > FreeCapacity)
         {
-            int currentLength = this.buffer.Length;
+            int currentLength = buffer.Length;
             var growBy = Math.Max(sizeHint, currentLength);
             var newSize = checked(currentLength + growBy);
 
             var newBuffer = ArrayPool<T>.Shared.Rent(newSize);
-            Array.Copy(this.buffer, newBuffer, this.index);
+            Array.Copy(buffer, newBuffer, index);
 
-            ArrayPool<T>.Shared.Return(this.buffer);
-            this.buffer = newBuffer;
+            ArrayPool<T>.Shared.Return(buffer);
+            buffer = newBuffer;
         }
     }
 
@@ -168,12 +168,12 @@ public sealed class ArrayPoolBufferWriter<T> : IWrittenBufferWriter<T>, IDisposa
     /// </summary>
     public void Dispose()
     {
-        if (this.disposed == false)
+        if (disposed == false)
         {
-            ArrayPool<T>.Shared.Return(this.buffer);
+            ArrayPool<T>.Shared.Return(buffer);
             GC.SuppressFinalize(this);
         }
-        this.disposed = true;
+        disposed = true;
     }
 
     /// <summary>
@@ -181,6 +181,6 @@ public sealed class ArrayPoolBufferWriter<T> : IWrittenBufferWriter<T>, IDisposa
     /// </summary>
     ~ArrayPoolBufferWriter()
     {
-        this.Dispose();
+        Dispose();
     }
 }

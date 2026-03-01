@@ -25,12 +25,12 @@ sealed class ArrayOwner<T> : IArrayOwner<T>
 
     public Span<T> AsSpan()
     {
-        return this.Array.AsSpan(0, this.Length);
+        return Array.AsSpan(0, Length);
     }
 
     public Memory<T> AsMemory()
     {
-        return this.Array.AsMemory(0, this.Length);
+        return Array.AsMemory(0, Length);
     }
 
     /// <summary>
@@ -41,8 +41,8 @@ sealed class ArrayOwner<T> : IArrayOwner<T>
     public ArrayOwner(ArrayPool<T> arrayPool, int length)
     {
         this.arrayPool = arrayPool;
-        this.Length = length;
-        this.Array = arrayPool.Rent(length);
+        Length = length;
+        Array = arrayPool.Rent(length);
     }
 
     /// <summary>
@@ -50,16 +50,16 @@ sealed class ArrayOwner<T> : IArrayOwner<T>
     /// </summary>
     public void Dispose()
     {
-        if (this.disposed == false)
+        if (disposed == false)
         {
-            this.arrayPool.Return(this.Array);
+            arrayPool.Return(Array);
             GC.SuppressFinalize(this);
         }
-        this.disposed = true;
+        disposed = true;
     }
 
     ~ArrayOwner()
     {
-        this.Dispose();
+        Dispose();
     }
 }
