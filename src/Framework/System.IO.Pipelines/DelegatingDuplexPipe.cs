@@ -43,8 +43,8 @@ public class DelegatingDuplexPipe<TDelegatingStream> : IDuplexPipe, IAsyncDispos
     {
         var duplexPipeStream = new DuplexPipeStream(duplexPipe);
         var delegatingStream = delegatingStreamFactory(duplexPipeStream);
-        this.Input = PipeReader.Create(delegatingStream, readerOptions);
-        this.Output = PipeWriter.Create(delegatingStream, writerOptions);
+        Input = PipeReader.Create(delegatingStream, readerOptions);
+        Output = PipeWriter.Create(delegatingStream, writerOptions);
     }
 
     /// <summary>
@@ -53,16 +53,16 @@ public class DelegatingDuplexPipe<TDelegatingStream> : IDuplexPipe, IAsyncDispos
     /// <returns></returns>
     public virtual async ValueTask DisposeAsync()
     {
-        lock (this.syncRoot)
+        lock (syncRoot)
         {
-            if (this.disposed == true)
+            if (disposed == true)
             {
                 return;
             }
-            this.disposed = true;
+            disposed = true;
         }
 
-        await this.Input.CompleteAsync();
-        await this.Output.CompleteAsync();
+        await Input.CompleteAsync();
+        await Output.CompleteAsync();
     }
 }
