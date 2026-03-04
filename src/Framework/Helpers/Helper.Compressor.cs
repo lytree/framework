@@ -1,6 +1,8 @@
 ﻿using SharpCompress.Archives;
 using SharpCompress.Common;
+using SharpCompress.Readers;
 using SharpCompress.Writers;
+using SharpCompress.Writers.Zip;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -27,7 +29,7 @@ public static partial class Helper
 	{
 		using var archive = CreateZipArchive(files, rootdir);
 		var ms = new PooledMemoryStream();
-		archive.SaveTo(ms, new WriterOptions(CompressionType.LZMA)
+		archive.SaveTo(ms, new ZipWriterOptions(CompressionType.LZMA)
 		{
 			LeaveStreamOpen = true,
 			ArchiveEncoding = new ArchiveEncoding()
@@ -42,19 +44,18 @@ public static partial class Helper
 	/// 将多个文件压缩到一个文件流中，可保存为zip文件，方便于web方式下载
 	/// </summary>
 	/// <param name="streams">多个文件流</param>
-	/// <param name="archiveType"></param>
 	/// <param name="disposeAllStreams">是否需要释放所有流</param>
 	/// <returns>文件流</returns>
-	public static PooledMemoryStream ZipStream(DisposableDictionary<string, Stream> streams, ArchiveType archiveType = ArchiveType.Zip, bool disposeAllStreams = false)
+	public static PooledMemoryStream ZipStream(DisposableDictionary<string, Stream> streams, bool disposeAllStreams = false)
 	{
-		using var archive = ArchiveFactory.Create(archiveType);
+		using var archive = ArchiveFactory.CreateArchive<ZipWriterOptions>();
 		foreach (var pair in streams)
 		{
 			archive.AddEntry(pair.Key, pair.Value, true);
 		}
 
 		var ms = new PooledMemoryStream();
-		archive.SaveTo(ms, new WriterOptions(CompressionType.LZMA)
+		archive.SaveTo(ms, new ZipWriterOptions(CompressionType.LZMA)
 		{
 			LeaveStreamOpen = true,
 			ArchiveEncoding = new ArchiveEncoding()
@@ -76,10 +77,10 @@ public static partial class Helper
 	/// <param name="zipFile">压缩到...</param>
 	/// <param name="rootdir">压缩包内部根文件夹</param>
 	/// <param name="archiveType"></param>
-	public static void Zip(List<string> files, string zipFile, string rootdir = "", ArchiveType archiveType = ArchiveType.Zip)
+	public static void Zip(List<string> files, string zipFile, string rootdir = "")
 	{
-		using var archive = CreateZipArchive(files, rootdir, archiveType);
-		archive.SaveTo(zipFile, new WriterOptions(CompressionType.LZMA)
+		using var archive = CreateZipArchive(files, rootdir);
+		archive.SaveTo(zipFile, new ZipWriterOptions(CompressionType.LZMA)
 		{
 			LeaveStreamOpen = true,
 			ArchiveEncoding = new ArchiveEncoding()
@@ -98,13 +99,13 @@ public static partial class Helper
 	/// <param name="disposeAllStreams">是否需要释放所有流</param>
 	public static void Zip(DisposableDictionary<string, Stream> streams, string zipFile, ArchiveType archiveType = ArchiveType.Zip, bool disposeAllStreams = false)
 	{
-		using var archive = ArchiveFactory.Create(archiveType);
+		using var archive = ArchiveFactory.CreateArchive<ZipWriterOptions>();
 		foreach (var pair in streams)
 		{
 			archive.AddEntry(pair.Key, pair.Value, true);
 		}
 
-		archive.SaveTo(zipFile, new WriterOptions(CompressionType.LZMA)
+		archive.SaveTo(zipFile, new ZipWriterOptions(CompressionType.LZMA)
 		{
 			LeaveStreamOpen = true,
 			ArchiveEncoding = new ArchiveEncoding()
@@ -130,7 +131,7 @@ public static partial class Helper
 			dir = Path.GetDirectoryName(compressedFile);
 		}
 
-		ArchiveFactory.WriteToDirectory(compressedFile, Directory.CreateDirectory(dir).FullName, new ExtractionOptions()
+		ArchiveFactory.WriteToDirectory(compressedFile, Directory.CreateDirectory(dir).FullName, new ReaderOptions()
 		{
 			ExtractFullPath = true,
 			Overwrite = true
@@ -142,11 +143,10 @@ public static partial class Helper
 	/// </summary>
 	/// <param name="files"></param>
 	/// <param name="rootdir"></param>
-	/// <param name="archiveType"></param>
 	/// <returns></returns>
-	private static IWritableArchive CreateZipArchive(List<string> files, string rootdir, ArchiveType archiveType = ArchiveType.Zip)
+	private static IWritableArchive<ZipWriterOptions> CreateZipArchive(List<string> files, string rootdir)
 	{
-		var archive = ArchiveFactory.Create(archiveType);
+		var archive = ArchiveFactory.CreateArchive<ZipWriterOptions>();
 		var dic = GetFileEntryMaps(files);
 		var remoteUrls = files.Distinct().Where(s => s.StartsWith("http")).Select(s =>
 		{
