@@ -4,7 +4,7 @@ using ZLogger;
 using ZLogger.Formatters;
 using ZLogger.Providers;
 
-namespace Zlogger;
+namespace ZLogger;
 
 public enum LogVerbosity
 {
