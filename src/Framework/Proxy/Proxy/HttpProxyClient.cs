@@ -23,10 +23,8 @@ using System.Globalization;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using ProxyLib.Proxy.EventArgs;
-using ProxyLib.Proxy.Exceptions;
 
-namespace Framework.Proxy.Proxy
+namespace Framework.Proxy
 {
     /// <summary>
     /// HTTP connection proxy class.  This class implements the HTTP standard proxy protocol.

@@ -20,7 +20,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Framework.Proxy.Proxy.Exceptions
+namespace Framework.Proxy
 {
 
     /// <summary>

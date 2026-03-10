@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-namespace Telegram.Core.App;
+namespace Framework.Proxy;
 
 public static partial class UrlParser
 {

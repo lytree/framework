@@ -20,7 +20,7 @@
 using System.Net.Sockets;
 using System.Text;
 
-namespace Framework.Proxy.Proxy
+namespace Framework.Proxy
 {
     /// <summary>
     /// Socks4a connection proxy class.  This class implements the Socks4a standard proxy protocol
