@@ -19,7 +19,7 @@
 
 using System.Security.Cryptography;
 
-namespace ProxyLib
+namespace Framework.Proxy
 {
     /// <summary>
     /// Longitudinal Redundancy Check hash algorithm implementation.

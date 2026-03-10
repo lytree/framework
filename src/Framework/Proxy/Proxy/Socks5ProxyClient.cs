@@ -26,7 +26,7 @@ using System.Text;
 using ProxyLib.Proxy.EventArgs;
 using ProxyLib.Proxy.Exceptions;
 
-namespace ProxyLib.Proxy
+namespace Framework.Proxy.Proxy
 {
     /// <summary>
     /// Socks5 connection proxy class.  This class implements the Socks5 standard proxy protocol.

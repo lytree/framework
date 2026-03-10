@@ -23,7 +23,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace ProxyLib
+namespace Framework.Proxy
 {
     /// <summary>
     /// Parity options.
@@ -39,7 +39,7 @@ namespace ProxyLib
         /// </summary>
         Even
     };
-    
+
     /// <summary>
     /// Array utility class for working with byte arrays.
     /// </summary>
@@ -68,7 +68,7 @@ namespace ProxyLib
             int len = array1.Length;
             for (int i = 0; i < len; i++)
             {
-                if (array1[i] != array2[i]) 
+                if (array1[i] != array2[i])
                     return false;
             }
 
@@ -137,11 +137,11 @@ namespace ProxyLib
             {
                 throw new ArgumentNullException(nameof(data));
             }
-            
+
             StringBuilder buffer = new StringBuilder(length * 2);
 
             int len = data.Length;
-            for (int i = 0; i < len; i++ )
+            for (int i = 0; i < len; i++)
             {
                 buffer.Append(data[i].ToString("x").PadLeft(2, '0')); //same as "%02X" in C
                 if (insertColonDelimiter && i < len - 1)
@@ -202,10 +202,10 @@ namespace ProxyLib
         {
             if (value > 16777215)
                 throw new ArgumentOutOfRangeException(nameof(value), "value can not be greater than 16777215 (max unsigned 24-bit integer)");
-            
+
             byte[] bytes = BitConverter.GetBytes(value);
             byte[] buffer = new byte[3];
-            Array.Copy(bytes, 0,  buffer, 0, 3);
+            Array.Copy(bytes, 0, buffer, 0, 3);
             return buffer;
         }
 
@@ -218,7 +218,7 @@ namespace ProxyLib
         {
             if (int24 == null)
                 throw new ArgumentNullException(nameof(int24));
-            
+
             if (int24.Length != 3)
             {
                 throw new ArgumentOutOfRangeException(nameof(int24), "byte size must be exactly three");
@@ -297,8 +297,8 @@ namespace ProxyLib
 
             byte[] buffer = ArrayUtils.Clone(array);
             int rem = array.Length % blockSize;
-            int pads = blockSize - rem; 
-            
+            int pads = blockSize - rem;
+
             if (rem == 0)
                 return buffer;
 
@@ -320,7 +320,7 @@ namespace ProxyLib
         {
             if (bytes == null)
                 throw new ArgumentNullException(nameof(bytes));
-            
+
             for (int i = 0; i < bytes.Length; i++)
             {
                 int b = bytes[i];
@@ -444,7 +444,7 @@ namespace ProxyLib
         {
             if (array == null)
                 throw new ArgumentNullException(nameof(array));
-            
+
             int j = array.Length;
             for (int i = array.Length - 1; i >= 0; i--)
             {
@@ -506,7 +506,7 @@ namespace ProxyLib
                 array[i] = 0;
             }
         }
-        
+
         //Benton Stark    10-09-2012  
         /// <summary>
         /// Takes two equal size input byte arrays and xors their values and returns the xor result as a new byte array.
@@ -641,7 +641,7 @@ namespace ProxyLib
         {
             return PadArray(data, size, 0xff);
         }
-        
+
         //Benton Stark    07-25-2014  
         /// <summary>
         /// Pads an array of bytes to specific size using a supplied padding value.

@@ -27,7 +27,7 @@ using System.Threading;
 using ProxyLib.Proxy.EventArgs;
 using ProxyLib.Proxy.Exceptions;
 
-namespace ProxyLib.Proxy
+namespace Framework.Proxy.Proxy
 {
     /// <summary>
     /// Socks4 connection proxy class.  This class implements the Socks4 standard proxy protocol.

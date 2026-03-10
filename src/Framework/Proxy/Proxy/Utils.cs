@@ -21,7 +21,7 @@ using System;
 using System.Globalization;
 using System.Net.Sockets;
 
-namespace ProxyLib.Proxy
+namespace Framework.Proxy.Proxy
 {
     internal static class Utils
     {

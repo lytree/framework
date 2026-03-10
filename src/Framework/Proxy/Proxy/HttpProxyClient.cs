@@ -26,7 +26,7 @@ using System.Threading;
 using ProxyLib.Proxy.EventArgs;
 using ProxyLib.Proxy.Exceptions;
 
-namespace ProxyLib.Proxy
+namespace Framework.Proxy.Proxy
 {
     /// <summary>
     /// HTTP connection proxy class.  This class implements the HTTP standard proxy protocol.

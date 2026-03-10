@@ -51,7 +51,7 @@ public sealed class ArrayPoolBufferWriter<T> : IWrittenBufferWriter<T>, IDisposa
     /// </summary>
     /// <param name="initialCapacity">初始容量</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public ArrayPoolBufferWriter(int initialCapacity)
+    public ArrayPoolBufferWriter(int initialCapacity = 8)
     {
         if (initialCapacity <= 0)
         {

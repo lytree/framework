@@ -38,7 +38,7 @@
 using System;
 using System.Security.Cryptography;
 
-namespace ProxyLib
+namespace Framework.Proxy
 {
     internal class Crc32 : HashAlgorithm
     {

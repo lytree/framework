@@ -21,7 +21,7 @@ using System;
 using System.Net.Sockets;
 using ProxyLib.Proxy.EventArgs;
 
-namespace ProxyLib.Proxy
+namespace Framework.Proxy.Proxy
 {
     /// <summary>
     /// Proxy client interface.  This is the interface that all proxy clients must implement.
