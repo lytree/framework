@@ -7,48 +7,39 @@ public static partial class LAnsiConsole
 {
     public static void Write(string message)
     {
-        Console.Write(message);
+        _writer.Write(message);
     }
 
     public static void WriteLine(string message = "")
     {
-        Console.WriteLine(message);
+        _writer.WriteLine(message);
     }
 
     public static void Write(IRenderable renderable)
     {
-        Spectre.Console.AnsiConsole.Write(renderable);
+        _writer.Write(renderable);
     }
 
     public static void WriteLine(IRenderable renderable)
     {
-        Spectre.Console.AnsiConsole.Write(renderable);
-        Spectre.Console.AnsiConsole.WriteLine();
+        _writer.Write(renderable);
+        _writer.WriteLine();
     }
 
-    public static void LWrite(string message, string filePath, bool writeToFile = false, string? prefix = null, string? suffix = null)
-    {
-        LAnsiConsoleWriter.LWrite(message, filePath, writeToFile, prefix, suffix);
-    }
 
-    public static void LWriteLine(string message = "", string filePath = "", bool writeToFile = false, string? prefix = null, string? suffix = null)
-    {
-        LAnsiConsoleWriter.LWriteLine(message, filePath, writeToFile, prefix, suffix);
-    }
-
-    public static void LWrite(string message, bool writeToFile = false)
+    public static void Write(string message, bool writeToFile = false)
     {
         if (Console is LAnsiConsoleWriter writer)
         {
-            writer.LWrite(message, writeToFile);
+            writer.Write(message, writeToFile);
         }
     }
 
-    public static void LWriteLine(string message = "", bool writeToFile = false)
+    public static void WriteLine(string message, bool writeToFile = false)
     {
         if (Console is LAnsiConsoleWriter writer)
         {
-            writer.LWriteLine(message, writeToFile);
+            writer.WriteLine(message, writeToFile);
         }
     }
 }
