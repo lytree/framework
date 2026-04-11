@@ -24,10 +24,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using ProxyLib.Proxy.EventArgs;
-using ProxyLib.Proxy.Exceptions;
 
-namespace ProxyLib.Proxy
+namespace Framework.Proxy
 {
     /// <summary>
     /// Socks4 connection proxy class.  This class implements the Socks4 standard proxy protocol.
@@ -477,8 +475,8 @@ namespace ProxyLib.Proxy
         private BackgroundWorker _asyncWorker;
         private Exception _asyncException;
         bool _asyncCancelled;
-        private int _sendTimeout;
-        private int _receiveTimeout;
+        private int _sendTimeout = 5000;
+        private int _receiveTimeout = 5000;
 
         /// <summary>
         /// Gets a value indicating whether an asynchronous operation is running.

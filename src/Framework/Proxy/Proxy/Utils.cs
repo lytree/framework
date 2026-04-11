@@ -19,9 +19,11 @@
 
 using System;
 using System.Globalization;
+using System.Net;
 using System.Net.Sockets;
 
-namespace ProxyLib.Proxy
+
+namespace Framework.Proxy
 {
     internal static class Utils
     {
@@ -32,7 +34,7 @@ namespace ProxyLib.Proxy
             string host = "";
             try
             {
-                host = ((System.Net.IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
+                host = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
             }
             catch
             { }
@@ -48,7 +50,7 @@ namespace ProxyLib.Proxy
             string port = "";
             try
             {
-                port = ((System.Net.IPEndPoint)client.Client.RemoteEndPoint).Port.ToString(CultureInfo.InvariantCulture);
+                port = ((IPEndPoint)client.Client.RemoteEndPoint).Port.ToString(CultureInfo.InvariantCulture);
             }
             catch
             { }

@@ -19,10 +19,8 @@
 
 using System;
 using System.Net.Sockets;
-using ProxyLib.Proxy.Exceptions;
-using Telegram.Core.App;
 
-namespace ProxyLib.Proxy
+namespace Framework.Proxy
 {
     /// <summary>
     /// The type of proxy.

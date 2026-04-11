@@ -21,7 +21,7 @@ using System;
 using System.ComponentModel;
 using System.Net.Sockets;
 
-namespace ProxyLib.Proxy.EventArgs
+namespace Framework.Proxy
 {
     /// <summary>
     /// Event arguments class for the EncryptAsyncCompleted event.

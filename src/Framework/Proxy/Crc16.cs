@@ -20,7 +20,7 @@
 using System;
 using System.Security.Cryptography;
 
-namespace ProxyLib
+namespace Framework.Proxy
 {
 
 

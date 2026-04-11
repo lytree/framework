@@ -19,7 +19,7 @@
 
 using System;
 
-namespace ProxyLib
+namespace Framework.Proxy
 {
     /// <summary>
     /// Builds a one-dimensional byte array of a fixed size and allows the consumer to easily
