@@ -23,7 +23,6 @@
     <Project Path="src/Framework.AspNetCore.Middleware/Framework.AspNetCore.Middleware.csproj" />
     <Project Path="src/Framework.AspNetCore/Framework.AspNetCore.csproj" />
     <Project Path="src/Framework.ZLogging/Framework.ZLogging.csproj" />
-    <Project Path="src/Framework.Cli/Framework.Cli.csproj" />
     <Project Path="src/Framework.Logging/Framework.Logging.csproj" />
     <Project Path="src/Framework.MQTT/Framework.MQTT.csproj" />
     <Project Path="src/Framework.Mvvm/Framework.Mvvm.csproj" />
