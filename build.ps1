@@ -1,2 +1,2 @@
-dotnet run --project build/Build.csproj -- $args
+dotnet run  build/Build.cs -- $args
 exit $LASTEXITCODE;

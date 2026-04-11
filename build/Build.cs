@@ -1,3 +1,7 @@
+#:package Cake.Frosting@*
+#:package Cake.GitVersioning@*
+
+
 using System.Threading.Tasks;
 using Cake.Common.Diagnostics;
 using Cake.Common.IO;
