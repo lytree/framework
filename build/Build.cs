@@ -61,7 +61,6 @@ public sealed class CleanTask : FrostingTask<BuildContext>
         {
             Configuration = BuildParameters.Configuration
         });
-        context.Log.Information("-------------Clean-----------------");
         // 可选：清理 NuGet 包输出目录
         context.CleanDirectory(BuildParameters.PackageOutputDirectory);
     }
