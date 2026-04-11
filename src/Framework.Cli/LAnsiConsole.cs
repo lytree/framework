@@ -24,9 +24,26 @@ public static partial class LAnsiConsole
 
     public static Profile Profile => Console.Profile;
 
-    public static IAnsiConsole Create(Spectre.Console.AnsiConsoleSettings settings)
+    public static IAnsiConsole Create(AnsiConsoleSettings settings)
     {
         return Spectre.Console.AnsiConsole.Create(settings);
+    }
+
+    public static IAnsiConsole Create(LAnsiConsoleSettings settings)
+    {
+        var console = Spectre.Console.AnsiConsole.Create(new Spectre.Console.AnsiConsoleSettings
+        {
+            Ansi = settings.Ansi,
+            ColorSystem = settings.ColorSystem
+        });
+
+        if (!string.IsNullOrEmpty(settings.FilePath))
+        {
+            _writer = LAnsiConsoleWriter.Create(console, settings.FilePath, settings.Prefix, settings.Suffix);
+            return _writer;
+        }
+
+        return console;
     }
 
     public static void Clear()
