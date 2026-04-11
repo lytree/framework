@@ -103,27 +103,38 @@ public class PackTask : FrostingTask<BuildContext>
         var gitVersionSettings = new GitVersionSettings
         {
             // 如果你的 Git 仓库不在当前 Cake 脚本的根目录，需要设置工作目录
-
+            WorkingDirectory = "./"
         };
 
         // 运行 GitVersion 并获取结果对象
-        var version = context.GitVersion(gitVersionSettings);
+
         var projectFiles = context.GetFiles(BuildParameters.ProjectPath + "**/*.csproj");
 
         context.Information($"Found {projectFiles.Count} project(s) matching '**/*.csproj':");
-        foreach (var projectPath in projectFiles)
+        try
         {
-
-            context.DotNetPack(projectPath.FullPath, new DotNetPackSettings
+            var version = context.GitVersion();
+            foreach (var projectPath in projectFiles)
             {
-                Configuration = BuildParameters.Configuration,
-                OutputDirectory = BuildParameters.PackageOutputDirectory,
-                NoBuild = true, // 已经在 Compile Task 中完成
-                NoRestore = true,
-                ArgumentCustomization = args => args
-                .Append($"-property:PackageVersion={(context.HasVersion ? context.Arguments.GetArgument(BuildParameters.Version) : version.SemVer)}")
-            });
+
+                context.DotNetPack(projectPath.FullPath, new DotNetPackSettings
+                {
+                    Configuration = BuildParameters.Configuration,
+                    OutputDirectory = BuildParameters.PackageOutputDirectory,
+                    NoBuild = true, // 已经在 Compile Task 中完成
+                    NoRestore = true,
+                    ArgumentCustomization = args => args
+                    .Append($"-property:PackageVersion={(context.HasVersion ? context.Arguments.GetArgument(BuildParameters.Version) : version.SemVer)}")
+                });
+            }
         }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+
+
+
     }
 }
 
