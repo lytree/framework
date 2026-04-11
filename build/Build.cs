@@ -109,7 +109,6 @@ public class PackTask : FrostingTask<BuildContext>
 
         // 运行 GitVersion 并获取结果对象
         var version = context.GitVersion(gitVersionSettings);
-        context.Log.Information(JsonConvert.SerializeObject(version));
         var projectFiles = context.GetFiles(BuildParameters.ProjectPath + "**/*.csproj");
 
         context.Information($"Found {projectFiles.Count} project(s) matching '**/*.csproj':");
@@ -123,7 +122,7 @@ public class PackTask : FrostingTask<BuildContext>
                 NoBuild = true, // 已经在 Compile Task 中完成
                 NoRestore = true,
                 ArgumentCustomization = args => args
-                .Append($"-property:PackageVersion={(context.HasVersion ? context.Arguments.GetArgument(BuildParameters.Version) : version.FullSemVer)}")
+                .Append($"-property:PackageVersion={(context.HasVersion ? context.Arguments.GetArgument(BuildParameters.Version) : version.SemVer)}")
             });
         }
     }
