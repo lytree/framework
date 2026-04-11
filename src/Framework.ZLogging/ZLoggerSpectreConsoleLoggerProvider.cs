@@ -70,19 +70,21 @@ internal class SpectreConsoleLogProcessor : IAsyncLogProcessor
 
     private string BuildOutput(string message)
     {
-        if (!_options.EnableAnsi)
-        {
-            return message;
-        }
-
-        var timestamp = _options.UseTime ? DateTime.Now.ToString(_options.TimeFormat) + " " : "";
+        var timestamp = _options.UseTime ? DateTime.Now.ToString(_options.TimeFormat) : "";
         var logLevel = GetLogLevel(message);
         var levelColor = GetLogLevelAnsiColor(message);
-        var levelStr = $"{levelColor}[{logLevel}][/]";
-        var categoryColor = "magenta";
         var category = GetLogCategory(message);
-        var categoryStr = $"{categoryColor}[{category}][/]";
-        return $"{timestamp}{levelStr} {categoryStr} {message}";
+
+        if (!_options.EnableAnsi)
+        {
+            var prefix = string.Format(_options.PrefixFormat, timestamp, logLevel);
+            var suffix = string.Format(_options.SuffixFormat, category);
+            return $"{prefix} {message} {suffix}";
+        }
+
+        var levelStr = $"[{levelColor}]{logLevel}[/]";
+        var categoryStr = $"[magenta]{category}[/]";
+        return $"{timestamp}|{levelStr}| {message} {categoryStr}";
     }
 
     private static string GetLogLevel(string message)

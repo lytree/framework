@@ -13,4 +13,8 @@ public class ZLoggerSpectreConsoleOptions
     public string WarningColor { get; set; } = "yellow";
     public string ErrorColor { get; set; } = "red";
     public string CriticalColor { get; set; } = "red bold";
+
+    public string PrefixFormat { get; set; } = "{0}|{1}|";
+    public string SuffixFormat { get; set; } = " ({0})";
+    public string ExceptionFormat { get; set; } = "{0}";
 }
