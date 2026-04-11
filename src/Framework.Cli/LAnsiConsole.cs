@@ -1,20 +1,27 @@
 using Spectre.Console;
-using Spectre.Console.Rendering;
 
 namespace Framework.Cli;
 
 public static partial class LAnsiConsole
 {
     private static LAnsiConsoleWriter? _writer;
+    private static Lazy<IAnsiConsole> _console = new Lazy<IAnsiConsole>(
+        () => Spectre.Console.AnsiConsole.Console);
 
-    public static void Configure(string filePath, string? prefix = null, string? suffix = null)
+    public static IAnsiConsole Console
     {
-        _writer = LAnsiConsoleWriter.Create(Spectre.Console.AnsiConsole.Console, filePath, prefix, suffix);
+        get
+        {
+            return _writer ?? _console.Value;
+        }
+        set
+        {
+            _console = new Lazy<IAnsiConsole>(() => value);
+        }
     }
 
-    public static IAnsiConsole Console => _writer ?? Spectre.Console.AnsiConsole.Console;
+    public static IAnsiConsoleCursor Cursor => _console.Value.Cursor;
 
-    public static IAnsiConsoleCursor Cursor => Console.Cursor;
     public static Profile Profile => Console.Profile;
 
     public static IAnsiConsole Create(Spectre.Console.AnsiConsoleSettings settings)
@@ -25,5 +32,10 @@ public static partial class LAnsiConsole
     public static void Clear()
     {
         Console.Clear();
+    }
+
+    public static void Configure(string filePath, string? prefix = null, string? suffix = null)
+    {
+        _writer = LAnsiConsoleWriter.Create(Spectre.Console.AnsiConsole.Console, filePath, prefix, suffix);
     }
 }
