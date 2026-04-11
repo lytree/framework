@@ -1,12 +1,11 @@
 name: publish
 
 on:
-  push:
-    tags:
-      - '*.*.*'
-      - '*.*.*-*'
-      - '*.*.*-*.*'
-      - '*.*.*-*.*.*'
+ push:
+   branches:
+     - main
+     - beta
+     - alpha
 
 jobs:
     ubuntu-latest:
