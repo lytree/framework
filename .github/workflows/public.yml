@@ -1,10 +1,10 @@
 name: publish
 
 on:
-    push:
-        tags:
-            - "*.*.*"
-            - "*.*.*-*"
+  push:
+    tags:
+      - '*.*.*'
+      - '*.*.*-**'   # ** 可匹配任意长度字符（包括多个 .）
 
 jobs:
     ubuntu-latest:
