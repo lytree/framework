@@ -17,6 +17,33 @@ public static partial class ZLoggerSpectreExtensions
 
         return builder;
     }
+    public static ILoggingBuilder AddZLoggerSpectreConsole(
+    this ILoggingBuilder builder)
+    {
+        var options = new ZLoggerSpectreConsoleOptions
+        {
+            EnableAnsi = true,
+            UseTime = true,
+            TimeFormat = "yyyy-MM-ddd HH:mm:ss"
+        };
+        // 使用 UsePlainTextFormatter (类似 ZLogger)
+        options.UsePlainTextFormatter(formatter =>
+        {
+            formatter.SetPrefixFormatter("{0}|{1}|", (template, info) =>
+                $"{info.Timestamp:HH:mm:ss}|{info.LogLevel}|");
+
+            formatter.SetSuffixFormatter(" ({0})", (template, info) =>
+                $"{info.Category}");
+
+            formatter.SetExceptionFormatter((writer, ex) =>
+                writer.Write(ex.Message));
+            formatter.SetLogLevelColor(LogLevel.Warning, "yellow");
+            formatter.SetLogLevelColor(LogLevel.Error, "red");
+        });
+        builder.AddProvider(new ZLoggerSpectreConsoleLoggerProvider(options));
+
+        return builder;
+    }
 }
 
 public static partial class ZLoggerSpectreOutputExtensions

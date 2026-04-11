@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Extensions.Logging;
+using Spectre.Console;
 using ZLogger;
 
 namespace Framework.ZLogging;
@@ -45,7 +46,7 @@ public class ZLoggerSpectreConsoleOptions
             _options.SuffixFormat = format;
         }
 
-        public void SetExceptionFormatter(Action<object, Exception> formatter)
+        public void SetExceptionFormatter(Action<IAnsiConsole, Exception> formatter)
         {
             _options.ExceptionFormat = "{0}";
         }
