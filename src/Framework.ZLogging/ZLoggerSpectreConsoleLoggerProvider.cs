@@ -22,7 +22,7 @@ public class ZLoggerSpectreConsoleLoggerProvider : ILoggerProvider, IAsyncDispos
 
     public ILogger CreateLogger(string categoryName)
     {
-        return _loggers.GetOrAdd(categoryName, 
+        return _loggers.GetOrAdd(categoryName,
             new ZLoggerSpectreConsoleLogger(categoryName, _options, _processor));
     }
 
@@ -65,30 +65,33 @@ internal class SpectreConsoleLogProcessor : IAsyncLogProcessor
 
         var logInfo = log.LogInfo;
         var timestamp = _options.UseTime ? logInfo.Timestamp.ToString() : "";
-        var logLevel = logInfo.LogLevel.ToString();
-        var category = logInfo.Category.ToString();
-        var output = BuildOutput(timestamp, logLevel, category, message);
+        var logLevelStr = logInfo.LogLevel.ToString();
+        var categoryStr = logInfo.Category.ToString();
+        var exception = logInfo.Exception;
+        var output = BuildOutput(timestamp, logLevelStr, categoryStr, message, exception);
         Write(output);
         log.Return();
     }
 
-    private string BuildOutput(string timestamp, string logLevel, string category, string message)
+    private string BuildOutput(string timestamp, string logLevel, string category, string message, Exception? exception)
     {
-        var levelColor = GetLogLevelAnsiColor(logLevel);
+        var levelColor = GetLogLevelAnsiColorString(logLevel);
+        var prefix = string.Format(_options.PrefixFormat, timestamp, logLevel);
+        var suffix = string.Format(_options.SuffixFormat, category);
 
         if (!_options.EnableAnsi)
         {
-            var prefix = string.Format(_options.PrefixFormat, timestamp, logLevel);
-            var suffix = string.Format(_options.SuffixFormat, category);
-            return $"{prefix} {message} {suffix}";
+            var exceptionText = exception != null ? string.Format(_options.ExceptionFormat, exception.Message) : "";
+            return $"{prefix} {message} {suffix} {exceptionText}".Trim();
         }
 
         var levelStr = $"[{levelColor}]{logLevel}[/]";
         var categoryStr = $"[magenta]{category}[/]";
-        return $"{timestamp}|{levelStr}| {message} {categoryStr}";
+        var exceptionStr = exception != null ? $" [red]{exception.Message}[/]" : "";
+        return $"{prefix} {message} {suffix}{exceptionStr}";
     }
 
-    private string GetLogLevelAnsiColor(string logLevel)
+    private string GetLogLevelAnsiColorString(string logLevel)
     {
         return logLevel switch
         {
