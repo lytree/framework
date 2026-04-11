@@ -20,6 +20,8 @@
 		<PackageReference Include="System.IO.Pipelines" />
 		<PackageReference Include="SixLabors.ImageSharp" />
 		<PackageReference Include="SixLabors.ImageSharp.Drawing" />
+		<PackageReference Include="Spectre.Console" />
+		<PackageReference Include="ZLogger" />
 	</ItemGroup>
 
 	<ItemGroup>

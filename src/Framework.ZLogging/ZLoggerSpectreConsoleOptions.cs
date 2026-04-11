@@ -1,9 +1,8 @@
 using System;
-using ZLogger;
 
 namespace Framework.ZLogging;
 
-public class ZLoggerSpectreConsoleOptions : SpectreConsoleLogProcessorOptions
+public class ZLoggerSpectreConsoleOptions
 {
     public bool EnableAnsi { get; set; } = true;
     public bool UseTime { get; set; } = true;
