@@ -24,10 +24,6 @@ public static partial class LAnsiConsole
 
     public static Profile Profile => Console.Profile;
 
-    public static IAnsiConsole Create(AnsiConsoleSettings settings)
-    {
-        return Spectre.Console.AnsiConsole.Create(settings);
-    }
 
     public static IAnsiConsole Create(LAnsiConsoleSettings settings)
     {
@@ -51,8 +47,4 @@ public static partial class LAnsiConsole
         Console.Clear();
     }
 
-    public static void Configure(string filePath, string? prefix = null, string? suffix = null)
-    {
-        _writer = LAnsiConsoleWriter.Create(Spectre.Console.AnsiConsole.Console, filePath, prefix, suffix);
-    }
 }

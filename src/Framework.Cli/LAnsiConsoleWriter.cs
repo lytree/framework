@@ -11,6 +11,11 @@ public sealed class LAnsiConsoleWriter : IAnsiConsole
     private readonly string _suffix;
     private readonly object _lock = new();
 
+    private static LAnsiConsoleWriter? _instance;
+    private static string? _instanceFilePath;
+    private static string? _instancePrefix;
+    private static string? _instanceSuffix;
+
     private LAnsiConsoleWriter(IAnsiConsole console, string filePath, string? prefix, string? suffix)
     {
         _console = console;
@@ -21,13 +26,27 @@ public sealed class LAnsiConsoleWriter : IAnsiConsole
 
     public static LAnsiConsoleWriter Create(string filePath, string? prefix = null, string? suffix = null)
     {
-        return new LAnsiConsoleWriter(Spectre.Console.AnsiConsole.Console, filePath, prefix, suffix);
+        if (_instance != null && 
+            _instanceFilePath == filePath && 
+            _instancePrefix == prefix && 
+            _instanceSuffix == suffix)
+        {
+            return _instance;
+        }
+
+        _instance = new LAnsiConsoleWriter(Spectre.Console.AnsiConsole.Console, filePath, prefix, suffix);
+        _instanceFilePath = filePath;
+        _instancePrefix = prefix;
+        _instanceSuffix = suffix;
+        return _instance;
     }
 
     public static LAnsiConsoleWriter Create(IAnsiConsole console, string filePath, string? prefix = null, string? suffix = null)
     {
         return new LAnsiConsoleWriter(console, filePath, prefix, suffix);
     }
+
+    public static LAnsiConsoleWriter? GetInstance() => _instance;
 
     private void WriteToFile(string message)
     {
