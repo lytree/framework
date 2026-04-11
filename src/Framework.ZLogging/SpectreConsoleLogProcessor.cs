@@ -1,8 +1,10 @@
+using Framework;
 using Spectre.Console;
 using ZLogger;
 
 namespace Framework.ZLogging;
 
+[Obsolete("Use ZLoggerSpectreConsoleLoggerProvider instead")]
 public class SpectreConsoleLogProcessorOptions
 {
     public bool EnableAnsi { get; set; } = true;
@@ -19,6 +21,7 @@ public class SpectreConsoleLogProcessorOptions
 }
 
 
+[Obsolete("Use ZLoggerSpectreConsoleLoggerProvider instead")]
 public class SpectreConsoleProcessor : IAsyncLogProcessor
 {
     private readonly SpectreConsoleLogProcessorOptions _options;
@@ -55,44 +58,22 @@ public class SpectreConsoleProcessor : IAsyncLogProcessor
         }
 
         var timestamp = DateTime.Now.ToString(_options.TimeFormat);
-        var logLevel = GetLogLevel(message);
+        var logLevel = Helper.GetLogLevel(message);
         var levelColor = GetLogLevelAnsiColor(message);
         var levelStr = $"{levelColor}[{logLevel}][/]";
-        var categoryColor = "\u001b[35m";
-        var category = GetLogCategory(message);
+        var categoryColor = "magenta";
+        var category = Helper.GetLogCategory(message);
         var categoryStr = $"{categoryColor}[{category}][/]";
         return $"{timestamp} {levelStr} {categoryStr} {message}";
     }
 
-    private string GetLogLevel(string message)
-    {
-        if (message.Contains("Trace")) return "TRACE";
-        if (message.Contains("Debug")) return "DEBUG";
-        if (message.Contains("Information") || message.Contains("Info")) return "INFO";
-        if (message.Contains("Warning") || message.Contains("Warn")) return "WARN";
-        if (message.Contains("Error") || message.Contains("Fail")) return "ERROR";
-        if (message.Contains("Critical") || message.Contains("Fatal")) return "CRITICAL";
-        return "INFO";
-    }
-
-    private string GetLogCategory(string message)
-    {
-        var start = message.IndexOf('[');
-        var end = message.IndexOf(']');
-        if (start >= 0 && end > start)
-        {
-            return message.Substring(start + 1, end - start - 1);
-        }
-        return "";
-    }
-
     private string GetLogLevelAnsiColor(string message)
     {
-        if (message.Contains("Trace")) return "\u001b[38;2;200;200;200m";
+        if (message.Contains("Trace")) return "grey";
         if (message.Contains("Debug")) return "";
-        if (message.Contains("Warning") || message.Contains("Warn")) return "\u001b[33m";
-        if (message.Contains("Error") || message.Contains("Fail") || message.Contains("Critical") || message.Contains("Fatal")) return "\u001b[31m";
-        return "\u001b[36m";
+        if (message.Contains("Warning") || message.Contains("Warn")) return "yellow";
+        if (message.Contains("Error") || message.Contains("Fail") || message.Contains("Critical") || message.Contains("Fatal")) return "red";
+        return "cyan";
     }
 
     private void Write(string message)

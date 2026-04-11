@@ -1,38 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
+using Utf8StringInterpolation;
 using ZLogger;
+using ZLogger.Formatters;
 
 namespace Framework.ZLogging;
 
 public static partial class ZLoggerSpectreExtensions
 {
-    public static ILoggingBuilder AddSpectreConsole(
+    public static ILoggingBuilder AddZLoggerSpectreConsole(
         this ILoggingBuilder builder,
-        Action<SpectreConsoleLogProcessorOptions>? configure = null)
+        Action<ZLoggerSpectreConsoleOptions>? configure = null)
     {
-        var options = new SpectreConsoleLogProcessorOptions();
+        var options = new ZLoggerSpectreConsoleOptions();
         configure?.Invoke(options);
 
-        var processor = new SpectreConsoleProcessor(options);
-        builder.AddZLoggerLogProcessor(processor);
-
-        return builder;
-    }
-
-    public static ILoggingBuilder AddSpectreFile(
-        this ILoggingBuilder builder,
-        string filePath,
-        Action<SpectreRollingFileLogProcessorOptions>? configure = null)
-    {
-        var options = new SpectreRollingFileLogProcessorOptions { FilePath = filePath };
-        configure?.Invoke(options);
-
-        var processor = new SpectreRollingFileLogProcessor(options);
-        builder.AddZLoggerLogProcessor(processor);
+        builder.AddProvider(new ZLoggerSpectreConsoleLoggerProvider(options));
 
         return builder;
     }
@@ -115,7 +103,7 @@ public static partial class ZLoggerSpectreOutputExtensions
 
     public static void WriteJson(this ILogger logger, object obj)
     {
-        var json = System.Text.Json.JsonSerializer.Serialize(obj, new System.Text.Json.JsonSerializerOptions
+        var json = JsonSerializer.Serialize(obj, new JsonSerializerOptions
         {
             WriteIndented = true
         });
@@ -124,7 +112,7 @@ public static partial class ZLoggerSpectreOutputExtensions
 
     public static void WriteJsonMarkup(this ILogger logger, object obj)
     {
-        var json = System.Text.Json.JsonSerializer.Serialize(obj, new System.Text.Json.JsonSerializerOptions
+        var json = JsonSerializer.Serialize(obj, new JsonSerializerOptions
         {
             WriteIndented = true
         });

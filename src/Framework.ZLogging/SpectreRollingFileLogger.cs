@@ -1,10 +1,9 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Spectre.Console;
+using Framework;
 using ZLogger;
 
 namespace Framework.ZLogging;
@@ -15,6 +14,8 @@ public class SpectreRollingFileLogProcessorOptions
     public int MaxFileSizeBytes { get; set; } = 10 * 1024 * 1024;
     public int MaxFileCount { get; set; } = 3;
     public string TimeFormat { get; set; } = "yyyy-MM-dd HH:mm:ss";
+    public bool UseTime { get; set; } = true;
+    public bool EnableAnsi { get; set; } = false;
 }
 
 public class SpectreRollingFileLogProcessor : IAsyncLogProcessor, IAsyncDisposable
@@ -27,9 +28,11 @@ public class SpectreRollingFileLogProcessor : IAsyncLogProcessor, IAsyncDisposab
     private StreamWriter _writer;
     private long _currentFileSize;
     private int _fileIndex;
+    private readonly SpectreRollingFileLogProcessorOptions _options;
 
     public SpectreRollingFileLogProcessor(SpectreRollingFileLogProcessorOptions options)
     {
+        _options = options;
         _filePath = options.FilePath;
         _maxFileSize = options.MaxFileSizeBytes;
         _maxFileCount = options.MaxFileCount;
@@ -92,12 +95,13 @@ public class SpectreRollingFileLogProcessor : IAsyncLogProcessor, IAsyncDisposab
             {
                 var writer = GetCurrentWriter();
                 var message = entry.ToString();
-                var plainText = RemoveMarkup(message);
+                var plainText = Helper.RemoveMarkup(message);
+                var output = BuildOutput(plainText);
 
-                await writer.WriteLineAsync(plainText);
+                await writer.WriteLineAsync(output);
                 await writer.FlushAsync();
 
-                _currentFileSize += Encoding.UTF8.GetByteCount(plainText) + Environment.NewLine.Length;
+                _currentFileSize += Encoding.UTF8.GetByteCount(output) + Environment.NewLine.Length;
             }
             finally
             {
@@ -106,12 +110,13 @@ public class SpectreRollingFileLogProcessor : IAsyncLogProcessor, IAsyncDisposab
         }
     }
 
-    private static string RemoveMarkup(string value)
+    private string BuildOutput(string message)
     {
-        if (string.IsNullOrEmpty(value))
-            return value;
-
-        return Markup.Remove(value);
+        var timestamp = _options.UseTime ? DateTime.Now.ToString(_options.TimeFormat) + " " : "";
+        var logLevel = Helper.GetLogLevel(message);
+        var category = Helper.GetLogCategory(message);
+        var categoryStr = !string.IsNullOrEmpty(category) ? $"[{category}] " : "";
+        return $"{timestamp}{logLevel} {categoryStr}{message}";
     }
 
     public void Post(IZLoggerEntry log)
