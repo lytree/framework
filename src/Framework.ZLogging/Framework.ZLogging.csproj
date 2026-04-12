@@ -20,7 +20,10 @@
 		<PackageReference Include="Spectre.Console.Ansi" />
 		<PackageReference Include="Microsoft.Extensions.Logging" />
 	</ItemGroup>
-
+	<ItemGroup>
+		<Compile Include="..\Framework\System.Buffers\IWrittenBufferWriter.cs" />
+		<Compile Include="..\Framework\System.Buffers\ArrayPoolBufferWriter.cs" />
+	</ItemGroup>
 	<ItemGroup>
 		<Resource Include="README.md">
 			<PackagePath>\</PackagePath>

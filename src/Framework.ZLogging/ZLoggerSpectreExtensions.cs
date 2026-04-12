@@ -1,55 +1,49 @@
+using System;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Spectre.Console;
+using ZLogger;
+using ZLogger.Formatters;
 
 namespace Framework.ZLogging;
 
-public static partial class ZLoggerSpectreExtensions
+public static class ZLoggerSpectreExtensions
 {
-    public static ILoggingBuilder AddZLoggerSpectreConsole(
-        this ILoggingBuilder builder,
-        Action<ZLoggerSpectreConsoleOptions>? configure = null)
+    public static ILoggingBuilder AddZLoggerSpectreConsole(this ILoggingBuilder builder)
+    {
+        return builder.AddZLoggerSpectreConsole(options =>
+        {
+            options.UsePlainTextFormatter(formatter =>
+            {
+                DataTimeUtcLogLevelCategoryFormater(options, formatter);
+            });
+
+        });
+        void DataTimeUtcLogLevelCategoryFormater(ZLoggerSpectreConsoleOptions options, PlainTextZLoggerFormatter formatter)
+        {
+            formatter.SetPrefixFormatter($"{0:utc-datetime}|{1}{2:short}{3}|{4}|",
+                (in template, in i) =>
+                {
+                    template.Format(
+                                i.Timestamp,
+                                $"[{options.LogLevelColors.GetValueOrDefault(i.LogLevel, "white")}]", i.LogLevel, "[/]",
+                                i.Category);
+                });
+        }
+
+    }
+    public static ILoggingBuilder AddZLoggerSpectreConsole(this ILoggingBuilder builder, Action<ZLoggerSpectreConsoleOptions> configure)
     {
         var options = new ZLoggerSpectreConsoleOptions();
-        configure?.Invoke(options);
+        configure(options);
 
         builder.AddProvider(new ZLoggerSpectreConsoleLoggerProvider(options));
 
-        return builder;
-    }
-    public static ILoggingBuilder AddZLoggerSpectreConsole(
-    this ILoggingBuilder builder)
-    {
-        var options = new ZLoggerSpectreConsoleOptions
-        {
-            EnableAnsi = true,
-            UseTime = true,
-            TimeFormat = "yyyy-MM-dd HH:mm:ss"
-        };
-
-        options.UsePlainTextFormatter(formatter =>
-        {
-            formatter.SetPrefixFormatter("{0}|{1}|", (template, info) =>
-                $"{info.Timestamp:HH:mm:ss}|{info.LogLevel}|");
-
-            formatter.SetSuffixFormatter(" ({0})", (template, info) =>
-                $"{info.Category}");
-
-            formatter.SetExceptionFormatter((console, ex) =>
-                console.MarkupLine($"[red]{ex.Message}[/]"));
-
-            formatter.SetLogLevelColor(LogLevel.Trace, "grey");
-            formatter.SetLogLevelColor(LogLevel.Debug, "grey");
-            formatter.SetLogLevelColor(LogLevel.Information, "green");
-            formatter.SetLogLevelColor(LogLevel.Warning, "yellow");
-            formatter.SetLogLevelColor(LogLevel.Error, "red");
-            formatter.SetLogLevelColor(LogLevel.Critical, "red bold");
-        });
-
-        builder.AddProvider(new ZLoggerSpectreConsoleLoggerProvider(options));
         return builder;
     }
 }
+
 
 public static partial class ZLoggerSpectreOutputExtensions
 {
