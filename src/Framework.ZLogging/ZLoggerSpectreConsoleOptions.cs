@@ -41,9 +41,6 @@ public class ZLoggerSpectreConsoleOptions
     public class PlainTextFormatterConfig
     {
         private readonly ZLoggerSpectreConsoleOptions _options;
-        private Func<MessageTemplate, LogInfo, string>? _prefixFormatter;
-        private Func<MessageTemplate, LogInfo, string>? _suffixFormatter;
-        private Action<IAnsiConsole, Exception>? _exceptionFormatter;
 
         internal PlainTextFormatterConfig(ZLoggerSpectreConsoleOptions options)
         {
@@ -53,20 +50,17 @@ public class ZLoggerSpectreConsoleOptions
         public void SetPrefixFormatter(string format, Func<MessageTemplate, LogInfo, string> formatter)
         {
             _options.PrefixFormat = format;
-            _prefixFormatter = formatter;
             _options.PrefixFormatter = formatter;
         }
 
         public void SetSuffixFormatter(string format, Func<MessageTemplate, LogInfo, string> formatter)
         {
             _options.SuffixFormat = format;
-            _suffixFormatter = formatter;
             _options.SuffixFormatter = formatter;
         }
 
         public void SetExceptionFormatter(Action<IAnsiConsole, Exception> formatter)
         {
-            _exceptionFormatter = formatter;
             _options.ExceptionFormatter = formatter;
         }
 
