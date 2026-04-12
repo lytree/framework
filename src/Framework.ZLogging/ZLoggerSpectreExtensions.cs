@@ -23,7 +23,7 @@ public static class ZLoggerSpectreExtensions
         void DataTimeUtcLogLevelCategoryFormater(ZLoggerSpectreConsoleOptions options, PlainTextZLoggerFormatter formatter)
         {
             formatter.SetPrefixFormatter($"{0:utc-datetime}|{1}{2:short}{3}|{4}|",
-                (in template, in i) =>
+                (in MessageTemplate template, in LogInfo i) =>
                 {
                     template.Format(
                                 i.Timestamp,
