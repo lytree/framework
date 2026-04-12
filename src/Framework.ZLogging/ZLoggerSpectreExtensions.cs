@@ -24,9 +24,9 @@ public static partial class ZLoggerSpectreExtensions
         {
             EnableAnsi = true,
             UseTime = true,
-            TimeFormat = "yyyy-MM-ddd HH:mm:ss"
+            TimeFormat = "yyyy-MM-dd HH:mm:ss"
         };
-        // 使用 UsePlainTextFormatter (类似 ZLogger)
+
         options.UsePlainTextFormatter(formatter =>
         {
             formatter.SetPrefixFormatter("{0}|{1}|", (template, info) =>
@@ -35,13 +35,18 @@ public static partial class ZLoggerSpectreExtensions
             formatter.SetSuffixFormatter(" ({0})", (template, info) =>
                 $"{info.Category}");
 
-            formatter.SetExceptionFormatter((writer, ex) =>
-                writer.Write(ex.Message));
+            formatter.SetExceptionFormatter((console, ex) =>
+                console.MarkupLine($"[red]{ex.Message}[/]"));
+
+            formatter.SetLogLevelColor(LogLevel.Trace, "grey");
+            formatter.SetLogLevelColor(LogLevel.Debug, "grey");
+            formatter.SetLogLevelColor(LogLevel.Information, "green");
             formatter.SetLogLevelColor(LogLevel.Warning, "yellow");
             formatter.SetLogLevelColor(LogLevel.Error, "red");
+            formatter.SetLogLevelColor(LogLevel.Critical, "red bold");
         });
-        builder.AddProvider(new ZLoggerSpectreConsoleLoggerProvider(options));
 
+        builder.AddProvider(new ZLoggerSpectreConsoleLoggerProvider(options));
         return builder;
     }
 }
