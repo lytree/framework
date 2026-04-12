@@ -107,13 +107,13 @@ public class PackTask : FrostingTask<BuildContext>
         };
 
         // 运行 GitVersion 并获取结果对象
-
+        var version = context.GitVersion();
         var projectFiles = context.GetFiles(BuildParameters.ProjectPath + "**/*.csproj");
 
-        context.Information($"Found {projectFiles.Count} project(s) matching '**/*.csproj':");
+        context.Information($"Found {projectFiles.Count} project(s) matching '**/*.csproj':Version {JsonConvert.SerializeObject(version)}");
         try
         {
-            var version = context.GitVersion();
+
             foreach (var projectPath in projectFiles)
             {
 

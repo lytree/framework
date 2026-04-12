@@ -1,42 +1,49 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Spectre.Console;
 using ZLogger;
+using ZLogger.Formatters;
 
 namespace Framework.ZLogging;
 
-public static partial class ZLoggerSpectreExtensions
+public static class ZLoggerSpectreExtensions
 {
-    public static ILoggingBuilder AddSpectreConsole(
-        this ILoggingBuilder builder,
-        Action<SpectreConsoleLogProcessorOptions>? configure = null)
+    public static ILoggingBuilder AddZLoggerSpectreConsole(this ILoggingBuilder builder)
     {
-        var options = new SpectreConsoleLogProcessorOptions();
-        configure?.Invoke(options);
+        return builder.AddZLoggerSpectreConsole(options =>
+        {
+            options.UsePlainTextFormatter(formatter =>
+            {
+                DataTimeUtcLogLevelCategoryFormater(options, formatter);
+            });
 
-        var processor = new SpectreConsoleProcessor(options);
-        builder.AddZLoggerLogProcessor(processor);
+        });
+        void DataTimeUtcLogLevelCategoryFormater(ZLoggerSpectreConsoleOptions options, PlainTextZLoggerFormatter formatter)
+        {
+            formatter.SetPrefixFormatter($"{0:utc-datetime}|{1}{2:short}{3}|{4}|",
+                (in MessageTemplate template, in LogInfo i) =>
+                {
+                    template.Format(
+                                i.Timestamp,
+                                $"[{options.LogLevelColors.GetValueOrDefault(i.LogLevel, "white")}]", i.LogLevel, "[/]",
+                                i.Category);
+                });
+        }
 
-        return builder;
     }
-
-    public static ILoggingBuilder AddSpectreFile(
-        this ILoggingBuilder builder,
-        string filePath,
-        Action<SpectreRollingFileLogProcessorOptions>? configure = null)
+    public static ILoggingBuilder AddZLoggerSpectreConsole(this ILoggingBuilder builder, Action<ZLoggerSpectreConsoleOptions> configure)
     {
-        var options = new SpectreRollingFileLogProcessorOptions { FilePath = filePath };
-        configure?.Invoke(options);
+        var options = new ZLoggerSpectreConsoleOptions();
+        configure(options);
 
-        var processor = new SpectreRollingFileLogProcessor(options);
-        builder.AddZLoggerLogProcessor(processor);
+        builder.AddProvider(new ZLoggerSpectreConsoleLoggerProvider(options));
 
         return builder;
     }
 }
+
 
 public static partial class ZLoggerSpectreOutputExtensions
 {
@@ -115,7 +122,7 @@ public static partial class ZLoggerSpectreOutputExtensions
 
     public static void WriteJson(this ILogger logger, object obj)
     {
-        var json = System.Text.Json.JsonSerializer.Serialize(obj, new System.Text.Json.JsonSerializerOptions
+        var json = JsonSerializer.Serialize(obj, new JsonSerializerOptions
         {
             WriteIndented = true
         });
@@ -124,7 +131,7 @@ public static partial class ZLoggerSpectreOutputExtensions
 
     public static void WriteJsonMarkup(this ILogger logger, object obj)
     {
-        var json = System.Text.Json.JsonSerializer.Serialize(obj, new System.Text.Json.JsonSerializerOptions
+        var json = JsonSerializer.Serialize(obj, new JsonSerializerOptions
         {
             WriteIndented = true
         });
