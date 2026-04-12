@@ -21,6 +21,17 @@ public class ZLoggerSpectreConsoleOptions
     public string SuffixFormat { get; set; } = " ({0})";
     public string ExceptionFormat { get; set; } = "{0}";
 
+    public Func<MessageTemplate, LogInfo, string>? PrefixFormatter { get; set; }
+    public Func<MessageTemplate, LogInfo, string>? SuffixFormatter { get; set; }
+    public Action<IAnsiConsole, Exception>? ExceptionFormatter { get; set; }
+
+    public string TimeOnlyColor06 { get; set; } = "green";
+    public string TimeOnlyColor12 { get; set; } = "blue";
+    public string TimeOnlyColor18 { get; set; } = "purple";
+    public string TimeOnlyColor00 { get; set; } = "grey";
+
+    public string CategoryColor { get; set; } = "cyan";
+
     public void UsePlainTextFormatter(Action<PlainTextFormatterConfig> configure)
     {
         var config = new PlainTextFormatterConfig(this);
@@ -30,6 +41,9 @@ public class ZLoggerSpectreConsoleOptions
     public class PlainTextFormatterConfig
     {
         private readonly ZLoggerSpectreConsoleOptions _options;
+        private Func<MessageTemplate, LogInfo, string>? _prefixFormatter;
+        private Func<MessageTemplate, LogInfo, string>? _suffixFormatter;
+        private Action<IAnsiConsole, Exception>? _exceptionFormatter;
 
         internal PlainTextFormatterConfig(ZLoggerSpectreConsoleOptions options)
         {
@@ -39,16 +53,21 @@ public class ZLoggerSpectreConsoleOptions
         public void SetPrefixFormatter(string format, Func<MessageTemplate, LogInfo, string> formatter)
         {
             _options.PrefixFormat = format;
+            _prefixFormatter = formatter;
+            _options.PrefixFormatter = formatter;
         }
 
         public void SetSuffixFormatter(string format, Func<MessageTemplate, LogInfo, string> formatter)
         {
             _options.SuffixFormat = format;
+            _suffixFormatter = formatter;
+            _options.SuffixFormatter = formatter;
         }
 
         public void SetExceptionFormatter(Action<IAnsiConsole, Exception> formatter)
         {
-            _options.ExceptionFormat = "{0}";
+            _exceptionFormatter = formatter;
+            _options.ExceptionFormatter = formatter;
         }
 
         public void SetTimeFormatter(string format)
