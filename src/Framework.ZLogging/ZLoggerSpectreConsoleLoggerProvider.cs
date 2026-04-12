@@ -16,7 +16,7 @@ public class ZLoggerSpectreConsoleLoggerProvider : ILoggerProvider, IAsyncDispos
 
     public ZLoggerSpectreConsoleLoggerProvider(ZLoggerSpectreConsoleOptions options)
     {
-        _options = options;
+        _options = options ?? throw new ArgumentNullException(nameof(options));
         _processor = new SpectreConsoleLogProcessor(options);
     }
 
@@ -28,7 +28,7 @@ public class ZLoggerSpectreConsoleLoggerProvider : ILoggerProvider, IAsyncDispos
 
     public void Dispose()
     {
-        _processor.DisposeAsync().AsTask().Wait();
+        _processor.DisposeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
     public async ValueTask DisposeAsync()
@@ -64,45 +64,60 @@ internal class SpectreConsoleLogProcessor : IAsyncLogProcessor
         }
 
         var logInfo = log.LogInfo;
-        var timestamp = _options.UseTime ? logInfo.Timestamp.ToString() : "";
+        var timestampStr = logInfo.Timestamp.ToString();
+        var timestamp = _options.UseTime ? timestampStr : "";
+        var hour = int.Parse(timestampStr.Substring(0, 2));
+        var timeColor = GetTimeColor(hour);
         var logLevelStr = logInfo.LogLevel.ToString();
         var categoryStr = logInfo.Category.ToString();
         var exception = logInfo.Exception;
-        var output = BuildOutput(timestamp, logLevelStr, categoryStr, message, exception);
+        var levelColor = GetLogLevelColor(logInfo.LogLevel);
+        var categoryColor = _options.CategoryColor;
+        var output = BuildOutput(timestamp, logLevelStr, categoryStr, message, exception, timeColor, levelColor, categoryColor);
         Write(output);
         log.Return();
     }
 
-    private string BuildOutput(string timestamp, string logLevel, string category, string message, Exception? exception)
+    private string GetTimeColor(int hour)
     {
-        var levelColor = GetLogLevelAnsiColorString(logLevel);
-        var prefix = string.Format(_options.PrefixFormat, timestamp, logLevel);
-        var suffix = string.Format(_options.SuffixFormat, category);
+        if (hour >= 6 && hour < 12) return _options.TimeOnlyColor06;
+        if (hour >= 12 && hour < 18) return _options.TimeOnlyColor12;
+        if (hour >= 18 && hour < 24) return _options.TimeOnlyColor18;
+        return _options.TimeOnlyColor00;
+    }
+
+    private string GetLogLevelColor(LogLevel level)
+    {
+        return level switch
+        {
+            LogLevel.Trace => _options.TraceColor,
+            LogLevel.Debug => _options.DebugColor,
+            LogLevel.Information => _options.InformationColor,
+            LogLevel.Warning => _options.WarningColor,
+            LogLevel.Error => _options.ErrorColor,
+            LogLevel.Critical => _options.CriticalColor,
+            _ => _options.InformationColor
+        };
+    }
+
+    private string BuildOutput(string timestamp, string logLevel, string category, string message, Exception? exception, string timeColor, string levelColor, string categoryColor)
+    {
+        var prefix = _options.EnableAnsi 
+            ? $"{timestamp}|[{timeColor}]{logLevel}[/]|"
+            : $"{timestamp}|{logLevel}|";
+        var suffix = _options.EnableAnsi 
+            ? $" ([{categoryColor}]{category}[/])"
+            : $" ({category})";
 
         if (!_options.EnableAnsi)
         {
             var exceptionText = exception != null ? string.Format(_options.ExceptionFormat, exception.Message) : "";
             return $"{prefix} {message} {suffix} {exceptionText}".Trim();
         }
-
-        var levelStr = $"[{levelColor}]{logLevel}[/]";
-        var categoryStr = $"[magenta]{category}[/]";
         var exceptionStr = exception != null ? $" [red]{exception.Message}[/]" : "";
         return $"{prefix} {message} {suffix}{exceptionStr}";
     }
 
-    private string GetLogLevelAnsiColorString(string logLevel)
-    {
-        return logLevel switch
-        {
-            "Trace" => _options.TraceColor,
-            "Debug" => _options.DebugColor,
-            "Warning" => _options.WarningColor,
-            "Error" => _options.ErrorColor,
-            "Critical" => _options.CriticalColor,
-            _ => _options.InformationColor
-        };
-    }
 
     private void Write(string message)
     {
