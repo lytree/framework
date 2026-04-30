@@ -1,14 +1,12 @@
-using System.Reflection;
-
 namespace Framework.Test;
 
 public class LibraryReferenceTests
 {
     [Fact]
-    public void Framework_Assembly_Is_Loadable()
+    public void Framework_Type_Is_Accessible()
     {
-        var assembly = Assembly.Load("Framework");
+        var ex = new Framework.UnsupportedException();
 
-        Assert.NotNull(assembly);
+        Assert.NotNull(ex);
     }
 }
