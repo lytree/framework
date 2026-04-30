@@ -4,7 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Framework.Logging.Test</RootNamespace>
+    <RootNamespace>Framework.AspNetCore.Test</RootNamespace>
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/Framework.Logging/Framework.Logging.csproj" />
+    <ProjectReference Include="../../src/Framework.AspNetCore/Framework.AspNetCore.csproj" />
   </ItemGroup>
 
 </Project>
