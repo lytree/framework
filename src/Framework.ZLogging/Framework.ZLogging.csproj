@@ -16,13 +16,14 @@
 
 	<ItemGroup>
 		<PackageReference Include="ZLogger" />
-		<PackageReference Include="ZLogger.MessagePack" />
-		<PackageReference Include="Microsoft.Extensions.Configuration" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+		<PackageReference Include="Spectre.Console" />
+		<PackageReference Include="Spectre.Console.Ansi" />
+		<PackageReference Include="Microsoft.Extensions.Logging" />
 	</ItemGroup>
-
+	<ItemGroup>
+		<Compile Include="..\Framework\System.Buffers\IWrittenBufferWriter.cs" />
+		<Compile Include="..\Framework\System.Buffers\ArrayPoolBufferWriter.cs" />
+	</ItemGroup>
 	<ItemGroup>
 		<Resource Include="README.md">
 			<PackagePath>\</PackagePath>

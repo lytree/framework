@@ -316,7 +316,7 @@ namespace Framework.Proxy
             {
                 bytes = stream.Read(response, 0, _tcpClient.ReceiveBufferSize);
                 total += bytes;
-                sbuilder.Append(System.Text.ASCIIEncoding.UTF8.GetString(response, 0, bytes));
+                sbuilder.Append(Encoding.UTF8.GetString(response, 0, bytes));
             } while (stream.DataAvailable);
 
             ParseResponse(sbuilder.ToString());

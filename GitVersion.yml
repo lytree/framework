@@ -1,0 +1,79 @@
+# GitVersion.yml
+tag-prefix: '[vV]'  # 兼容 v1.0.0 / V2.0 / 1.0.0
+
+# 📦 版本计算策略
+versioning-mode: ContinuousDelivery  # v6 标准字段（旧版 mode 已弃用）
+increment: Inherit
+fallback-tag: 'ci'                   # 未匹配分支的默认预发布标签
+
+# 🧩 程序集版本控制（适用于 .NET / C# 项目）
+assembly-versioning-scheme: MajorMinorPatch
+assembly-file-versioning-scheme: MajorMinorPatchTag
+assembly-informational-format: '{Major}.{Minor}.{Patch}.{CommitDate}.{ShortSha}'
+
+# 📝 提交信息驱动升版（可选）
+commit-message-incrementing: Enabled
+major-version-bump-message: '\+semver:\s?(breaking|major)'
+minor-version-bump-message: '\+semver:\s?(feature|minor)'
+patch-version-bump-message: '\+semver:\s?(fix|patch)'
+no-bump-message: '\+semver:\s?(none|skip)'
+
+# 📅 日期格式
+commit-date-format: 'yyyy-MM-dd'
+
+# 🚫 忽略规则（按需调整）
+ignore:
+  sha: []
+  commits-before: '2020-01-01T00:00:00'  # 忽略此日期前的历史提交
+
+merge-message-formats: {}
+
+# 🌿 分支策略定义（核心）
+branches:
+  main:
+    regex: ^master$|^main$
+    tag: ''                         # 正式版，PreReleaseTag 为空
+    increment: Patch
+    is-mainline: true
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: true
+    source-branches: ['develop', 'release']
+
+  develop:
+    regex: ^develop$
+    tag: 'alpha'                    # 开发分支固定为 alpha
+    increment: Minor
+    source-branches: ['main']
+    tracks-release-branches: true
+
+  release:
+    regex: ^release?[/-]
+    tag: 'rc'                       # 发布分支固定为 rc
+    increment: Patch
+    source-branches: ['develop', 'main']
+    is-release-branch: true
+    prevent-increment-of-merged-branch-version: true
+
+  feature:
+    regex: ^features?[/-]
+    tag: 'useBranchName'            # feature/auth → auth.1
+    increment: Inherit
+    source-branches: ['develop', 'main']
+
+  hotfix:
+    regex: ^hotfix?[/-]
+    tag: 'fix'
+    increment: Patch
+    source-branches: ['main']
+
+  pull-request:
+    regex: ^(pull|pull\-requests|pr)[/-]
+    tag: 'pr'
+    increment: Inherit
+
+  support:
+    regex: ^support?[/-]
+    tag: ''
+    increment: Patch
+    source-branches: ['main']
+    is-mainline: true

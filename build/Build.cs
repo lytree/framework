@@ -1,3 +1,7 @@
+#:package Cake.Frosting@*
+#:package Cake.GitVersioning@*
+
+
 using System.Threading.Tasks;
 using Cake.Common.Diagnostics;
 using Cake.Common.IO;
@@ -10,6 +14,7 @@ using Cake.Common.Tools.GitVersion;
 using Cake.Core;
 using Cake.Core.Diagnostics;
 using Cake.Frosting;
+using Newtonsoft.Json;
 
 public static class Program
 {
@@ -23,10 +28,10 @@ public static class Program
 // 定义构建中使用的常量
 public static class BuildParameters
 {
-    public const string SolutionPath = "../Framework.slnx"; // 确保路径正确
+    public const string SolutionPath = "./Framework.slnx"; // 确保路径正确
     public const string Configuration = "Release";
-    public const string PackageOutputDirectory = "../nugets";
-    public const string ProjectPath = "../src/";
+    public const string PackageOutputDirectory = "./nugets";
+    public const string ProjectPath = "./src/";
     public const string NuGetApiKey = "NUGET_API_KEY";
     public const string Version = "Version";
     public const string NugetSource = "https://api.nuget.org/v3/index.json";
@@ -41,7 +46,7 @@ public class BuildContext : FrostingContext
         : base(context)
     {
         HasVersion = context.Arguments.HasArgument("Version");
-        NuGetApiKey = context.Arguments.GetArgument(BuildParameters.NuGetApiKey);
+        NuGetApiKey = context.Environment.GetEnvironmentVariable(BuildParameters.NuGetApiKey);
         NugetSource = context.Arguments.HasArgument(nameof(BuildParameters.NugetSource)) ? context.Arguments.GetArgument(nameof(BuildParameters.NugetSource)) : BuildParameters.NugetSource;
 
     }
@@ -56,7 +61,6 @@ public sealed class CleanTask : FrostingTask<BuildContext>
         {
             Configuration = BuildParameters.Configuration
         });
-
         // 可选：清理 NuGet 包输出目录
         context.CleanDirectory(BuildParameters.PackageOutputDirectory);
     }
@@ -93,34 +97,44 @@ public class PackTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
     {
-        context.Log.Information("-------------Pack-----------------");
+
         // 1. 调用 GitVersion
         // GitVersionSettings 可以用来设置工作目录等参数
         var gitVersionSettings = new GitVersionSettings
         {
             // 如果你的 Git 仓库不在当前 Cake 脚本的根目录，需要设置工作目录
-            WorkingDirectory = "../"
+            WorkingDirectory = "./"
         };
 
         // 运行 GitVersion 并获取结果对象
-        var version = context.GitVersion(gitVersionSettings);
-
+        var version = context.GitVersion();
         var projectFiles = context.GetFiles(BuildParameters.ProjectPath + "**/*.csproj");
 
-        context.Information($"Found {projectFiles.Count} project(s) matching '**/*.csproj':");
-        foreach (var projectPath in projectFiles)
+        context.Information($"Found {projectFiles.Count} project(s) matching '**/*.csproj':Version {JsonConvert.SerializeObject(version)}");
+        try
         {
 
-            context.DotNetPack(projectPath.FullPath, new DotNetPackSettings
+            foreach (var projectPath in projectFiles)
             {
-                Configuration = BuildParameters.Configuration,
-                OutputDirectory = BuildParameters.PackageOutputDirectory,
-                NoBuild = true, // 已经在 Compile Task 中完成
-                NoRestore = true,
-                ArgumentCustomization = args => args
-                .Append($"-property:PackageVersion={(context.HasVersion ? context.Arguments.GetArgument(BuildParameters.Version) : version.FullSemVer)}")
-            });
+
+                context.DotNetPack(projectPath.FullPath, new DotNetPackSettings
+                {
+                    Configuration = BuildParameters.Configuration,
+                    OutputDirectory = BuildParameters.PackageOutputDirectory,
+                    NoBuild = true, // 已经在 Compile Task 中完成
+                    NoRestore = true,
+                    ArgumentCustomization = args => args
+                    .Append($"-property:PackageVersion={(context.HasVersion ? context.Arguments.GetArgument(BuildParameters.Version) : version.SemVer)}")
+                });
+            }
         }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+
+
+
     }
 }
 
