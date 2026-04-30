@@ -23,9 +23,9 @@
 		<PackageReference Include="BouncyCastle.Cryptography" />
 	</ItemGroup>
 
-	<ItemGroup>
+	<!-- <ItemGroup>
 		<ProjectReference Include="..\Framework\Framework.csproj" />
-	</ItemGroup>
+	</ItemGroup> -->
 
 	<ItemGroup>
 		<Resource Include="README.md">
