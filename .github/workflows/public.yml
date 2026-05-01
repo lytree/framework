@@ -1,12 +1,9 @@
 name: publish
 
 on:
- push:
+  push:
     tags:
-      - 'V*.*.*'
-      - 'V*.*.*-*'
-      - 'V*.*.*-*.*'
-      - 'V*.*.*-*.*.*'
+      - '[Vv]*'
 
 jobs:
     ubuntu-latest:
