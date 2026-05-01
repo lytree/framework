@@ -30,7 +30,4 @@
     <Project Path="src/Framework/Framework.csproj" />
     <Project Path="src/Framework.Repository/Framework.Repository.csproj" />
   </Folder>
-<Folder Name="/test/">
-    <Project Path="test/Framework.Tests/Framework.Tests.csproj" />
-  </Folder>
 </Solution>
