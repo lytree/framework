@@ -39,7 +39,7 @@ dotnet pack src/Framework/Framework.csproj
 | `Framework.Mvvm` | MVVM with CommunityToolkit.Mvvm |
 | `Framework.Repository` | FreeSql-based repository + Mapster |
 | `Framework.Charts` | Chart generation |
-| `Framework.MQTT` / `Framework.ZLogging` / `Framework.Logging` | Infrastructure |
+| `Framework.ZLogging` / `Framework.Logging` | Infrastructure |
 
 ## CI / Release
 - Push tag matching `V*.*.*` triggers `build/Build.cs -t Push` which packs and pushes to NuGet

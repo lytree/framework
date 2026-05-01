@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="TUnit" Version="1.41.0" />
+    <PackageVersion Include="TUnit.PublicAPI" Version="1.41.0" />
+  </ItemGroup>
+</Project>

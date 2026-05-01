@@ -62,6 +62,7 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 options.InternalErrorLogger?.Invoke(ex);
             }
         }

@@ -22,7 +22,7 @@ public static class ZLoggerSpectreExtensions
                   {
                       template.Format(
                                   i.Timestamp,
-                                   $"[{options.LogLevelColors.GetValueOrDefault(i.LogLevel, "white")}]", i.LogLevel, "[/]",
+                                   $"[{options.LogLevelColors.GetValueOrDefault(i.LogLevel, "white")}]{i.LogLevel}[/]",
                                   i.Category);
                   });
                formatter.SetExceptionFormatter((writer, ex) => Utf8StringInterpolation.Utf8String.Format(writer, $"{ex.Message}"));
@@ -57,7 +57,6 @@ public static class ZLoggerSpectreExtensions
         configure(options);
 
         builder.AddProvider(new ZLoggerSpectreConsoleLoggerProvider(options));
-
         return builder;
     }
 }
