@@ -5,6 +5,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
+		<OutputType>Library</OutputType>
+		<UseAppHost>false</UseAppHost>
 		<IsTestProject>true</IsTestProject>
 		<ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
 		<TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>

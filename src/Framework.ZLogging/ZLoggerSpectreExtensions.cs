@@ -17,12 +17,12 @@ public static class ZLoggerSpectreExtensions
        {
            options.UsePlainTextFormatter((formatter) =>
            {
-               formatter.SetPrefixFormatter($"{0:local-longdate}|{1:short}|{2}|",
+               formatter.SetPrefixFormatter($"{0:local-longdate}|{1}{2:short}{3}|{4}|",
                   (in MessageTemplate template, in LogInfo i) =>
                   {
                       template.Format(
                                   i.Timestamp,
-                                   $"[{options.LogLevelColors.GetValueOrDefault(i.LogLevel, "white")}]{i.LogLevel}[/]",
+                                   $"[{options.LogLevelColors.GetValueOrDefault(i.LogLevel, "white")}]", i.LogLevel, "[/]",
                                   i.Category);
                   });
                formatter.SetExceptionFormatter((writer, ex) => Utf8StringInterpolation.Utf8String.Format(writer, $"{ex.Message}"));
