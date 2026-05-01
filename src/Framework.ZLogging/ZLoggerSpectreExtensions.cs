@@ -17,7 +17,7 @@ public static class ZLoggerSpectreExtensions
        {
            options.UsePlainTextFormatter((formatter) =>
            {
-               formatter.SetPrefixFormatter($"{0:utc-datetime}|{1:short}|{2}|",
+               formatter.SetPrefixFormatter($"{0:local-longdate}|{1:short}|{2}|",
                   (in MessageTemplate template, in LogInfo i) =>
                   {
                       template.Format(
@@ -37,7 +37,7 @@ public static class ZLoggerSpectreExtensions
                 options.UsePlainTextFormatter((formatter) =>
                 {
 
-                    formatter.SetPrefixFormatter($"{0:utc-datetime}|{1:short}|{2}|",
+                    formatter.SetPrefixFormatter($"{0:local-longdate}|{1:short}|{2}|",
                        (in MessageTemplate template, in LogInfo i) =>
                        {
                            template.Format(

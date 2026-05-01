@@ -75,17 +75,11 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
             return;
         }
 
-        var logLevelColor = options.LogLevelColors.GetValueOrDefault(info.LogLevel, "white");
         var lines = GetExceptionLines(info.Exception!);
         foreach (var line in lines)
         {
-            console.Markup($"[{logLevelColor}]{EscapeMarkup(line)}[/]");
+            console.Markup($"{line}");
         }
-    }
-
-    static string EscapeMarkup(string text)
-    {
-        return text.Replace("[", "[[").Replace("]", "]]");
     }
 
     List<string> GetExceptionLines(Exception ex)
@@ -115,41 +109,6 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
     }
 }
 
-// public class BufferWriter : IBufferWriter<byte>
-// {
-//     private byte[] _buffer = new byte[256];
-//     private int _position; // Tracks next writable index & committed byte count
-
-//     public Memory<byte> GetMemory(int sizeHint = 0)
-//     {
-//         int needed = sizeHint <= 0 ? 1 : sizeHint;
-//         if (_position + needed > _buffer.Length)
-//         {
-//             int newSize = Math.Max(_buffer.Length * 2, _position + needed);
-//             Array.Resize(ref _buffer, newSize);
-//         }
-//         return _buffer.AsMemory(_position);
-//     }
-
-//     public Span<byte> GetSpan(int sizeHint = 0)
-//     {
-//         int needed = sizeHint <= 0 ? 1 : sizeHint;
-//         if (_position + needed > _buffer.Length)
-//         {
-//             int newSize = Math.Max(_buffer.Length * 2, _position + needed);
-//             Array.Resize(ref _buffer, newSize);
-//         }
-//         return _buffer.AsSpan(_position);
-//     }
-
-//     public void Advance(int count)
-//     {
-//         _position += count; // Commits exactly how many bytes were written
-//     }
-
-//     public ReadOnlySpan<byte> GetWrittenData() => _buffer.AsSpan(0, _position);
-//     public string GetFormattedText() => System.Text.Encoding.UTF8.GetString(GetWrittenData());
-// }
 public class ZLoggerSpectreConsoleLoggerProvider : ILoggerProvider, IAsyncDisposable
 {
     readonly ZLoggerSpectreConsoleOptions options;
