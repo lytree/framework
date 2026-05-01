@@ -26,7 +26,7 @@ public class ZLoggerSpectreConsoleOptions
     public Action<Exception>? InternalErrorLogger { get; set; }
     public Action<IAnsiConsole, Exception>? ExceptionFormatter { get; set; }
 
-
+    
     public void SetExceptionFormatter(Action<IAnsiConsole, Exception> formatter)
     {
         ExceptionFormatter = formatter;
