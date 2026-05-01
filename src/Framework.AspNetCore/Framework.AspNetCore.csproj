@@ -22,10 +22,14 @@
 	<ItemGroup>
 		<PackageReference Include="BouncyCastle.Cryptography" />
 	</ItemGroup>
-
 	<ItemGroup>
-		<ProjectReference Include="..\Framework\Framework.csproj" />
+		<Compile Include="..\Framework\Helpers\Helper.Json.cs" />
+		<Compile Include="..\Framework\System.Text.Json.Serialization\DateTimeJsonConverter.cs" />
+		<Compile Include="..\Framework\System.Text.Json.Serialization\DateTimeOffsetJsonConverter.cs" />
 	</ItemGroup>
+	<!-- <ItemGroup>
+		<ProjectReference Include="..\Framework\Framework.csproj" />
+	</ItemGroup> -->
 
 	<ItemGroup>
 		<Resource Include="README.md">

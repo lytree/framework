@@ -20,13 +20,14 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Framework.AspNetCore\Framework.AspNetCore.csproj" />
 		<ProjectReference Include="..\Framework\Framework.csproj" />
+
 	</ItemGroup>
 	<ItemGroup>
-	  <Resource Include="README.md">
-	    <PackagePath>\</PackagePath>
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	    <Pack>True</Pack>
-	  </Resource>
+		<Resource Include="README.md">
+			<PackagePath>\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Pack>True</Pack>
+		</Resource>
 	</ItemGroup>
 
 </Project>
