@@ -11,25 +11,21 @@ namespace Framework.ZLogging;
 
 public static class ZLoggerSpectreExtensions
 {
-    public static ILoggingBuilder AddZLoggerSpectreConsole(this ILoggingBuilder builder, string? filePath)
+    public static ILoggingBuilder AddZLoggerSpectreConsoleAndFile(this ILoggingBuilder builder, string? filePath)
     {
         builder.AddZLoggerSpectreConsole(options =>
        {
-           options.TimeProvider = BeijingTimeProvider.Instance;
-           options.UsePlainTextFormatter(formatter =>
+           options.UsePlainTextFormatter((formatter) =>
            {
-               options.UsePlainTextFormatter((formatter) =>
-               {
-                   formatter.SetPrefixFormatter($"{0:utc-datetime}|{1:short}|{2}|",
-                      (in MessageTemplate template, in LogInfo i) =>
-                      {
-                          template.Format(
-                                      i.Timestamp,
-                                      i.LogLevel,
-                                      i.Category);
-                      });
-                   formatter.SetExceptionFormatter((writer, ex) => Utf8StringInterpolation.Utf8String.Format(writer, $"{ex.Message}"));
-               });
+               formatter.SetPrefixFormatter($"{0:utc-datetime}|{1:short}|{2}|",
+                  (in MessageTemplate template, in LogInfo i) =>
+                  {
+                      template.Format(
+                                  i.Timestamp,
+                                   $"[{options.LogLevelColors.GetValueOrDefault(i.LogLevel, "white")}]", i.LogLevel, "[/]",
+                                  i.Category);
+                  });
+               formatter.SetExceptionFormatter((writer, ex) => Utf8StringInterpolation.Utf8String.Format(writer, $"{ex.Message}"));
            });
 
        });
@@ -38,7 +34,6 @@ public static class ZLoggerSpectreExtensions
             builder.AddZLoggerFile(filePath, (options) =>
             {
 
-                options.TimeProvider = BeijingTimeProvider.Instance;
                 options.UsePlainTextFormatter((formatter) =>
                 {
 
