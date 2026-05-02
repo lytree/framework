@@ -1,7 +1,5 @@
-using System;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using ZLogger;
@@ -13,44 +11,30 @@ public static class ZLoggerSpectreExtensions
 {
     public static ILoggingBuilder AddZLoggerSpectreConsoleAndFile(this ILoggingBuilder builder, string? filePath)
     {
+        return AddZLoggerSpectreConsoleAndFile(builder, filePath, _ => { });
+    }
+
+    public static ILoggingBuilder AddZLoggerSpectreConsoleAndFile(this ILoggingBuilder builder, string? filePath, Action<ZLoggerSpectreConsoleOptions> configure)
+    {
         builder.AddZLoggerSpectreConsole(options =>
-       {
-           options.UsePlainTextFormatter((formatter) =>
-           {
-               formatter.SetPrefixFormatter($"{0:local-longdate}|{1}{2:short}{3}|{4}|",
-                  (in MessageTemplate template, in LogInfo i) =>
-                  {
-                      template.Format(
-                                  i.Timestamp,
-                                   $"[{options.LogLevelColors.GetValueOrDefault(i.LogLevel, "white")}]", i.LogLevel, "[/]",
-                                  i.Category);
-                  });
-               formatter.SetExceptionFormatter((writer, ex) => Utf8StringInterpolation.Utf8String.Format(writer, $"{ex.Message}"));
-           });
-
-       });
-        if (!string.IsNullOrWhiteSpace(filePath))
         {
-            builder.AddZLoggerFile(filePath, (options) =>
+            options.FilePath = filePath;
+            options.UsePlainTextFormatter(formatter =>
             {
-
-                options.UsePlainTextFormatter((formatter) =>
-                {
-
-                    formatter.SetPrefixFormatter($"{0:local-longdate}|{1:short}|{2}|",
-                       (in MessageTemplate template, in LogInfo i) =>
-                       {
-                           template.Format(
-                                       i.Timestamp,
-                                       i.LogLevel,
-                                       i.Category);
-                       });
-                    formatter.SetExceptionFormatter((writer, ex) => Utf8StringInterpolation.Utf8String.Format(writer, $"{ex.Message}"));
-                });
+                formatter.SetPrefixFormatter($"{0:local-longdate}|{1}{2:short}{3}|{4}|",
+                    (in MessageTemplate template, in LogInfo i) =>
+                    {
+                        template.Format(
+                            i.Timestamp,
+                            $"[{options.LogLevelColors.GetValueOrDefault(i.LogLevel, "white")}]", i.LogLevel, "[/]",
+                            i.Category);
+                    });
             });
-        }
+            configure(options);
+        });
         return builder;
     }
+
     public static ILoggingBuilder AddZLoggerSpectreConsole(this ILoggingBuilder builder, Action<ZLoggerSpectreConsoleOptions> configure)
     {
         var options = new ZLoggerSpectreConsoleOptions();

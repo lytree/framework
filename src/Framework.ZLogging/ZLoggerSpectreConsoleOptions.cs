@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
+using System.Text;
 using ZLogger;
 using ZLogger.Formatters;
 
@@ -26,7 +27,10 @@ public class ZLoggerSpectreConsoleOptions
     public Action<Exception>? InternalErrorLogger { get; set; }
     public Action<IAnsiConsole, Exception>? ExceptionFormatter { get; set; }
 
-    
+    public string? FilePath { get; set; }
+    public Encoding FileEncoding { get; set; } = Encoding.UTF8;
+    public bool FileAppend { get; set; } = true;
+
     public void SetExceptionFormatter(Action<IAnsiConsole, Exception> formatter)
     {
         ExceptionFormatter = formatter;

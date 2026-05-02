@@ -15,6 +15,7 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
     readonly Channel<IZLoggerEntry> channel;
     readonly Task writeLoop;
     readonly IAnsiConsole console;
+    readonly StreamWriter? fileWriter;
 
     public SpectreConsoleLogProcessor(ZLoggerSpectreConsoleOptions options)
     {
@@ -25,6 +26,21 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
             Ansi = AnsiSupport.Yes,
             ColorSystem = ColorSystemSupport.Detect
         });
+
+        if (!string.IsNullOrWhiteSpace(options.FilePath))
+        {
+            var dir = Path.GetDirectoryName(options.FilePath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+            fileWriter = new StreamWriter(
+                new FileStream(options.FilePath, options.FileAppend ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.Read),
+                options.FileEncoding)
+            {
+                AutoFlush = true
+            };
+        }
 
         channel = Channel.CreateBounded<IZLoggerEntry>(new BoundedChannelOptions(options.BoundedChannelSize)
         {
@@ -41,14 +57,13 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
 
     async Task WriteLoop()
     {
-
         await foreach (var entry in channel.Reader.ReadAllAsync())
         {
             try
             {
                 var buffer = new ArrayPoolBufferWriter<byte>(16);
                 formatter.FormatLogEntry(buffer, entry);
-                var formatted = System.Text.Encoding.UTF8.GetString(buffer.WrittenSpan);
+                var formatted = Encoding.UTF8.GetString(buffer.WrittenSpan);
 
                 console.Markup(formatted);
 
@@ -59,10 +74,22 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
                 }
 
                 console.WriteLine();
+
+                if (fileWriter != null)
+                {
+                    var plainText = Markup.Remove(formatted);
+
+                    if (entry.LogInfo.Exception != null)
+                    {
+                        var exceptionLines = GetExceptionLines(entry.LogInfo.Exception);
+                        plainText += Environment.NewLine + string.Join(Environment.NewLine, exceptionLines);
+                    }
+
+                    await fileWriter.WriteLineAsync(plainText);
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
                 options.InternalErrorLogger?.Invoke(ex);
             }
         }
@@ -79,8 +106,13 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
         var lines = GetExceptionLines(info.Exception!);
         foreach (var line in lines)
         {
-            console.Markup($"{line}");
+            console.Markup($"{EscapeMarkup(line)}");
         }
+    }
+
+    static string EscapeMarkup(string text)
+    {
+        return text.Replace("[", "[[").Replace("]", "]]");
     }
 
     List<string> GetExceptionLines(Exception ex)
@@ -107,6 +139,12 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
     {
         channel.Writer.Complete();
         await writeLoop;
+
+        if (fileWriter != null)
+        {
+            await fileWriter.FlushAsync();
+            await fileWriter.DisposeAsync();
+        }
     }
 }
 

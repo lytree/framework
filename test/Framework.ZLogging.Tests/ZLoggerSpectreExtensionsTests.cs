@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using TUnit.Core;
+using ZLogger;
 
 namespace Framework.ZLogging.Tests;
 
@@ -24,7 +25,7 @@ public class ZLoggerSpectreExtensionsTests
     [Test]
     public void AddZLoggerSpectreConsoleAndFile_WithFilePath_ConfiguresSuccessfully()
     {
-        var filePath = Path.Combine(Path.GetTempPath(), "test.log");
+        var filePath = Path.Combine(Path.GetTempPath(), "test1.log");
 
         try
         {
@@ -34,14 +35,11 @@ public class ZLoggerSpectreExtensionsTests
             });
 
             var logger = loggerFactory.CreateLogger("Test");
-            logger.LogInformation("Test message with file");
+            logger.ZLogInformation($"Test message with file  {filePath}");
         }
         finally
         {
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
+            
         }
     }
 
