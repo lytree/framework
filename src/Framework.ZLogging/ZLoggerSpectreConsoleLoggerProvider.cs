@@ -16,6 +16,13 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
     readonly Task writeLoop;
     readonly IAnsiConsole console;
     readonly StreamWriter? fileWriter;
+    readonly PeriodicTimer? flushTimer;
+    readonly Task flushLoop;
+    readonly ArrayPoolBufferWriter<byte> bufferWriter;
+    readonly StringBuilder plainTextBuilder;
+    int disposed;
+
+    const int StreamWriterBufferSize = 65536;
 
     public SpectreConsoleLogProcessor(ZLoggerSpectreConsoleOptions options)
     {
@@ -27,6 +34,9 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
             ColorSystem = ColorSystemSupport.Detect
         });
 
+        bufferWriter = new ArrayPoolBufferWriter<byte>(1024);
+        plainTextBuilder = new StringBuilder(512);
+
         if (!string.IsNullOrWhiteSpace(options.FilePath))
         {
             var dir = Path.GetDirectoryName(options.FilePath);
@@ -35,11 +45,12 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
                 Directory.CreateDirectory(dir);
             }
             fileWriter = new StreamWriter(
-                new FileStream(options.FilePath, options.FileAppend ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.Read),
-                options.FileEncoding)
-            {
-                AutoFlush = true
-            };
+                new FileStream(options.FilePath, options.FileAppend ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.ReadWrite),
+                options.FileEncoding,
+                StreamWriterBufferSize);
+
+            flushTimer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+            flushLoop = Task.Run(FlushLoop);
         }
 
         channel = Channel.CreateBounded<IZLoggerEntry>(new BoundedChannelOptions(options.BoundedChannelSize)
@@ -55,15 +66,31 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
         channel.Writer.TryWrite(log);
     }
 
+    async Task FlushLoop()
+    {
+        try
+        {
+            while (await flushTimer!.WaitForNextTickAsync())
+            {
+                try
+                {
+                    await fileWriter!.FlushAsync();
+                }
+                catch { }
+            }
+        }
+        catch (ObjectDisposedException) { }
+    }
+
     async Task WriteLoop()
     {
         await foreach (var entry in channel.Reader.ReadAllAsync())
         {
             try
             {
-                var buffer = new ArrayPoolBufferWriter<byte>(16);
-                formatter.FormatLogEntry(buffer, entry);
-                var formatted = Encoding.UTF8.GetString(buffer.WrittenSpan);
+                bufferWriter.Clear();
+                formatter.FormatLogEntry(bufferWriter, entry);
+                var formatted = Encoding.UTF8.GetString(bufferWriter.WrittenSpan);
 
                 console.Markup(formatted);
 
@@ -77,15 +104,16 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
 
                 if (fileWriter != null)
                 {
-                    var plainText = Markup.Remove(formatted);
+                    plainTextBuilder.Clear();
+                    plainTextBuilder.Append(Markup.Remove(formatted));
 
                     if (entry.LogInfo.Exception != null)
                     {
-                        var exceptionLines = GetExceptionLines(entry.LogInfo.Exception);
-                        plainText += Environment.NewLine + string.Join(Environment.NewLine, exceptionLines);
+                        AppendExceptionLines(plainTextBuilder, entry.LogInfo.Exception);
                     }
 
-                    await fileWriter.WriteLineAsync(plainText);
+                    plainTextBuilder.AppendLine();
+                    fileWriter.Write(plainTextBuilder);
                 }
             }
             catch (Exception ex)
@@ -115,6 +143,28 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
         return text.Replace("[", "[[").Replace("]", "]]");
     }
 
+    static void AppendExceptionLines(StringBuilder sb, Exception ex)
+    {
+        sb.AppendLine();
+        sb.Append(ex.GetType().FullName);
+        sb.Append(": ");
+        sb.Append(ex.Message);
+
+        if (ex.InnerException != null)
+        {
+            sb.Append(" ---> ");
+            AppendExceptionLines(sb, ex.InnerException);
+            sb.AppendLine();
+            sb.Append("   --- End of inner exception stack trace ---");
+        }
+
+        if (ex.StackTrace != null)
+        {
+            sb.AppendLine();
+            sb.Append(ex.StackTrace);
+        }
+    }
+
     List<string> GetExceptionLines(Exception ex)
     {
         var lines = new List<string>();
@@ -137,14 +187,25 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if (Interlocked.Exchange(ref disposed, 1) == 1) return;
+
         channel.Writer.Complete();
         await writeLoop;
+
+        flushTimer?.Dispose();
+
+        if (flushLoop != null)
+        {
+            try { await flushLoop; } catch { }
+        }
 
         if (fileWriter != null)
         {
             await fileWriter.FlushAsync();
             await fileWriter.DisposeAsync();
         }
+
+        bufferWriter.Dispose();
     }
 }
 
