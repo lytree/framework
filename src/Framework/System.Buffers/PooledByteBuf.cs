@@ -160,17 +160,32 @@ public partial class PooledByteBuf : IDisposable
         _readerIndex += dst.Length;
         return this;
     }
+    // Byte
+    public byte ReadByte() { CheckReadable(1); return _buffer[_readerIndex++]; }
+
     // Short
     public short ReadShort() { CheckReadable(2); var v = BinaryPrimitives.ReadInt16BigEndian(GetReadSpan(2)); _readerIndex += 2; return v; }
     public short ReadShortLE() { CheckReadable(2); var v = BinaryPrimitives.ReadInt16LittleEndian(GetReadSpan(2)); _readerIndex += 2; return v; }
+
+    // Unsigned Short
+    public ushort ReadUnsignedShort() { CheckReadable(2); var v = BinaryPrimitives.ReadUInt16BigEndian(GetReadSpan(2)); _readerIndex += 2; return v; }
+    public ushort ReadUnsignedShortLE() { CheckReadable(2); var v = BinaryPrimitives.ReadUInt16LittleEndian(GetReadSpan(2)); _readerIndex += 2; return v; }
 
     // Int
     public int ReadInt() { CheckReadable(4); var v = BinaryPrimitives.ReadInt32BigEndian(GetReadSpan(4)); _readerIndex += 4; return v; }
     public int ReadIntLE() { CheckReadable(4); var v = BinaryPrimitives.ReadInt32LittleEndian(GetReadSpan(4)); _readerIndex += 4; return v; }
 
+    // Unsigned Int
+    public uint ReadUnsignedInt() { CheckReadable(4); var v = BinaryPrimitives.ReadUInt32BigEndian(GetReadSpan(4)); _readerIndex += 4; return v; }
+    public uint ReadUnsignedIntLE() { CheckReadable(4); var v = BinaryPrimitives.ReadUInt32LittleEndian(GetReadSpan(4)); _readerIndex += 4; return v; }
+
     // Long
     public long ReadLong() { CheckReadable(8); var v = BinaryPrimitives.ReadInt64BigEndian(GetReadSpan(8)); _readerIndex += 8; return v; }
     public long ReadLongLE() { CheckReadable(8); var v = BinaryPrimitives.ReadInt64LittleEndian(GetReadSpan(8)); _readerIndex += 8; return v; }
+
+    // Unsigned Long
+    public ulong ReadUnsignedLong() { CheckReadable(8); var v = BinaryPrimitives.ReadUInt64BigEndian(GetReadSpan(8)); _readerIndex += 8; return v; }
+    public ulong ReadUnsignedLongLE() { CheckReadable(8); var v = BinaryPrimitives.ReadUInt64LittleEndian(GetReadSpan(8)); _readerIndex += 8; return v; }
 
     // Float
     public float ReadFloat() => BitConverter.Int32BitsToSingle(ReadInt());
