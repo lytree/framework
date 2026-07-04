@@ -1,11 +1,4 @@
-using System;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Drawing;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Formats;
+using SkiaSharp;
 
 namespace Framework.Helpers;
 
@@ -18,34 +11,64 @@ public static partial class Helper
 	/// <returns></returns>
 	public static string VerticalMergeImageByte(params byte[][] bitmaps)
 	{
-		var images = bitmaps.ToList().Select(image => Image.Load(new MemoryStream(image))).ToList();
-		var height = images.Sum(image => image.Height);
-		var width = images.Max(image => image.Width);
-		using (var mergeImage = new Image<Rgba32>(width, height))
+		var images = bitmaps.ToList().Select(image => SKBitmap.Decode(new MemoryStream(image))).ToList();
+		try
 		{
-			int y = 0;//y坐标
+			var height = images.Sum(image => image.Height);
+			var width = images.Max(image => image.Width);
+			using (var mergeBitmap = new SKBitmap(width, height))
+			using (var canvas = new SKCanvas(mergeBitmap))
+			{
+				int y = 0;//y坐标
+				foreach (var image in images)
+				{
+					canvas.DrawBitmap(image, 0, y, SKSamplingOptions.Default);
+					y += image.Height;
+				}
+				using (var pngImage = SKImage.FromBitmap(mergeBitmap))
+				using (var pngData = pngImage.Encode(SKEncodedImageFormat.Png, 100))
+				{
+					return Convert.ToBase64String(pngData.ToArray());
+				}
+			}
+		}
+		finally
+		{
 			foreach (var image in images)
 			{
-				mergeImage.Mutate(o => o.DrawImage(image, new Point(0, y), 1));
-				y += image.Height;
+				image.Dispose();
 			}
-			return mergeImage.ToBase64String(PngFormat.Instance);
 		}
 	}
 	public static string VerticalMergeImageStream(params Stream[] bitmaps)
 	{
-		var images = bitmaps.ToList().Select(Image.Load).ToList();
-		var height = images.Sum(image => image.Height);
-		var width = images.Max(image => image.Width);
-		using (var mergeImage = new Image<Rgba32>(width, height))
+		var images = bitmaps.ToList().Select(SKBitmap.Decode).ToList();
+		try
 		{
-			int y = 0;//y坐标
+			var height = images.Sum(image => image.Height);
+			var width = images.Max(image => image.Width);
+			using (var mergeBitmap = new SKBitmap(width, height))
+			using (var canvas = new SKCanvas(mergeBitmap))
+			{
+				int y = 0;//y坐标
+				foreach (var image in images)
+				{
+					canvas.DrawBitmap(image, 0, y, SKSamplingOptions.Default);
+					y += image.Height;
+				}
+				using (var pngImage = SKImage.FromBitmap(mergeBitmap))
+				using (var pngData = pngImage.Encode(SKEncodedImageFormat.Png, 100))
+				{
+					return Convert.ToBase64String(pngData.ToArray());
+				}
+			}
+		}
+		finally
+		{
 			foreach (var image in images)
 			{
-				mergeImage.Mutate(o => o.DrawImage(image, new Point(0, y), 1));
-				y += image.Height;
+				image.Dispose();
 			}
-			return mergeImage.ToBase64String(PngFormat.Instance);
 		}
 	}
 }

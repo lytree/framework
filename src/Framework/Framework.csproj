@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFrameworks>$(NetCore)</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -18,8 +18,7 @@
 		<PackageReference Include="BouncyCastle.Cryptography" />
 		<PackageReference Include="SharpCompress" />
 		<PackageReference Include="System.IO.Pipelines" />
-		<PackageReference Include="SixLabors.ImageSharp" />
-		<PackageReference Include="SixLabors.ImageSharp.Drawing" />
+		<PackageReference Include="SkiaSharp" />
 		<PackageReference Include="Spectre.Console" />
 		<PackageReference Include="ZLogger" />
 	</ItemGroup>
