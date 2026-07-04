@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -239,29 +239,26 @@ public static partial class Extensions
 		{
 			foreach (var item in source)
 			{
-				await action(item);
+				await action(item).ConfigureAwait(false);
 			}
 
 			return;
 		}
 
-		var list = new List<Task>();
-		foreach (var item in source)
+		using var sem = new SemaphoreSlim(maxParallelCount);
+		var tasks = source.Select(async item =>
 		{
-			if (cancellationToken.IsCancellationRequested)
+			await sem.WaitAsync(cancellationToken).ConfigureAwait(false);
+			try
 			{
-				return;
+				await action(item).ConfigureAwait(false);
 			}
-
-			list.Add(action(item));
-			if (list.Count(t => !t.IsCompleted) >= maxParallelCount)
+			finally
 			{
-				await Task.WhenAny(list);
-				list.RemoveAll(t => t.IsCompleted);
+				sem.Release();
 			}
-		}
-
-		await Task.WhenAll(list);
+		});
+		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -320,23 +317,21 @@ public static partial class Extensions
 	/// <returns></returns>
 	public static async Task<List<TResult>> SelectAsync<T, TResult>(this IEnumerable<T> source, Func<T, Task<TResult>> selector, int maxParallelCount)
 	{
-		var results = new List<TResult>();
-		var tasks = new List<Task<TResult>>();
-		foreach (var item in source)
+		using var sem = new SemaphoreSlim(maxParallelCount);
+		var tasks = source.Select(async item =>
 		{
-			var task = selector(item);
-			tasks.Add(task);
-			if (tasks.Count >= maxParallelCount)
+			await sem.WaitAsync().ConfigureAwait(false);
+			try
 			{
-				await Task.WhenAny(tasks);
-				var completedTasks = tasks.Where(t => t.IsCompleted).ToArray();
-				results.AddRange(completedTasks.Select(t => t.Result));
-				tasks.RemoveWhere(t => completedTasks.Contains(t));
+				return await selector(item).ConfigureAwait(false);
 			}
-		}
-
-		results.AddRange(await Task.WhenAll(tasks));
-		return results;
+			finally
+			{
+				sem.Release();
+			}
+		});
+		var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+		return [.. results];
 	}
 
 	/// <summary>
@@ -350,25 +345,28 @@ public static partial class Extensions
 	/// <returns></returns>
 	public static async Task<List<TResult>> SelectAsync<T, TResult>(this IEnumerable<T> @this, Func<T, int, Task<TResult>> selector, int maxParallelCount)
 	{
-		var results = new List<TResult>();
-		var tasks = new List<Task<TResult>>();
+		using var sem = new SemaphoreSlim(maxParallelCount);
 		int index = 0;
-		foreach (var item in @this)
+		var tasks = @this.Select(item =>
 		{
-			var task = selector(item, index);
-			tasks.Add(task);
-			Interlocked.Add(ref index, 1);
-			if (tasks.Count >= maxParallelCount)
-			{
-				await Task.WhenAny(tasks);
-				var completedTasks = tasks.Where(t => t.IsCompleted).ToArray();
-				results.AddRange(completedTasks.Select(t => t.Result));
-				tasks.RemoveWhere(t => completedTasks.Contains(t));
-			}
-		}
+			var currentIndex = Interlocked.Increment(ref index) - 1;
+			return RunWithSemaphore(sem, () => selector(item, currentIndex));
+		});
+		var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+		return [.. results];
+	}
 
-		results.AddRange(await Task.WhenAll(tasks));
-		return results;
+	private static async Task<TResult> RunWithSemaphore<TResult>(SemaphoreSlim sem, Func<Task<TResult>> factory)
+	{
+		await sem.WaitAsync().ConfigureAwait(false);
+		try
+		{
+			return await factory().ConfigureAwait(false);
+		}
+		finally
+		{
+			sem.Release();
+		}
 	}
 
 	/// <summary>
@@ -386,31 +384,33 @@ public static partial class Extensions
 		{
 			foreach (var item in @this)
 			{
-				await selector(item, index);
+				await selector(item, index).ConfigureAwait(false);
 				index++;
 			}
 
 			return;
 		}
 
-		var list = new List<Task>();
-		foreach (var item in @this)
+		using var sem = new SemaphoreSlim(maxParallelCount);
+		var tasks = @this.Select(item =>
 		{
-			if (cancellationToken.IsCancellationRequested)
-			{
-				return;
-			}
+			var currentIndex = Interlocked.Increment(ref index) - 1;
+			return RunActionWithSemaphore(sem, () => selector(item, currentIndex), cancellationToken);
+		});
+		await Task.WhenAll(tasks).ConfigureAwait(false);
+	}
 
-			list.Add(selector(item, index));
-			Interlocked.Add(ref index, 1);
-			if (list.Count >= maxParallelCount)
-			{
-				await Task.WhenAny(list);
-				list.RemoveAll(t => t.IsCompleted);
-			}
+	private static async Task RunActionWithSemaphore(SemaphoreSlim sem, Func<Task> factory, CancellationToken cancellationToken)
+	{
+		await sem.WaitAsync(cancellationToken).ConfigureAwait(false);
+		try
+		{
+			await factory().ConfigureAwait(false);
 		}
-
-		await Task.WhenAll(list);
+		finally
+		{
+			sem.Release();
+		}
 	}
 
 	/// <summary>

@@ -47,6 +47,8 @@ public static class ZLoggerSpectreExtensions
 
 public static partial class ZLoggerSpectreOutputExtensions
 {
+    private static readonly JsonSerializerOptions IndentedOptions = new() { WriteIndented = true };
+
     public static void WriteLine(this ILogger logger, string markup)
     {
         AnsiConsole.MarkupLine(markup);
@@ -106,7 +108,7 @@ public static partial class ZLoggerSpectreOutputExtensions
 
     public static void WriteJson(this ILogger logger, object obj)
     {
-        var json = JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = true });
+        var json = JsonSerializer.Serialize(obj, IndentedOptions);
         logger.LogInformation(json);
     }
 
@@ -127,7 +129,7 @@ public static partial class ZLoggerSpectreOutputExtensions
         new Progress(AnsiConsole.Console).HideCompleted(true).Start(action);
     }
 
-    public static StatusContext StartStatus(this ILogger logger, string status, Action<Status> configure = null)
+    public static StatusContext StartStatus(this ILogger logger, string status, Action<Status>? configure = null)
     {
         var s = new Status(AnsiConsole.Console);
         configure?.Invoke(s);

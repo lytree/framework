@@ -1,4 +1,4 @@
-﻿using FreeSql.DataAnnotations;
+using FreeSql.DataAnnotations;
 using System.ComponentModel;
 
 namespace Framework.Repository.Entities;
@@ -19,6 +19,6 @@ public class EntityVersion<TKey> : EntityBase, IVersion
 /// <summary>
 /// 实体版本
 /// </summary>
-public class EntityVersion : EntityVersion<long>
+public sealed class EntityVersion : EntityVersion<long>
 {
 }

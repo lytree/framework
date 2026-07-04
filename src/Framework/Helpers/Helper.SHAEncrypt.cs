@@ -13,7 +13,7 @@ public static partial class Helper
     /// <param name="hex">是否返回16进制字符串。</param>
     /// <param name="lowerCase">是否返回小写字符串。</param>
     /// <returns>SHA1加密字符串。</returns>
-    public static string SHA1Decrypt(string value, bool hex, bool lowerCase = false)
+    public static string SHA1Hash(string value, bool hex, bool lowerCase = false)
     {
         if (string.IsNullOrWhiteSpace(value))
             return string.Empty;

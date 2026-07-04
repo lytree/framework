@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,35 +15,39 @@ public static partial class Extensions
     /// <summary>
     /// Runs a task without waiting for its result.
     /// </summary>
-    /// <param name="_">The task to run.</param>
-    public static void Forget(this Task _)
+    /// <param name="task">The task to run.</param>
+    public static void Forget(this Task task)
     {
+        task.ContinueWith(t => { _ = t.Exception; }, TaskContinuationOptions.OnlyOnFaulted);
     }
 
     /// <summary>
     /// Runs a task without waiting for its result.
     /// </summary>
     /// <typeparam name="T">The type of the task result.</typeparam>
-    /// <param name="_">The task to run.</param>
-    public static void Forget<T>(this Task<T> _)
+    /// <param name="task">The task to run.</param>
+    public static void Forget<T>(this Task<T> task)
     {
+        task.ContinueWith(t => { _ = t.Exception; }, TaskContinuationOptions.OnlyOnFaulted);
     }
 
     /// <summary>
     /// Runs a task without waiting for its result.
     /// </summary>
-    /// <param name="_">The task to run.</param>
-    public static void Forget(this ValueTask _)
+    /// <param name="task">The task to run.</param>
+    public static void Forget(this ValueTask task)
     {
+        task.AsTask().ContinueWith(t => { _ = t.Exception; }, TaskContinuationOptions.OnlyOnFaulted);
     }
 
     /// <summary>
     /// Runs a task without waiting for its result.
     /// </summary>
     /// <typeparam name="T">The type of the task result.</typeparam>
-    /// <param name="_">The task to run.</param>
-    public static void Forget<T>(this ValueTask<T> _)
+    /// <param name="task">The task to run.</param>
+    public static void Forget<T>(this ValueTask<T> task)
     {
+        task.AsTask().ContinueWith(t => { _ = t.Exception; }, TaskContinuationOptions.OnlyOnFaulted);
     }
 
     /// <summary>

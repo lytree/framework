@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 
-namespace Framework.AspNetCore.AspNetCore.Mvc;
+namespace Framework.AspNetCore.Mvc;
 
 
 public interface IApiResponse<T> : IApiResponse

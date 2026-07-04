@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +9,9 @@ namespace Framework;
 
 public static partial class Helper
 {
+    private static readonly int[] Wi = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
+    private static readonly string[] ArrVerifyCode = ["1", "0", "X", "9", "8", "7", "6", "5", "4", "3", "2"];
+
     /// <summary>
     /// 验证输入字符串为带小数点正数
     /// </summary>
@@ -120,17 +123,15 @@ public static partial class Helper
         {
             return false;//生日验证
         }
-        string[] arrVarifyCode = "1,0,x,9,8,7,6,5,4,3,2".Split(',');
-        string[] wi = "7,9,10,5,8,4,2,1,6,3,7,9,10,5,8,4,2".Split(',');
         char[] ai = str[..17].ToCharArray();
         int sum = 0;
         for (int i = 0; i < 17; i++)
         {
-            sum += int.Parse(wi[i]) * int.Parse(ai[i].ToString());
+            sum += Wi[i] * int.Parse(ai[i].ToString());
         }
         int y;
         Math.DivRem(sum, 11, out y);
-        return arrVarifyCode[y] == str.Substring(17, 1).ToLower();
+        return ArrVerifyCode[y] == str.Substring(17, 1).ToUpper();
     }
     /// <summary>
     /// 验证输入字符串为15位的身份证号码
@@ -180,14 +181,13 @@ public static partial class Helper
     /// </summary>
     /// <param name="str">输入字符</param>
     /// <returns></returns>
+    private static readonly string[] BadChars = "@,*,#,$,!,+,',=,--,%,^,&,?,(,), <,>,[,],{,},/,\\,;,:,\",\"\",delete,update,drop,alert,select".Split(',');
+
     public static bool IsBadString(this string str)
     {
         if (string.IsNullOrEmpty(str))
             return false;
-        //列举一些特殊字符串
-        const string badChars = "@,*,#,$,!,+,',=,--,%,^,&,?,(,), <,>,[,],{,},/,\\,;,:,\",\"\",delete,update,drop,alert,select";
-        var arraryBadChar = badChars.Split(',');
-        return arraryBadChar.Any(t => !str.Contains(t));
+        return BadChars.Any(str.Contains);
     }
 
 

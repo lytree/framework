@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
@@ -47,7 +47,7 @@ namespace Middleware.FlowAnalyze
 		{
 			private int cleaning = 0;
 			private long totalBytes = 0L;
-			private record QueueItem(long Ticks, int Length);
+			private readonly record struct QueueItem(long Ticks, int Length);
 			private readonly ConcurrentQueue<QueueItem> queues = new();
 
 			private readonly int intervalSeconds;

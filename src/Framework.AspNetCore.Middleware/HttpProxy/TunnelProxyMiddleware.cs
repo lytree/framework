@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Logging;
 using System.IO.Pipelines;
 using System.Net.Sockets;
@@ -14,8 +14,8 @@ namespace Middleware.HttpProxy
 	{
 		private readonly ILogger<TunnelProxyMiddleware> logger;
 
-		private readonly byte[] http200 = Encoding.ASCII.GetBytes("HTTP/1.1 200 Connection Established\r\n\r\n");
-		private readonly byte[] http502 = Encoding.ASCII.GetBytes("HTTP/1.1 502 Bad Gateway\r\n\r\n");
+		private static readonly byte[] http200 = Encoding.ASCII.GetBytes("HTTP/1.1 200 Connection Established\r\n\r\n");
+		private static readonly byte[] http502 = Encoding.ASCII.GetBytes("HTTP/1.1 502 Bad Gateway\r\n\r\n");
 
 		public TunnelProxyMiddleware(ILogger<TunnelProxyMiddleware> logger)
 		{
@@ -73,9 +73,12 @@ namespace Middleware.HttpProxy
 			logger.LogInformation($"隧道代理{feature.ProxyHost}开始");
 
 			var stream = new NetworkStream(socket, ownsSocket: false);
-			var task1 = stream.CopyToAsync(output);
-			var task2 = context.Transport.Input.CopyToAsync(stream);
+			using var cts = CancellationTokenSource.CreateLinkedTokenSource(context.ConnectionClosed);
+			var task1 = stream.CopyToAsync(output, cts.Token);
+			var task2 = context.Transport.Input.CopyToAsync(stream, cts.Token);
 			await Task.WhenAny(task1, task2);
+			cts.Cancel();
+			try { await Task.WhenAll(task1, task2); } catch { }
 
 			logger.LogInformation($"隧道代理{feature.ProxyHost}结束");
 		}

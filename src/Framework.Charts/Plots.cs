@@ -1,6 +1,6 @@
 using System;
 using ScottPlot;
-using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,13 +15,17 @@ public static partial class Plots
 {
     #region Avalonia 加载字体
 
-    public static string GetSafeFont()
+    private static readonly FrozenSet<string> linuxFonts = new[] { "SimSun", "SimKai", "DejaVu Sans", "Liberation Sans", "Noto Sans", "FreeSans" }.ToFrozenSet();
+    private static readonly string SafeFont = GetSafeFontInternal();
+    static readonly ScottPlot.Color defaultColor = new(System.Drawing.Color.FromArgb(61, 119, 255));
+
+    public static string GetSafeFont() => SafeFont;
+
+    private static string GetSafeFontInternal()
     {
         var installed = SKFontManager.Default.GetFontFamilies();
 
         // 优先搜索 Linux 常用开源字体
-        string[] linuxFonts = ["SimSun", "SimKai", "DejaVu Sans", "Liberation Sans", "Noto Sans", "FreeSans"];
-
         foreach (var font in linuxFonts)
         {
             if (installed.Contains(font)) return font;
@@ -98,7 +102,7 @@ public static partial class Plots
         plt.Axes.Left.TickLabelStyle = defaultLabelStyle;
         plt.Axes.Left.TickGenerator = defaultNumberFormat;
 
-        var scatter = plt.Add.SignalXY([.. x], [.. y], color: new(System.Drawing.Color.FromArgb(61, 119, 255)));
+        var scatter = plt.Add.SignalXY([.. x], [.. y], color: defaultColor);
         scatter.MarkerShape = MarkerShape.None;
         return plt.GetImageBytes(width, height, ImageFormat.Png);
     }
@@ -120,7 +124,7 @@ public static partial class Plots
         plt.Axes.Bottom.TickGenerator = new FixedNumericManual(10, 0, x.Max() * 1.1);
         plt.Axes.Left.TickLabelStyle = defaultLabelStyle;
         plt.Axes.Left.TickGenerator = defaultNumberFormat;
-        var scatter = plt.Add.SignalXY([.. x], [.. y], color: new(System.Drawing.Color.FromArgb(61, 119, 255)));
+        var scatter = plt.Add.SignalXY([.. x], [.. y], color: defaultColor);
         scatter.MarkerShape = MarkerShape.None;
         return plt.GetImageBytes(width, height, ImageFormat.Png);
     }
@@ -143,7 +147,7 @@ public static partial class Plots
         plt.Axes.Left.TickGenerator = defaultNumberFormat;
 
 
-        var scatter = plt.Add.SignalXY([.. x], [.. y], color: new(System.Drawing.Color.FromArgb(61, 119, 255)));
+        var scatter = plt.Add.SignalXY([.. x], [.. y], color: defaultColor);
         scatter.MarkerShape = MarkerShape.None;
         return plt.GetImageBytes(width, height, ImageFormat.Png);
     }

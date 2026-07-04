@@ -1,4 +1,4 @@
-﻿using Framework.System;
+using Framework.System;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -89,13 +89,13 @@ public static partial class Helper
         var keyBytes = Encoding.UTF8.GetBytes(key[..8]);
         var inputByteArray = Encoding.UTF8.GetBytes(encryptString);
 
-        var des = DES.Create();
+        using var des = DES.Create();
         des.Mode = CipherMode.ECB;
         des.Key = keyBytes;
         des.Padding = PaddingMode.PKCS7;
 
         using var stream = new MemoryStream();
-        var cStream = new CryptoStream(stream, des.CreateEncryptor(), CryptoStreamMode.Write);
+        using var cStream = new CryptoStream(stream, des.CreateEncryptor(), CryptoStreamMode.Write);
         cStream.Write(inputByteArray, 0, inputByteArray.Length);
         cStream.FlushFinalBlock();
 
@@ -127,13 +127,13 @@ public static partial class Helper
         var keyBytes = Encoding.UTF8.GetBytes(key[..8]);
         var inputByteArray = hex ? Helper.HexToBytes(decryptString) : Convert.FromBase64String(decryptString);
 
-        var des = DES.Create();
+        using var des = DES.Create();
         des.Mode = CipherMode.ECB;
         des.Key = keyBytes;
         des.Padding = PaddingMode.PKCS7;
 
         using var mStream = new MemoryStream();
-        var cStream = new CryptoStream(mStream, des.CreateDecryptor(), CryptoStreamMode.Write);
+        using var cStream = new CryptoStream(mStream, des.CreateDecryptor(), CryptoStreamMode.Write);
         cStream.Write(inputByteArray, 0, inputByteArray.Length);
         cStream.FlushFinalBlock();
         return Encoding.UTF8.GetString(mStream.ToArray());

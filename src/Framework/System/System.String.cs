@@ -1,4 +1,4 @@
-﻿using Framework;
+using Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,7 +51,11 @@ public static partial class Extensions
     {
         if (string.IsNullOrEmpty(str))
             return str;
-        return string.Concat(str.First().ToString().ToLower(), str.AsSpan(1)); ;
+        return string.Create(str.Length, str, (span, src) =>
+        {
+            src.CopyTo(span);
+            span[0] = char.ToLowerInvariant(span[0]);
+        });
     }
 
     /// <summary>
@@ -64,7 +68,11 @@ public static partial class Extensions
         if (string.IsNullOrEmpty(str))
             return str;
 
-        return string.Concat(str.First().ToString().ToUpper(), str.AsSpan(1));
+        return string.Create(str.Length, str, (span, src) =>
+        {
+            src.CopyTo(span);
+            span[0] = char.ToUpperInvariant(span[0]);
+        });
     }
 
     /// <summary>

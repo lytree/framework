@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -91,7 +91,11 @@ public static partial class Extensions
 		{
 			return value.ConvertTo<T>();
 		}
-		catch
+		catch (InvalidCastException)
+		{
+			return defaultValue;
+		}
+		catch (FormatException)
 		{
 			return defaultValue;
 		}
@@ -111,7 +115,12 @@ public static partial class Extensions
 			result = value.ConvertTo<T>();
 			return true;
 		}
-		catch
+		catch (InvalidCastException)
+		{
+			result = default;
+			return false;
+		}
+		catch (FormatException)
 		{
 			result = default;
 			return false;
@@ -132,7 +141,12 @@ public static partial class Extensions
 			result = value.ConvertTo(type);
 			return true;
 		}
-		catch
+		catch (InvalidCastException)
+		{
+			result = default;
+			return false;
+		}
+		catch (FormatException)
 		{
 			result = default;
 			return false;

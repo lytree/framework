@@ -6,12 +6,12 @@ namespace Framework.Charts;
 
 public static partial class Plots
 {
-    public static readonly LabelStyle defaultLabelStyle = new()
+    private static readonly Lazy<LabelStyle> defaultLabelStyleLazy = new(() => new LabelStyle
     {
         FontName = GetSafeFont(),
         FontSize = 18,
-
-    };
+    });
+    public static LabelStyle defaultLabelStyle => defaultLabelStyleLazy.Value;
     public static readonly DateTimeAutomatic defaultTimeFormat = new()
     {
         LabelFormatter = (dt) => dt.ToString("yyyy-MM-dd")

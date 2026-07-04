@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace System.Buffers;
@@ -174,13 +174,5 @@ public sealed class ArrayPoolBufferWriter<T> : IWrittenBufferWriter<T>, IDisposa
             GC.SuppressFinalize(this);
         }
         disposed = true;
-    }
-
-    /// <summary>
-    /// 析构函数
-    /// </summary>
-    ~ArrayPoolBufferWriter()
-    {
-        Dispose();
     }
 }

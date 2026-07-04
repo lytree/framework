@@ -4,7 +4,7 @@ using ScottPlot.TickGenerators;
 
 namespace Framework.Charts.TickGenerators;
 
-public class FixedNumericManual : NumericManual
+public sealed class FixedNumericManual : NumericManual
 {
     /// <summary>
     /// 构造函数：固定刻度数量

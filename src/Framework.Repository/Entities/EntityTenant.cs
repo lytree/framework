@@ -1,4 +1,4 @@
-﻿using FreeSql.DataAnnotations;
+using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -26,6 +26,6 @@ public class EntityTenant<TKey> : EntityBase<TKey>, ITenant where TKey : struct
 /// <summary>
 /// 实体租户
 /// </summary>
-public class EntityTenant : EntityTenant<long>
+public sealed class EntityTenant : EntityTenant<long>
 {
 }

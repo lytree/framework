@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -18,6 +19,8 @@ namespace System;
 public static partial class Extensions
 {
 	private static readonly MethodInfo CloneMethod = typeof(object).GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance);
+	private static readonly ConcurrentDictionary<Type, PropertyInfo[]> PropertyCache = new();
+	private static readonly ConcurrentDictionary<Type, object?> DefaultCache = new();
 
 	/// <summary>
 	/// 是否是基本数据类型
@@ -99,7 +102,7 @@ public static partial class Extensions
 			DateTime s => s == DateTime.MinValue,
 			DateTimeOffset s => s == DateTimeOffset.MinValue,
 			Guid g => g == Guid.Empty,
-			ValueType => Activator.CreateInstance(value.GetType()).Equals(value),
+			ValueType => DefaultCache.GetOrAdd(value.GetType(), t => Activator.CreateInstance(t))!.Equals(value),
 			_ => false
 		};
 	}
@@ -184,7 +187,7 @@ public static partial class Extensions
 				return dictionary;
 			}
 
-			foreach (var property in value.GetType().GetProperties())
+			foreach (var property in PropertyCache.GetOrAdd(value.GetType(), t => t.GetProperties()))
 			{
 				var obj = property.GetValue(value, null);
 				dictionary.Add(property.Name, obj);
@@ -262,19 +265,6 @@ public static partial class Extensions
 		}
 
 		return list[0];
-	}
-}
-
-internal class ReferenceEqualityComparer : EqualityComparer<object>
-{
-	public override bool Equals(object x, object y)
-	{
-		return ReferenceEquals(x, y);
-	}
-
-	public override int GetHashCode(object obj)
-	{
-		return obj is null ? 0 : obj.GetHashCode();
 	}
 }
 

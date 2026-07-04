@@ -1,4 +1,4 @@
-﻿namespace Middleware.FlowAnalyze
+namespace Middleware.FlowAnalyze
 {
 	/// <summary>
 	/// 流量类型
@@ -13,6 +13,6 @@
 		/// <summary>
 		/// 写入
 		/// </summary>
-		Wirte
+		Write
 	}
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
@@ -44,6 +44,7 @@ public abstract class AbstractSyncData
     protected static string GetTableName<T>() where T : class, new()
     {
         var table = typeof(T).GetCustomAttributes(typeof(TableAttribute), false).FirstOrDefault() as TableAttribute;
+        if (table is null) return string.Empty;
         return table.Name;
     }
 
@@ -82,6 +83,7 @@ public abstract class AbstractSyncData
     ) where T : class, new()
     {
         var table = typeof(T).GetCustomAttributes(typeof(TableAttribute), false).FirstOrDefault() as TableAttribute;
+        if (table is null) return;
         var tableName = table.Name;
 
         try
@@ -193,7 +195,8 @@ public abstract class AbstractSyncData
             {
                 foreach (var dbData in dbDataList)
                 {
-                    var data = dataList.Where(a => a.Id == dbData.Id).First();
+                    var data = dataList.Where(a => a.Id == dbData.Id).FirstOrDefault();
+                    if (data == null) continue;
                     data.Adapt(dbData);
                 }
 
@@ -206,7 +209,7 @@ public abstract class AbstractSyncData
         {
             var msg = $"table: {tableName} sync data failed.\n{ex.Message}";
             Console.WriteLine(msg);
-            throw new Exception(msg);
+            throw new Exception(msg, ex);
         }
     }
 }

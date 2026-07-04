@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Framework.Repository.Attributes;
 
@@ -6,6 +6,6 @@ namespace Framework.Repository.Attributes;
 /// 不生成特性
 /// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
-public class NotGenAttribute : Attribute
+public sealed class NotGenAttribute : Attribute
 {
 }

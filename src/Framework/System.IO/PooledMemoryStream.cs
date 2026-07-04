@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ public sealed class PooledMemoryStream : Stream, IEnumerable<byte>
 	/// </summary>
 	~PooledMemoryStream()
 	{
-		Dispose(true);
+		Dispose(false);
 	}
 
 	private const float OverExpansionFactor = 2;
@@ -275,7 +275,7 @@ public sealed class PooledMemoryStream : Stream, IEnumerable<byte>
 		var newData = _pool.Rent(newCapacity);
 		if (_data != null)
 		{
-			Array.Copy(_data, 0, newData, 0, Position);
+			Array.Copy(_data, 0, newData, 0, _length);
 			_pool.Return(_data);
 		}
 

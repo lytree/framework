@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,6 +19,8 @@ public static partial class Helper
     /// </summary>
     public static readonly DateTime TimestampStart = new(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
+    private static readonly TimeZoneInfo ShanghaiTz = TimeZoneInfo.FindSystemTimeZoneById("Asia/Shanghai");
+
     /// <summary>
     /// 时间戳转换为DateTime 时区+8（Asia/Shanghai）
     /// </summary>
@@ -27,9 +29,7 @@ public static partial class Helper
     public static DateTime ToDateTime(long timeStamp)
     {
         DateTimeOffset utcDateTime = DateTimeOffset.FromUnixTimeMilliseconds(timeStamp);
-        var chTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Shanghai");
-
-        return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime.UtcDateTime, chTimeZone); // 当地时区
+        return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime.UtcDateTime, ShanghaiTz); // 当地时区
     }
     /// <summary>
     /// 获取某一年有多少周
@@ -155,53 +155,49 @@ public static partial class Helper
     /// </summary>
     /// <param name="dt"></param>
     /// <returns></returns>
-    public static long GetTotalSeconds(this in DateTime dt) => new DateTimeOffset(dt).UtcDateTime.Ticks / 10_000_000L - 62135596800L;
+    public static long GetTotalSeconds(this in DateTime dt) => new DateTimeOffset(dt).ToUnixTimeSeconds();
 
     /// <summary>
     /// 获取该时间相对于1970-01-01T00:00:00Z的毫秒数
     /// </summary>
     /// <param name="dt"></param>
     /// <returns></returns>
-    public static long GetTotalMilliseconds(this in DateTime dt) => new DateTimeOffset(dt).UtcDateTime.Ticks / 10000L - 62135596800000L;
+    public static long GetTotalMilliseconds(this in DateTime dt) => new DateTimeOffset(dt).ToUnixTimeMilliseconds();
 
     /// <summary>
     /// 获取该时间相对于1970-01-01T00:00:00Z的微秒时间戳
     /// </summary>
     /// <param name="dt"></param>
     /// <returns></returns>
-    public static long GetTotalMicroseconds(this in DateTime dt) => (new DateTimeOffset(dt).UtcTicks - 621355968000000000) / 10;
+    public static long GetTotalMicroseconds(this in DateTime dt) => (new DateTimeOffset(dt).UtcTicks - DateTimeOffset.UnixEpoch.Ticks) / 10;
 
     /// <summary>
     /// 获取该时间相对于1970-01-01T00:00:00Z的纳秒时间戳
     /// </summary>
     /// <param name="dt"></param>
     /// <returns></returns>
-    public static long GetTotalNanoseconds(this in DateTime dt)
-    {
-        var ticks = (new DateTimeOffset(dt).UtcTicks - 621355968000000000) * 100;
-        return ticks + Stopwatch.GetTimestamp() % 100;
-    }
+    public static long GetTotalNanoseconds(this in DateTime dt) => (new DateTimeOffset(dt).UtcTicks - DateTimeOffset.UnixEpoch.Ticks) * 100;
 
     /// <summary>
     /// 获取该时间相对于1970-01-01T00:00:00Z的分钟数
     /// </summary>
     /// <param name="dt"></param>
     /// <returns></returns>
-    public static double GetTotalMinutes(this in DateTime dt) => new DateTimeOffset(dt).Offset.TotalMinutes;
+    public static double GetTotalMinutes(this in DateTime dt) => new DateTimeOffset(dt).ToUnixTimeSeconds() / 60.0;
 
     /// <summary>
     /// 获取该时间相对于1970-01-01T00:00:00Z的小时数
     /// </summary>
     /// <param name="dt"></param>
     /// <returns></returns>
-    public static double GetTotalHours(this in DateTime dt) => new DateTimeOffset(dt).Offset.TotalHours;
+    public static double GetTotalHours(this in DateTime dt) => new DateTimeOffset(dt).ToUnixTimeSeconds() / 3600.0;
 
     /// <summary>
     /// 获取该时间相对于1970-01-01T00:00:00Z的天数
     /// </summary>
     /// <param name="dt"></param>
     /// <returns></returns>
-    public static double GetTotalDays(this in DateTime dt) => new DateTimeOffset(dt).Offset.TotalDays;
+    public static double GetTotalDays(this in DateTime dt) => new DateTimeOffset(dt).ToUnixTimeSeconds() / 86400.0;
 
     /// <summary>本年有多少天</summary>
     /// <param name="dt">日期</param>

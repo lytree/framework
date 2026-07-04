@@ -6,7 +6,7 @@ using ZLogger.Formatters;
 
 namespace Framework.ZLogging;
 
-public class ZLoggerSpectreConsoleOptions
+public sealed class ZLoggerSpectreConsoleOptions
 {
     public string TimeFormat { get; set; } = "yyyy-MM-dd HH:mm:ss";
 

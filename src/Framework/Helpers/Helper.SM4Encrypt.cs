@@ -1,4 +1,4 @@
-﻿using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Paddings;
@@ -110,10 +110,9 @@ public static partial class Helper
 
 		byte[] decryptedData = new byte[cipherMode.GetOutputSize(cipherTextData.Length)];
 		int length2 = cipherMode.ProcessBytes(cipherTextData, 0, cipherTextData.Length, decryptedData, 0);
-		cipherMode.DoFinal(decryptedData, length2);
+		int finalLen2 = cipherMode.DoFinal(decryptedData, length2);
 
-		// 打印解密后的明文  
-		string decryptedMsg = Encoding.UTF8.GetString(decryptedData);
+		string decryptedMsg = Encoding.UTF8.GetString(decryptedData, 0, length2 + finalLen2);
 		return decryptedMsg;
 	}
 
@@ -232,10 +231,9 @@ public static partial class Helper
 		{
 			// 执行解密操作  
 			int length1 = cipherMode.ProcessBytes(cipherTextData, 0, cipherTextData.Length, decryptedData, 0);
-			cipherMode.DoFinal(decryptedData, length1);
+			int finalLen1 = cipherMode.DoFinal(decryptedData, length1);
 
-			// 转换解密后的字节数组为字符串  
-			string decryptedMsg = Encoding.UTF8.GetString(decryptedData);
+			string decryptedMsg = Encoding.UTF8.GetString(decryptedData, 0, length1 + finalLen1);
 			return decryptedMsg;
 		}
 		catch (Exception ex)

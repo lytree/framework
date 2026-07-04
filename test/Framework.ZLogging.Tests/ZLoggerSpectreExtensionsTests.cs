@@ -26,10 +26,11 @@ public class ZLoggerSpectreExtensionsTests
     public void AddZLoggerSpectreConsoleAndFile_WithFilePath_ConfiguresSuccessfully()
     {
         var filePath = Path.Combine(Path.GetTempPath(), "test1.log");
+        ILoggerFactory loggerFactory = null;
 
         try
         {
-            var loggerFactory = LoggerFactory.Create(builder =>
+            loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder.AddZLoggerSpectreConsoleAndFile(filePath);
             });
@@ -39,7 +40,15 @@ public class ZLoggerSpectreExtensionsTests
         }
         finally
         {
-            
+            loggerFactory?.Dispose();
+            try
+            {
+                if (File.Exists(filePath)) File.Delete(filePath);
+            }
+            catch (IOException)
+            {
+                // 文件可能仍被进程占用，忽略清理失败
+            }
         }
     }
 

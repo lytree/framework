@@ -1,4 +1,4 @@
-﻿using FreeSql;
+using FreeSql;
 using System;
 using System.Data;
 
@@ -8,7 +8,7 @@ namespace Framework.Repository.Attributes;
 /// 启用事务
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, Inherited = true)]
-public class TransactionAttribute : Attribute
+public sealed class TransactionAttribute : Attribute
 {
     /// <summary>
     /// 事务传播方式

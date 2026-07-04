@@ -1,4 +1,4 @@
-﻿
+
 using Framework.AspNetCore.Application;
 using Microsoft.AspNetCore.Connections;
 using Middleware.Telnet.Middleware;
@@ -28,7 +28,7 @@ namespace Middleware.Telnet
 		{
 			application = new ApplicationBuilder<TelnetContext>(appServices)
 				.Use<EmptyMiddleware>()
-				.Use<ByeMiddlware>()
+				.Use<ByeMiddleware>()
 				.Use<EchoMiddleware>()
 				.Build();
 		}

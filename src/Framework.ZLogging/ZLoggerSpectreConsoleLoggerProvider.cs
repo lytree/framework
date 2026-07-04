@@ -8,7 +8,7 @@ using ZLogger.Formatters;
 
 namespace Framework.ZLogging;
 
-public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
+public sealed class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
 {
     readonly ZLoggerSpectreConsoleOptions options;
     readonly IZLoggerFormatter formatter;
@@ -112,8 +112,7 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
                         AppendExceptionLines(plainTextBuilder, entry.LogInfo.Exception);
                     }
 
-                    plainTextBuilder.AppendLine();
-                    fileWriter.Write(plainTextBuilder);
+                    await fileWriter.WriteLineAsync(plainTextBuilder.ToString());
                 }
             }
             catch (Exception ex)
@@ -209,7 +208,7 @@ public class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDisposable
     }
 }
 
-public class ZLoggerSpectreConsoleLoggerProvider : ILoggerProvider, IAsyncDisposable
+public sealed class ZLoggerSpectreConsoleLoggerProvider : ILoggerProvider, IAsyncDisposable
 {
     readonly ZLoggerSpectreConsoleOptions options;
     readonly SpectreConsoleLogProcessor processor;
@@ -226,12 +225,12 @@ public class ZLoggerSpectreConsoleLoggerProvider : ILoggerProvider, IAsyncDispos
         {
             IncludeScopes = options.IncludeScopes,
             TimeProvider = options.TimeProvider
-        }, options.IncludeScopes ? null : null);
+        }, null);
     }
 
     public void Dispose()
     {
-        processor.DisposeAsync().AsTask().Wait();
+        Task.Run(() => processor.DisposeAsync()).Wait(TimeSpan.FromSeconds(5));
     }
 
     public async ValueTask DisposeAsync()

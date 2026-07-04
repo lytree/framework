@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,25 +46,25 @@ namespace Middleware.FlowAnalyze
 
 		public override void Write(byte[] buffer, int offset, int count)
 		{
-			flowAnalyzer.OnFlow(FlowType.Wirte, count);
+			flowAnalyzer.OnFlow(FlowType.Write, count);
 			base.Write(buffer, offset, count);
 		}
 
 		public override void Write(ReadOnlySpan<byte> source)
 		{
-			flowAnalyzer.OnFlow(FlowType.Wirte, source.Length);
+			flowAnalyzer.OnFlow(FlowType.Write, source.Length);
 			base.Write(source);
 		}
 
 		public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
 		{
-			flowAnalyzer.OnFlow(FlowType.Wirte, count);
+			flowAnalyzer.OnFlow(FlowType.Write, count);
 			return base.WriteAsync(buffer, offset, count, cancellationToken);
 		}
 
 		public override ValueTask WriteAsync(ReadOnlyMemory<byte> source, CancellationToken cancellationToken = default)
 		{
-			flowAnalyzer.OnFlow(FlowType.Wirte, source.Length);
+			flowAnalyzer.OnFlow(FlowType.Write, source.Length);
 			return base.WriteAsync(source, cancellationToken);
 		}
 	}

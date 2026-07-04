@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Framework.AspNetCore.Mvc;
 
-public class ApiException : Exception
+public sealed class ApiException : Exception
 {
 
 	public string ApiMessage { get; set; }

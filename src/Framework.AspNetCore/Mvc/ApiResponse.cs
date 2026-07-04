@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Text.Json.Serialization;
 
-namespace Framework.AspNetCore.AspNetCore.Mvc;
+namespace Framework.AspNetCore.Mvc;
 
-public class ApiResponse<T> : IApiResponse<T>
+public sealed class ApiResponse<T> : IApiResponse<T>
 {
     public int StatusCode { get; set; } = 200;
 
@@ -51,12 +51,12 @@ public static partial class ApiResponse
             Data = data
         };
     }
-    public static ApiResponse<object> Fail(string code="9999", string message = "Fail")
+    public static ApiResponse<object> Fail(string code="9999", string message = "Fail", int statusCode = 500)
     {
         return new ApiResponse<object>
         {
-            StatusCode = 200,
-            Success = true,
+            StatusCode = statusCode,
+            Success = false,
             Code = code,
             Message = message
         };
