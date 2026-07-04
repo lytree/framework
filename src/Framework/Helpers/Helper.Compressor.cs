@@ -1,4 +1,4 @@
-﻿using SharpCompress.Archives;
+using SharpCompress.Archives;
 using SharpCompress.Common;
 using SharpCompress.Readers;
 using SharpCompress.Writers;
@@ -131,7 +131,7 @@ public static partial class Helper
 			dir = Path.GetDirectoryName(compressedFile);
 		}
 
-		ArchiveFactory.WriteToDirectory(compressedFile, Directory.CreateDirectory(dir).FullName, new ReaderOptions()
+		ArchiveFactory.WriteToDirectory(compressedFile, Directory.CreateDirectory(dir).FullName, new ExtractionOptions()
 		{
 			ExtractFullPath = true,
 			Overwrite = true
