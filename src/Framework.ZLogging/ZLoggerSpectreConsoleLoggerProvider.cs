@@ -17,7 +17,7 @@ public sealed class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDispo
     readonly IAnsiConsole console;
     readonly StreamWriter? fileWriter;
     readonly PeriodicTimer? flushTimer;
-    readonly Task flushLoop;
+    readonly Task? flushLoop;
     readonly ArrayPoolBufferWriter<byte> bufferWriter;
     readonly StringBuilder plainTextBuilder;
     int disposed;
@@ -63,28 +63,36 @@ public sealed class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDispo
 
     public void Post(IZLoggerEntry log)
     {
-        channel.Writer.TryWrite(log);
+        // Dispose 后直接归还 entry，避免 byte[] buffer 泄漏到 GC
+        if (disposed == 1 || !channel.Writer.TryWrite(log))
+        {
+            log.Return();
+        }
     }
 
     async Task FlushLoop()
     {
         try
         {
-            while (await flushTimer!.WaitForNextTickAsync())
+            while (await flushTimer!.WaitForNextTickAsync().ConfigureAwait(false))
             {
                 try
                 {
-                    await fileWriter!.FlushAsync();
+                    await fileWriter!.FlushAsync().ConfigureAwait(false);
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    options.InternalErrorLogger?.Invoke(ex);
+                }
             }
         }
+        catch (OperationCanceledException) { }
         catch (ObjectDisposedException) { }
     }
 
     async Task WriteLoop()
     {
-        await foreach (var entry in channel.Reader.ReadAllAsync())
+        await foreach (var entry in channel.Reader.ReadAllAsync().ConfigureAwait(false))
         {
             try
             {
@@ -92,32 +100,39 @@ public sealed class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDispo
                 formatter.FormatLogEntry(bufferWriter, entry);
                 var formatted = Encoding.UTF8.GetString(bufferWriter.WrittenSpan);
 
-                console.Markup(formatted);
+                var hasException = entry.LogInfo.Exception != null;
 
-                if (entry.LogInfo.Exception != null)
+                // 合并 Markup + WriteLine 为 MarkupLine，减少一次 AnsiConsole 调用
+                // 保持原输出行为：无异常时 formatted 行；有异常时 formatted 行 + 异常多行 + 空行
+                console.MarkupLine(formatted);
+
+                if (hasException)
                 {
-                    console.WriteLine();
                     RenderException(entry.LogInfo);
+                    console.WriteLine();
                 }
-
-                console.WriteLine();
 
                 if (fileWriter != null)
                 {
                     plainTextBuilder.Clear();
                     plainTextBuilder.Append(Markup.Remove(formatted));
 
-                    if (entry.LogInfo.Exception != null)
+                    if (hasException)
                     {
-                        AppendExceptionLines(plainTextBuilder, entry.LogInfo.Exception);
+                        AppendException(plainTextBuilder, entry.LogInfo.Exception!);
                     }
 
-                    await fileWriter.WriteLineAsync(plainTextBuilder.ToString());
+                    await fileWriter.WriteLineAsync(plainTextBuilder.ToString()).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
             {
                 options.InternalErrorLogger?.Invoke(ex);
+            }
+            finally
+            {
+                // 归还 entry 内部 byte[] buffer 到 ArrayPool，避免 GC 压力
+                entry.Return();
             }
         }
     }
@@ -130,21 +145,61 @@ public sealed class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDispo
             return;
         }
 
-        var lines = GetExceptionLines(info.Exception!);
-        foreach (var line in lines)
+        // 复用 plainTextBuilder（WriteLoop 单线程消费，无并发；文件写入路径会 Clear）
+        plainTextBuilder.Clear();
+        AppendException(plainTextBuilder, info.Exception!);
+        var text = plainTextBuilder.ToString();
+        foreach (var line in text.Split('\n'))
         {
-            console.Markup($"{EscapeMarkup(line)}");
+            console.MarkupLine(EscapeMarkup(line.TrimEnd('\r')));
         }
     }
 
+    /// <summary>
+    /// 转义 Spectre.Console Markup 中的 <c>[</c> / <c>]</c> 字符。
+    /// 仅当字符串包含需转义字符时才分配新字符串；无转义字符时返回原字符串。
+    /// </summary>
     static string EscapeMarkup(string text)
     {
-        return text.Replace("[", "[[").Replace("]", "]]");
+        if (text.Length == 0) return text;
+
+        int escapeCount = 0;
+        foreach (var c in text)
+        {
+            if (c == '[' || c == ']') escapeCount++;
+        }
+
+        if (escapeCount == 0) return text;
+
+        return string.Create(text.Length + escapeCount, text, static (span, src) =>
+        {
+            int i = 0;
+            foreach (var c in src)
+            {
+                if (c == '[')
+                {
+                    span[i++] = '[';
+                    span[i++] = '[';
+                }
+                else if (c == ']')
+                {
+                    span[i++] = ']';
+                    span[i++] = ']';
+                }
+                else
+                {
+                    span[i++] = c;
+                }
+            }
+        });
     }
 
-    static void AppendExceptionLines(StringBuilder sb, Exception ex)
+    /// <summary>
+    /// 将异常信息（类型名、消息、内部异常链、堆栈）追加到 <paramref name="sb"/>。
+    /// 控制台渲染与文件写入共用此实现，避免逻辑重复。
+    /// </summary>
+    static void AppendException(StringBuilder sb, Exception ex)
     {
-        sb.AppendLine();
         sb.Append(ex.GetType().FullName);
         sb.Append(": ");
         sb.Append(ex.Message);
@@ -152,7 +207,7 @@ public sealed class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDispo
         if (ex.InnerException != null)
         {
             sb.Append(" ---> ");
-            AppendExceptionLines(sb, ex.InnerException);
+            AppendException(sb, ex.InnerException);
             sb.AppendLine();
             sb.Append("   --- End of inner exception stack trace ---");
         }
@@ -164,44 +219,39 @@ public sealed class SpectreConsoleLogProcessor : IAsyncLogProcessor, IAsyncDispo
         }
     }
 
-    List<string> GetExceptionLines(Exception ex)
-    {
-        var lines = new List<string>();
-        lines.Add($"{ex.GetType().FullName}: {ex.Message}");
-
-        if (ex.InnerException != null)
-        {
-            lines.Add(" ---> ");
-            lines.AddRange(GetExceptionLines(ex.InnerException));
-            lines.Add("   --- End of inner exception stack trace ---");
-        }
-
-        if (ex.StackTrace != null)
-        {
-            lines.Add(ex.StackTrace);
-        }
-
-        return lines;
-    }
-
     public async ValueTask DisposeAsync()
     {
         if (Interlocked.Exchange(ref disposed, 1) == 1) return;
 
         channel.Writer.Complete();
-        await writeLoop;
+        try
+        {
+            await writeLoop.ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            options.InternalErrorLogger?.Invoke(ex);
+        }
 
         flushTimer?.Dispose();
 
         if (flushLoop != null)
         {
-            try { await flushLoop; } catch { }
+            try { await flushLoop.ConfigureAwait(false); }
+            catch (Exception ex) { options.InternalErrorLogger?.Invoke(ex); }
         }
 
         if (fileWriter != null)
         {
-            await fileWriter.FlushAsync();
-            await fileWriter.DisposeAsync();
+            try
+            {
+                await fileWriter.FlushAsync().ConfigureAwait(false);
+                await fileWriter.DisposeAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                options.InternalErrorLogger?.Invoke(ex);
+            }
         }
 
         bufferWriter.Dispose();
@@ -230,11 +280,18 @@ public sealed class ZLoggerSpectreConsoleLoggerProvider : ILoggerProvider, IAsyn
 
     public void Dispose()
     {
-        Task.Run(() => processor.DisposeAsync()).Wait(TimeSpan.FromSeconds(5));
+        // 同步 Dispose 不能长时间阻塞；fire-and-forget 并观察异常，避免未观察异常导致进程崩溃
+        var t = processor.DisposeAsync().AsTask();
+        if (!t.Wait(TimeSpan.FromSeconds(5)))
+        {
+            _ = t.ContinueWith(
+                x => options.InternalErrorLogger?.Invoke(x.Exception),
+                TaskContinuationOptions.OnlyOnFaulted);
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
-        await processor.DisposeAsync();
+        await processor.DisposeAsync().ConfigureAwait(false);
     }
 }

@@ -133,9 +133,9 @@ public static partial class ZLoggerSpectreOutputExtensions
     {
         var s = new Status(AnsiConsole.Console);
         configure?.Invoke(s);
-        StatusContext ctx = null;
+        StatusContext? ctx = null;
         s.Start(status, c => ctx = c);
-        return ctx;
+        return ctx!;
     }
 
     public static T Ask<T>(this ILogger logger, string prompt, T defaultValue = default)
