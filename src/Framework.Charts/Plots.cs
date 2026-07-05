@@ -1,10 +1,8 @@
 using System;
-using ScottPlot;
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
+using ScottPlot;
 using ScottPlot.TickGenerators;
 using Framework.Charts.TickGenerators;
 using SkiaSharp;
@@ -13,26 +11,50 @@ namespace Framework.Charts;
 
 public static partial class Plots
 {
-    #region Avalonia 加载字体
+    #region 字体与默认样式
 
-    private static readonly FrozenSet<string> linuxFonts = new[] { "SimSun", "SimKai", "DejaVu Sans", "Liberation Sans", "Noto Sans", "FreeSans" }.ToFrozenSet();
-    private static readonly string SafeFont = GetSafeFontInternal();
-    static readonly ScottPlot.Color defaultColor = new(System.Drawing.Color.FromArgb(61, 119, 255));
+    private static readonly FrozenSet<string> PreferredFonts = new[]
+    {
+        "SimSun", "SimKai", "DejaVu Sans", "Liberation Sans", "Noto Sans", "FreeSans"
+    }.ToFrozenSet();
+
+    private static readonly string SafeFont = ResolveSafeFont();
+
+    private static readonly ScottPlot.Color DefaultColor = new(System.Drawing.Color.FromArgb(61, 119, 255));
 
     public static string GetSafeFont() => SafeFont;
 
-    private static string GetSafeFontInternal()
+    private static string ResolveSafeFont()
     {
         var installed = SKFontManager.Default.GetFontFamilies();
 
-        // 优先搜索 Linux 常用开源字体
-        foreach (var font in linuxFonts)
+        foreach (var font in PreferredFonts)
         {
             if (installed.Contains(font)) return font;
         }
 
-        // 如果都没有，返回第一个可用的字体
         return installed.Length > 0 ? installed[0] : "sans-serif";
+    }
+
+    /// <summary>
+    /// 创建一个应用了默认字体、坐标轴边距与刻度样式的 <see cref="Plot"/> 实例。
+    /// 调用方负责释放返回实例（建议使用 using 语句）。
+    /// </summary>
+    /// <param name="title">可选标题。为 null 或空则不设置标题。</param>
+    private static Plot CreateDefaultPlot(string? title = null)
+    {
+        var plt = new Plot();
+        plt.Font.Automatic();
+        plt.Font.Set(SafeFont);
+        if (!string.IsNullOrEmpty(title))
+        {
+            plt.Title(title, size: 20);
+        }
+        plt.Axes.Margins(0.02, 0.02);
+        plt.Axes.Bottom.TickLabelStyle = DefaultLabelStyle;
+        plt.Axes.Left.TickLabelStyle = DefaultLabelStyle;
+        plt.Axes.Left.TickGenerator = DefaultNumberFormat;
+        return plt;
     }
     #endregion
 
@@ -40,69 +62,68 @@ public static partial class Plots
     /// 时序图
     /// </summary>
     /// <param name="datas"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
     /// <returns></returns>
-    public static byte[] SequenceChartLine(List<(List<DateTime>, List<double>, string)> datas, int width = 2250, int height = 350)
+    public static byte[] SequenceChartLine(List<(List<DateTime> Dates, List<double> Values, string Label)> datas, int width = 2250, int height = 350)
     {
-        Plot plt = new();
-        plt.Font.Automatic();
-        plt.Font.Set(GetSafeFont());
-        plt.Axes.Margins(0.02, 0.02);
-        plt.Axes.Bottom.TickLabelStyle = defaultLabelStyle;
-        plt.Axes.Bottom.TickGenerator = defaultTimeFormat;
-        plt.Axes.Left.TickLabelStyle = defaultLabelStyle;
-        plt.Axes.Left.TickGenerator = defaultNumberFormat;
+        ArgumentNullException.ThrowIfNull(datas);
+
+        using var plt = CreateDefaultPlot();
+        plt.Axes.Bottom.TickGenerator = DefaultTimeFormat;
+
         foreach (var data in datas)
         {
-            var scatter = plt.Add.SignalXY([.. data.Item1.Select(d => d.ToOADate())], [.. data.Item2]);
-            scatter.LegendText = data.Item3;
+            var xs = data.Dates.Select(d => d.ToOADate()).ToArray();
+            var scatter = plt.Add.SignalXY(xs, [.. data.Values]);
+            scatter.LegendText = data.Label;
             scatter.MarkerShape = MarkerShape.None;
-
         }
         return plt.GetImageBytes(width, height, ImageFormat.Png);
     }
+
     /// <summary>
     /// 趋势图
     /// </summary>
     /// <param name="datas"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
     /// <returns></returns>
-    public static byte[] TrendChartLine(List<(List<double>, List<double>, string)> datas, int width = 2250, int height = 350)
+    public static byte[] TrendChartLine(List<(List<double> X, List<double> Y, string Label)> datas, int width = 2250, int height = 350)
     {
-        Plot plt = new();
-        plt.Font.Automatic();
-        plt.Font.Set(GetSafeFont());
-        plt.Axes.Margins(0.02, 0.02);
-        plt.Axes.Bottom.TickLabelStyle = defaultLabelStyle;
-        plt.Axes.Bottom.TickGenerator = defaultTimeFormat;
-        plt.Axes.Left.TickLabelStyle = defaultLabelStyle;
-        plt.Axes.Left.TickGenerator = defaultNumberFormat;
+        ArgumentNullException.ThrowIfNull(datas);
+
+        using var plt = CreateDefaultPlot();
+        plt.Axes.Bottom.TickGenerator = DefaultTimeFormat;
+
         foreach (var data in datas)
         {
-            var scatter = plt.Add.SignalXY([.. data.Item1], [.. data.Item2]);
-            scatter.LegendText = data.Item3;
+            var scatter = plt.Add.SignalXY([.. data.X], [.. data.Y]);
+            scatter.LegendText = data.Label;
             scatter.MarkerShape = MarkerShape.None;
         }
         return plt.GetImageBytes(width, height, ImageFormat.Png);
     }
+
     /// <summary>
     /// 频谱图
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
     /// <returns></returns>
     public static byte[] SpectrumChart(List<double> x, List<double> y, int width = 2250, int height = 350)
     {
-        Plot plt = new();
-        plt.Font.Automatic();
-        plt.Font.Set(GetSafeFont());
+        ArgumentNullException.ThrowIfNull(x);
+        ArgumentNullException.ThrowIfNull(y);
+
+        using var plt = CreateDefaultPlot();
         plt.Axes.Left.Min = 0;
         plt.Axes.Left.Max = y.Max() * 1.1;
-        plt.Axes.Margins(0.02, 0.02);
-        plt.Axes.Bottom.TickLabelStyle = defaultLabelStyle;
         plt.Axes.Bottom.TickGenerator = new FixedNumericManual(10, 0, x.Max() * 1.1);
-        plt.Axes.Left.TickLabelStyle = defaultLabelStyle;
-        plt.Axes.Left.TickGenerator = defaultNumberFormat;
 
-        var scatter = plt.Add.SignalXY([.. x], [.. y], color: defaultColor);
+        var scatter = plt.Add.SignalXY([.. x], [.. y], color: DefaultColor);
         scatter.MarkerShape = MarkerShape.None;
         return plt.GetImageBytes(width, height, ImageFormat.Png);
     }
@@ -112,42 +133,30 @@ public static partial class Plots
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
     /// <returns></returns>
     public static byte[] WaveformChart(List<double> x, List<double> y, int width = 2250, int height = 350)
-    {
-        Plot plt = new();
-        plt.Font.Automatic();
-        plt.Font.Set(GetSafeFont());
+        => WaveformChart(x, y, title: null, width, height);
 
-        plt.Axes.Margins(0.02, 0.02);
-        plt.Axes.Bottom.TickLabelStyle = defaultLabelStyle;
-        plt.Axes.Bottom.TickGenerator = new FixedNumericManual(10, 0, x.Max() * 1.1);
-        plt.Axes.Left.TickLabelStyle = defaultLabelStyle;
-        plt.Axes.Left.TickGenerator = defaultNumberFormat;
-        var scatter = plt.Add.SignalXY([.. x], [.. y], color: defaultColor);
-        scatter.MarkerShape = MarkerShape.None;
-        return plt.GetImageBytes(width, height, ImageFormat.Png);
-    }
     /// <summary>
-    /// 波形图
+    /// 波形图（带标题）
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
+    /// <param name="title"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
     /// <returns></returns>
-    public static byte[] WaveformChart(List<double> x, List<double> y, string title, int width = 2250, int height = 350)
+    public static byte[] WaveformChart(List<double> x, List<double> y, string? title, int width = 2250, int height = 350)
     {
-        Plot plt = new();
-        plt.Font.Automatic();
-        plt.Font.Set(GetSafeFont());
-        plt.Title(title, size: 20);
-        plt.Axes.Margins(0.02, 0.02);
-        plt.Axes.Bottom.TickLabelStyle = defaultLabelStyle;
+        ArgumentNullException.ThrowIfNull(x);
+        ArgumentNullException.ThrowIfNull(y);
+
+        using var plt = CreateDefaultPlot(title);
         plt.Axes.Bottom.TickGenerator = new FixedNumericManual(10, 0, x.Max() * 1.1);
-        plt.Axes.Left.TickLabelStyle = defaultLabelStyle;
-        plt.Axes.Left.TickGenerator = defaultNumberFormat;
 
-
-        var scatter = plt.Add.SignalXY([.. x], [.. y], color: defaultColor);
+        var scatter = plt.Add.SignalXY([.. x], [.. y], color: DefaultColor);
         scatter.MarkerShape = MarkerShape.None;
         return plt.GetImageBytes(width, height, ImageFormat.Png);
     }
