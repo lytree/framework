@@ -5,6 +5,7 @@
 - Default task chain: Clean → Restore → Compile → Pack (Push on tag push)
 - Output packages to `./nugets/`
 - Version via GitVersion (semantic versioning, tag prefix `[vV]`)
+- .NET SDK pinned via `global.json` to `10.0.400` (`rollForward=latestFeature`)
 
 ## Developer Commands
 ```bash
@@ -14,11 +15,11 @@ dotnet build Framework.slnx
 # Build and pack all packages
 dotnet run build/Build.cs
 
-# Run all tests (TUnit, targets net8.0)
+# Run all tests (TUnit, targets net10.0)
 dotnet test
 
-# Run tests for a single project
-dotnet test test/Framework.Tests/Framework.Tests.csproj
+# Run tests for a single project (MTP runner via global.json)
+dotnet test test/Framework.ZLogging.Tests/Framework.ZLogging.Tests.csproj
 
 # Pack specific project
 dotnet pack src/Framework/Framework.csproj
@@ -28,7 +29,7 @@ dotnet pack src/Framework/Framework.csproj
 - **Monorepo**: 10 src packages under `src/`, 1 test project under `test/`
 - **Solution file**: `Framework.slnx` (not .sln)
 - **Central package management**: `packages/` submodule imports `Directory.Packages.*.props`
-- **Target frameworks**: `$(NetCore)` = `net8.0;net10.0` (defined in `packages/Directory.Packages.All.props`)
+- **Target frameworks**: `$(NetCore)` = `net10.0` (defined in `packages/Directory.Packages.All.props`)
 - **Package prefix**: `YLFramework.*` (e.g., `YLFramework.AspNetCore`, `YLFramework.Repository`)
 
 ## Key Packages
@@ -44,6 +45,10 @@ dotnet pack src/Framework/Framework.csproj
 ## CI / Release
 - Push tag matching `V*.*.*` triggers `build/Build.cs -t Push` which packs and pushes to NuGet
 - GitVersion determines version from git tags/branch
+
+## Testing Platform (MTP)
+- TUnit tests run via Microsoft.Testing.Platform (MTP). `global.json` opts in via `"test": { "runner": "Microsoft.Testing.Platform" }`.
+- On .NET 10 SDK and later, VSTest-based `dotnet test` is no longer supported for MTP projects; the global.json opt-in is required.
 
 ## Code Style
 - Nullable reference types enabled
