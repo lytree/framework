@@ -28,11 +28,17 @@ dotnet test test/Framework.ZLogging.Tests/Framework.ZLogging.Tests.csproj
 dotnet pack src/Framework/Framework.csproj
 ```
 
+## Package Versioning（按项目独立管理）
+- **CPM 已禁用**，每个项目自带 `<ProjectName>.Packages.props`，内联 `Version="..."`。
+- `packages/` 子模块仍存在但**不再**用于包版本管理（保留以备兼容）。
+- 示例：`src/Framework/Framework.Packages.props`、每个 csproj 通过 `<Import Project="..." />` 引入。
+- 升级版本：直接编辑对应 `.Packages.props` 文件即可，无需触碰子模块。
+
 ## Architecture
 - **Monorepo**: 10 src packages under `src/`, 1 test project under `test/`
 - **Solution file**: `Framework.slnx` (not .sln)
-- **Central package management**: `packages/` submodule imports `Directory.Packages.*.props`
-- **Target frameworks**: `$(NetCore)` = `net10.0` (defined in `packages/Directory.Packages.All.props`)
+- **Package versioning**: see "Package Versioning" section above
+- **Target frameworks**: `net10.0` only (defined inline in each csproj)
 - **Package prefix**: `YLFramework.*` (e.g., `YLFramework.AspNetCore`, `YLFramework.Repository`)
 
 ## Key Packages
@@ -81,4 +87,6 @@ TUnit 1.65.0 用法约定：
 - Nullable reference types enabled
 - Many nullable warnings suppressed in `src/Directory.Build.props` (CS8600-8625, etc.)
 - XML doc generation enabled (`GenerateDocumentationFile`)
+
+
 

@@ -1,0 +1,8 @@
+<Project>
+  <ItemGroup>
+    <PackageReference Include="ZLogger" Version="2.5.10" />
+    <PackageReference Include="Spectre.Console" Version="0.57.2" />
+    <PackageReference Include="Spectre.Console.Ansi" Version="0.57.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.11" />
+  </ItemGroup>
+</Project>

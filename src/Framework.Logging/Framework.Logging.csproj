@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="Framework.Logging.Packages.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>$(NetCore)</TargetFrameworks>
+    <TargetFrameworks>net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -12,13 +13,6 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
-
-  <ItemGroup>
-		<PackageReference Include="NLog" />
-		<PackageReference Include="NLog.Extensions.Logging" />
-		<PackageReference Include="NLog.Web.AspNetCore" />
-  </ItemGroup>
-
   <ItemGroup>
     <Resource Include="README.md">
       <PackagePath>\</PackagePath>
@@ -27,3 +21,4 @@
     </Resource>
   </ItemGroup>
 </Project>
+

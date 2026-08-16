@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="Framework.Packages.props" />
+
 	<PropertyGroup>
-		<TargetFrameworks>$(NetCore)</TargetFrameworks>
+		<TargetFrameworks>net10.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -10,25 +12,15 @@
 		<SignAssembly>False</SignAssembly>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>		
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 	</PropertyGroup>
 
-
 	<ItemGroup>
-		<PackageReference Include="BouncyCastle.Cryptography" />
-		<PackageReference Include="SharpCompress" />
-		<PackageReference Include="System.IO.Pipelines" />
-		<PackageReference Include="SkiaSharp" />
-		<PackageReference Include="Spectre.Console" />
-		<PackageReference Include="ZLogger" />
+		<Resource Include="README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Resource>
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Resource Include="README.md">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Resource>
-	</ItemGroup>
-
 </Project>
+

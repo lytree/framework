@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="Framework.AspNetCore.Packages.props" />
 
 	<PropertyGroup>
-		<TargetFrameworks>$(NetCore)</TargetFrameworks>
+		<TargetFrameworks>net10.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -12,23 +13,15 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
-
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 
-
-	<ItemGroup>
-		<PackageReference Include="BouncyCastle.Cryptography" />
-	</ItemGroup>
 	<ItemGroup>
 		<Compile Include="..\Framework\Helpers\Helper.Json.cs" />
 		<Compile Include="..\Framework\System.Text.Json.Serialization\DateTimeJsonConverter.cs" />
 		<Compile Include="..\Framework\System.Text.Json.Serialization\DateTimeOffsetJsonConverter.cs" />
 	</ItemGroup>
-	<!-- <ItemGroup>
-		<ProjectReference Include="..\Framework\Framework.csproj" />
-	</ItemGroup> -->
 
 	<ItemGroup>
 		<Resource Include="README.md">
@@ -38,3 +31,4 @@
 		</Resource>
 	</ItemGroup>
 </Project>
+

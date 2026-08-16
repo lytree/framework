@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="Framework.ZLogging.Tests.Packages.props" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -9,9 +10,6 @@
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="TUnit" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Framework.ZLogging\Framework.ZLogging.csproj" />
   </ItemGroup>
