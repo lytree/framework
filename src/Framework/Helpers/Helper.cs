@@ -1,13 +1,1 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Framework;
-/// <summary>
-/// 帮助类
-/// </summary>
-public static partial class Helper
-{
-}
+// 此文件已删除。Helper 由其它 partial 文件聚合，不再需要空壳入口。

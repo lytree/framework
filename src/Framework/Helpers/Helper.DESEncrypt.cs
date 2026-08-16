@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Framework;
+
 /// <summary>
 /// 加密工具类
 /// </summary>
@@ -22,6 +23,7 @@ public static partial class Helper
     /// <param name="encryptString">加密字符串</param>
     /// <param name="key">秘钥</param>
     /// <returns></returns>
+    [Obsolete("DES 密钥长度仅 56 bit，已被 NIST 废止。请改用 AES（Helper.AESEncrypt）或 SM4（Helper.SM4Encrypt）。")]
     public static string DESEncrypt(string encryptString, string key = "")
     {
         return DESEncrypt(encryptString, key, false, true);
@@ -34,6 +36,7 @@ public static partial class Helper
     /// <param name="decryptString">解密字符串</param>
     /// <param name="key">秘钥</param>
     /// <returns></returns>
+    [Obsolete("DES 密钥长度仅 56 bit，已被 NIST 废止。请改用 AES（Helper.AESDecrypt）或 SM4（Helper.SM4Decrypt）。")]
     public static string? DESDecrypt(string decryptString, string key = "")
     {
         return DESDecrypt(decryptString, key, false);
@@ -47,6 +50,7 @@ public static partial class Helper
     /// <param name="key">秘钥</param>
     /// <param name="lowerCase">是否小写</param>
     /// <returns></returns>
+    [Obsolete("DES 密钥长度仅 56 bit，已被 NIST 废止。请改用 AES 或 SM4。")]
     public static string DESEncrypt4Hex(string encryptString, string key = "", bool lowerCase = false)
     {
         return DESEncrypt(encryptString, key, true, lowerCase);
@@ -59,19 +63,12 @@ public static partial class Helper
     /// <param name="decryptString">解密字符串</param>
     /// <param name="key">秘钥</param>
     /// <returns></returns>
+    [Obsolete("DES 密钥长度仅 56 bit，已被 NIST 废止。请改用 AES 或 SM4。")]
     public static string? DESDecrypt4Hex(string decryptString, string key = "")
     {
         return DESDecrypt(decryptString, key, true);
     }
 
-    /// <summary>
-    /// DES加密
-    /// </summary>
-    /// <param name="encryptString"></param>
-    /// <param name="key"></param>
-    /// <param name="hex"></param>
-    /// <param name="lowerCase"></param>
-    /// <returns></returns>
     private static string DESEncrypt(string encryptString, string key, bool hex, bool lowerCase = false)
     {
         if (encryptString.IsNull())
@@ -103,13 +100,6 @@ public static partial class Helper
         return hex ? Helper.ToHex(bytes, lowerCase) : Helper.ToBase64(bytes);
     }
 
-    /// <summary>
-    /// DES解密
-    /// </summary>
-    /// <param name="decryptString"></param>
-    /// <param name="key"></param>
-    /// <param name="hex"></param>
-    /// <returns></returns>
     private static string? DESDecrypt(string decryptString, string key, bool hex)
     {
         if (decryptString.IsNull())

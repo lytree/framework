@@ -49,6 +49,10 @@ dotnet pack src/Framework/Framework.csproj
 - Push tag matching `V*.*.*` triggers `build/Build.cs -t Push` which packs and pushes to NuGet
 - GitVersion determines version from git tags/branch
 
+## Test Projects
+- `test/Framework.ZLogging.Tests/` — ZLogging 单元测试（TUnit，30+ 用例）
+- `test/Framework.Tests/` — Framework 核心工具测试（TUnit，PooledMemoryStream 等）
+
 ## Testing Platform (MTP)
 - TUnit tests run via Microsoft.Testing.Platform (MTP). `global.json` opts in via `"test": { "runner": "Microsoft.Testing.Platform" }`.
 - On .NET 10 SDK and later, VSTest-based `dotnet test` is no longer supported for MTP projects; the global.json opt-in is required.
@@ -77,3 +81,4 @@ TUnit 1.65.0 用法约定：
 - Nullable reference types enabled
 - Many nullable warnings suppressed in `src/Directory.Build.props` (CS8600-8625, etc.)
 - XML doc generation enabled (`GenerateDocumentationFile`)
+
