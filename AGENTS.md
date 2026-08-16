@@ -21,6 +21,9 @@ dotnet test
 # Run tests for a single project (MTP runner via global.json)
 dotnet test test/Framework.ZLogging.Tests/Framework.ZLogging.Tests.csproj
 
+# Run tests by directly executing the test exe (MTP)
+./test/Framework.ZLogging.Tests/bin/Release/net10.0/Framework.ZLogging.Tests.exe
+
 # Pack specific project
 dotnet pack src/Framework/Framework.csproj
 ```
@@ -49,6 +52,26 @@ dotnet pack src/Framework/Framework.csproj
 ## Testing Platform (MTP)
 - TUnit tests run via Microsoft.Testing.Platform (MTP). `global.json` opts in via `"test": { "runner": "Microsoft.Testing.Platform" }`.
 - On .NET 10 SDK and later, VSTest-based `dotnet test` is no longer supported for MTP projects; the global.json opt-in is required.
+- 测试工程已开启 `TestingPlatformDotnetTestSupport=true`。
+
+## Test Project Structure (`test/Framework.ZLogging.Tests/`)
+按特性拆分（每个目录对应一个职责域）：
+
+| 目录 | 覆盖范围 |
+|------|---------|
+| `Fixtures/` | 共享测试基础设施（`TempDirectory` 等自动清理） |
+| `Options/` | `ZLoggerSpectreConsoleOptions` 默认值 / 自定义 |
+| `Extensions/` | `AddZLoggerSpectreConsole` / `AddZLoggerSpectreConsoleAndFile` |
+| `Lifecycle/` | `ZLoggerSpectreConsoleLoggerProvider` 生命周期（Dispose / DisposeAsync / 幂等） |
+| `FileIO/` | 文件输出（追加 / 覆盖 / 编码 / 目录自动创建 / 空路径禁用） |
+| `ExceptionRendering/` | 异常渲染（嵌套异常 / 自定义格式化器 / Markup 转义） |
+| `Concurrency/` | 并发与销毁竞争 |
+
+TUnit 1.65.0 用法约定：
+- 断言全部 `await Assert.That(...).IsXxx(...)`。
+- 共享 disposable 资源（`TempDirectory`）通过 `[ClassDataSource<TempDirectory>(Shared = SharedType.PerClass)]` 注入。
+- 跨测试需要隔离时使用 `[NotInParallel]`。
+- 文件 I/O 测试需显式 `await provider.DisposeAsync()` 后再读取，避免异步写循环未完成。
 
 ## Code Style
 - Nullable reference types enabled
