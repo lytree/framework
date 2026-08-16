@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="Framework.Charts.Packages.props" />
 
   <PropertyGroup>
     <TargetFrameworks>net10.0</TargetFrameworks>
@@ -15,6 +14,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ScottPlot" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="TickGenerators/" />
   </ItemGroup>
 
@@ -26,4 +29,3 @@
     </Resource>
   </ItemGroup>
 </Project>
-

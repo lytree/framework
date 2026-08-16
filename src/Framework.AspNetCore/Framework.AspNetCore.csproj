@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="Framework.AspNetCore.Packages.props" />
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0</TargetFrameworks>
@@ -15,6 +14,7 @@
 
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+		<PackageReference Include="BouncyCastle.Cryptography" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -31,4 +31,3 @@
 		</Resource>
 	</ItemGroup>
 </Project>
-

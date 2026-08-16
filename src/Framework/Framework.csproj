@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="Framework.Packages.props" />
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0</TargetFrameworks>
@@ -16,6 +15,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="BouncyCastle.Cryptography" />
+		<PackageReference Include="SharpCompress" />
+		<PackageReference Include="System.IO.Pipelines" />
+		<PackageReference Include="SkiaSharp" />
+		<PackageReference Include="Spectre.Console" />
+		<PackageReference Include="ZLogger" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Resource Include="README.md">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
@@ -23,4 +31,3 @@
 		</Resource>
 	</ItemGroup>
 </Project>
-

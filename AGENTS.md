@@ -28,11 +28,12 @@ dotnet test test/Framework.ZLogging.Tests/Framework.ZLogging.Tests.csproj
 dotnet pack src/Framework/Framework.csproj
 ```
 
-## Package Versioning（按项目独立管理）
-- **CPM 已禁用**，每个项目自带 `<ProjectName>.Packages.props`，内联 `Version="..."`。
-- `packages/` 子模块仍存在但**不再**用于包版本管理（保留以备兼容）。
-- 示例：`src/Framework/Framework.Packages.props`、每个 csproj 通过 `<Import Project="..." />` 引入。
-- 升级版本：直接编辑对应 `.Packages.props` 文件即可，无需触碰子模块。
+## Package Versioning（集中式 CPM）
+- **全仓库统一版本控制**：单一文件 `Directory.Packages.props`（仓库根）。
+- 启用 Central Package Management (`ManagePackageVersionsCentrally=true`)：csproj 内 `<PackageReference Include="X" />` 不写版本，统一在根文件声明。
+- 分组按职责注释：Microsoft.Extensions / 系统库 / 加密 / 图形 / 日志 / MVVM / 数据访问 / 反向代理 / 测试。
+- 升级工作流：修改 `Directory.Packages.props` 中对应行即可，所有项目即时生效。
+- `packages/` git 子模块保留但**不再**用于包版本管理。
 
 ## Architecture
 - **Monorepo**: 10 src packages under `src/`, 1 test project under `test/`
@@ -87,6 +88,7 @@ TUnit 1.65.0 用法约定：
 - Nullable reference types enabled
 - Many nullable warnings suppressed in `src/Directory.Build.props` (CS8600-8625, etc.)
 - XML doc generation enabled (`GenerateDocumentationFile`)
+
 
 
 

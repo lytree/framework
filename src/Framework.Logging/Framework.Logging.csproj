@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="Framework.Logging.Packages.props" />
 
   <PropertyGroup>
     <TargetFrameworks>net10.0</TargetFrameworks>
@@ -14,6 +13,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NLog" />
+    <PackageReference Include="NLog.Extensions.Logging" />
+    <PackageReference Include="NLog.Web.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="README.md">
       <PackagePath>\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -21,4 +26,3 @@
     </Resource>
   </ItemGroup>
 </Project>
-

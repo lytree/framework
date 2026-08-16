@@ -1,0 +1,55 @@
+<!--
+全仓库集中包版本控制。修改本文件即可升级所有 NuGet 依赖。
+启用 Central Package Management (CPM)：csproj 内仅写 <PackageReference Include="X" />，
+具体版本统一在本文件声明。
+-->
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ====== Microsoft.Extensions（统一 10.0.11） ====== -->
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.11" />
+
+    <!-- ====== 系统库 ====== -->
+    <PackageVersion Include="System.Text.Json" Version="10.0.11" />
+    <PackageVersion Include="System.IO.Pipelines" Version="10.0.11" />
+
+    <!-- ====== 加密 / 压缩 ====== -->
+    <PackageVersion Include="BouncyCastle.Cryptography" Version="2.7.0" />
+    <PackageVersion Include="SharpCompress" Version="0.49.1" />
+
+    <!-- ====== Spectre.Console / ZLogger ====== -->
+    <PackageVersion Include="Spectre.Console" Version="0.57.2" />
+    <PackageVersion Include="Spectre.Console.Ansi" Version="0.57.2" />
+    <PackageVersion Include="ZLogger" Version="2.5.10" />
+
+    <!-- ====== 图形 ====== -->
+    <PackageVersion Include="SkiaSharp" Version="4.151.1" />
+    <PackageVersion Include="ScottPlot" Version="5.1.59" />
+
+    <!-- ====== 日志 ====== -->
+    <PackageVersion Include="NLog" Version="6.1.4" />
+    <PackageVersion Include="NLog.Extensions.Logging" Version="6.1.4" />
+    <PackageVersion Include="NLog.Web.AspNetCore" Version="6.1.4" />
+
+    <!-- ====== MVVM ====== -->
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+
+    <!-- ====== 数据访问 ====== -->
+    <PackageVersion Include="FreeSql" Version="3.5.311" />
+    <PackageVersion Include="FreeSql.DbContext" Version="3.5.311" />
+    <PackageVersion Include="FreeSql.Repository" Version="3.5.311" />
+    <PackageVersion Include="Mapster" Version="10.0.11" />
+    <PackageVersion Include="Yitter.IdGenerator" Version="1.0.15" />
+
+    <!-- ====== 反向代理 ====== -->
+    <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
+
+    <!-- ====== 测试 ====== -->
+    <PackageVersion Include="TUnit" Version="1.65.0" />
+  </ItemGroup>
+</Project>

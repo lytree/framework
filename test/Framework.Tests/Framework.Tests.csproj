@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="Framework.Tests.Packages.props" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -9,6 +8,10 @@
     <TestingPlatformCaptureOutput>false</TestingPlatformCaptureOutput>
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TUnit" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Framework\Framework.csproj" />

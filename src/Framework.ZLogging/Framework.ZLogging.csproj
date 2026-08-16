@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="Framework.ZLogging.Packages.props" />
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0</TargetFrameworks>
@@ -14,6 +13,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="ZLogger" />
+		<PackageReference Include="Spectre.Console" />
+		<PackageReference Include="Spectre.Console.Ansi" />
+		<PackageReference Include="Microsoft.Extensions.Logging" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Compile Include="..\Framework\System.Buffers\IWrittenBufferWriter.cs" />
 		<Compile Include="..\Framework\System.Buffers\ArrayPoolBufferWriter.cs" />
 	</ItemGroup>
@@ -26,4 +32,3 @@
 		</Resource>
 	</ItemGroup>
 </Project>
-
