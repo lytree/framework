@@ -56,6 +56,30 @@ public sealed class SerialFramingTests
     }
 
     [Test]
+    public async Task Rtu_ParsesFifoQueueResponse()
+    {
+        var (transport, _) = CreateRtu("01 18 00 06 00 02 00 0A 00 0B F5 C7");
+
+        var response = (ReadFifoQueueResponse)transport.Send(new ReadFifoQueueRequest(0x1234));
+
+        await Assert.That(response.FifoCount).IsEqualTo(2);
+        await Assert.That(response.Values[0]).IsEqualTo(10);
+        await Assert.That(response.Values[1]).IsEqualTo(11);
+    }
+
+    [Test]
+    public async Task Rtu_ParsesCommEventLogResponse()
+    {
+        var (transport, _) = CreateRtu("01 0C 08 00 00 00 0A 00 05 00 01 EC 27");
+
+        var response = (GetCommEventLogResponse)transport.Send(new GetCommEventLogRequest());
+
+        await Assert.That(response.EventCount).IsEqualTo(10);
+        await Assert.That(response.MessageCount).IsEqualTo(5);
+        await Assert.That(response.Events.Length).IsEqualTo(2);
+    }
+
+    [Test]
     public async Task Rtu_RejectsBadCrc()
     {
         var (transport, _) = CreateRtu("01 03 04 00 0A 00 0B 9B F7");
@@ -113,7 +137,7 @@ public sealed class SerialFramingTests
 
         var response = (ReadCoilsResponse)transport.Send(new ReadCoilsRequest(0x13, 0x13));
 
-        await Assert.That(response.Coils.Size).IsEqualTo(19);
+        await Assert.That(response.Coils.Size).IsEqualTo(24);
         await Assert.That(response.Coils.GetBit(0)).IsTrue();
     }
 

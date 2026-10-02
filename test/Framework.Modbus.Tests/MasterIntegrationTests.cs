@@ -1,4 +1,5 @@
 using Framework.Modbus.Facade;
+using Framework.Modbus.IO;
 using Framework.Modbus.Messages;
 using Framework.Modbus.Net;
 using Framework.Modbus.ProcessImage;
@@ -146,6 +147,7 @@ public sealed class MasterIntegrationTests
         var values = master.ReadMultipleRegisterValues(0, 1);
 
         await Assert.That(values[0]).IsEqualTo(7);
+        await Assert.That(slave.WaitForRequests(2)).IsTrue();
         await Assert.That(slave.RequestCount).IsEqualTo(2);
     }
 
@@ -154,10 +156,12 @@ public sealed class MasterIntegrationTests
     {
         using var slave = new LoopbackModbusSlave { DropFirstRequests = 5 };
 
-        using var master = CreateMaster(slave, timeout: 100);
+        using var master = CreateMaster(slave, timeout: 150);
         master.Retries = 2;
 
         TestHelpers.ExpectThrows<ModbusIOException>(() => master.ReadMultipleRegisters(0, 1));
+
+        await Assert.That(slave.WaitForRequests(2)).IsTrue();
         await Assert.That(slave.RequestCount).IsEqualTo(2);
     }
 
@@ -178,7 +182,7 @@ public sealed class MasterIntegrationTests
         await Assert.That(sent.Count).IsEqualTo(1);
         await Assert.That(received.Count).IsEqualTo(1);
         await Assert.That(sent[0]).StartsWith("00 01 00 00 00 06 01 03");
-        await Assert.That(received[0]).IsEqualTo("00 01 00 00 00 06 01 03 02 00 01");
+        await Assert.That(received[0]).IsEqualTo("00 01 00 00 00 05 01 03 02 00 01");
     }
 
     [Test]

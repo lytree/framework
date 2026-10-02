@@ -46,6 +46,19 @@ internal sealed class LoopbackModbusSlave : IDisposable
     /// <summary>前 N 个请求只读取、不响应（用于测试重试）。</summary>
     public int DropFirstRequests { get; set; }
 
+    /// <summary>等待从站观察到至少 <paramref name="count"/> 个请求。</summary>
+    /// <remarks>请求计数由从站的接收循环异步递增，断言前需要等待其稳定下来。</remarks>
+    public bool WaitForRequests(int count, TimeSpan? timeout = null)
+    {
+        var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromSeconds(5));
+        while (RequestCount < count && DateTime.UtcNow < deadline)
+        {
+            Thread.Sleep(5);
+        }
+
+        return RequestCount >= count;
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {

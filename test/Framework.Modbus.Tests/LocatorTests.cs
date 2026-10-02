@@ -20,7 +20,7 @@ public sealed class LocatorTests
 
         var bits = result as BitVector;
         await Assert.That(bits).IsNotNull();
-        await Assert.That(bits!.ToString()).IsEqualTo("1100");
+        await Assert.That(bits!.ToString()).IsEqualTo("11000000");
     }
 
     [Test]

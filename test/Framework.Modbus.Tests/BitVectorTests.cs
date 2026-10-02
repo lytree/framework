@@ -23,7 +23,7 @@ public sealed class BitVectorTests
         vector.SetBit(2);
 
         // 线圈 0 对应首字节的 bit0（LSB），线圈 2 对应 bit2 → 0b0000_0101
-        await Assert.That(vector.GetBytes()[0]).IsEqualTo(0x05);
+        await Assert.That((int)vector.GetBytes()[0]).IsEqualTo(0x05);
     }
 
     [Test]
@@ -73,7 +73,7 @@ public sealed class BitVectorTests
         var vector = new BitVector(8);
         vector.SetBytes(TestHelpers.Hex("FF 00 5A"));
         await Assert.That(vector.Size).IsEqualTo(24);
-        await Assert.That(vector.GetBytes()[2]).IsEqualTo(0x5A);
+        await Assert.That((int)vector.GetBytes()[2]).IsEqualTo(0x5A);
     }
 
     [Test]
@@ -117,8 +117,8 @@ public sealed class BitVectorTests
     [Test]
     public async Task Equality_IgnoresTailPaddingBits()
     {
-        var fromBits = BitVector.Parse("0101");
-        var fromBytes = new BitVector(new byte[] { 0x0D }, 4);   // 0x0D = 0b1101 → 尾部填充位应被屏蔽
+        var fromBits = BitVector.Parse("0101");                  // 位 1、3 → 0b1010
+        var fromBytes = new BitVector(new byte[] { 0xFA }, 4);   // 高半字节为尾部填充位，应被屏蔽
         await Assert.That(fromBits.Equals(fromBytes)).IsTrue();
     }
 

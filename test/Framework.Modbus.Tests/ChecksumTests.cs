@@ -10,8 +10,9 @@ public sealed class ChecksumTests
     public async Task Crc16_MatchesKnownModbusVector()
     {
         // Modbus 规范中的经典示例：读从站 1 的 10 个保持寄存器
+        // CRC 值 0xCDC5，线序为低字节在前 → C5 CD
         var data = TestHelpers.Hex("01 03 00 00 00 0A");
-        await Assert.That(ModbusUtil.CalculateCrc16(data)).IsEqualTo(0xC5CD);
+        await Assert.That(ModbusUtil.CalculateCrc16(data)).IsEqualTo(0xCDC5);
     }
 
     [Test]
@@ -57,7 +58,7 @@ public sealed class ChecksumTests
     public async Task Lrc_MatchesKnownAsciiVector()
     {
         var data = TestHelpers.Hex("01 03 00 00 00 0A");
-        await Assert.That(ModbusUtil.CalculateLrc(data)).IsEqualTo(0xF2);
+        await Assert.That((int)ModbusUtil.CalculateLrc(data)).IsEqualTo(0xF2);
     }
 
     [Test]
@@ -69,7 +70,7 @@ public sealed class ChecksumTests
         payload.CopyTo(withChecksum, 0);
         withChecksum[^1] = lrc;
 
-        await Assert.That(ModbusUtil.CalculateLrc(withChecksum)).IsEqualTo(0);
+        await Assert.That((int)ModbusUtil.CalculateLrc(withChecksum)).IsEqualTo(0);
     }
 
     [Test]

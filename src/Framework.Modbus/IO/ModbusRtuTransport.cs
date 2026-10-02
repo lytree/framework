@@ -67,14 +67,19 @@ public sealed class ModbusRtuTransport : ModbusSerialTransport
                 $"响应功能码 0x{functionCode:X2} 与请求功能码 0x{request.FunctionCode:X2} 不匹配。");
         }
 
-        int remaining = ResolveRemainingLength(request, functionCode);
-        var pdu = new byte[1 + remaining];
+        var (prefix, remaining) = ResolveTail(request, functionCode);
+
+        var pdu = new byte[1 + prefix.Length + remaining];
         pdu[0] = (byte)functionCode;
+        if (prefix.Length > 0)
+        {
+            Array.Copy(prefix, 0, pdu, 1, prefix.Length);
+        }
 
         if (remaining > 0)
         {
             var rest = ReadFullyOrThrow(remaining, "响应数据");
-            Array.Copy(rest, 0, pdu, 1, remaining);
+            Array.Copy(rest, 0, pdu, 1 + prefix.Length, remaining);
         }
 
         var crcBytes = ReadFullyOrThrow(2, "CRC");
@@ -96,39 +101,45 @@ public sealed class ModbusRtuTransport : ModbusSerialTransport
     }
 
     /// <summary>
-    /// 计算功能码之后仍需读取的字节数。
-    /// 优先采用请求声明的期望长度；变长响应则先读取字节计数再决定。
+    /// 计算功能码之后的尾部内容。
+    /// 优先采用请求声明的期望长度；变长响应则先读出长度前缀（字节计数），
+    /// 把它作为 PDU 前缀返回，再读取其声明的数据长度。
     /// </summary>
-    private int ResolveRemainingLength(ModbusRequest request, int functionCode)
+    /// <returns>已读出的长度前缀，以及其后仍需读取的数据字节数。</returns>
+    private (byte[] Prefix, int Remaining) ResolveTail(ModbusRequest request, int functionCode)
     {
         if ((functionCode & ModbusFunctionCode.ExceptionMask) != 0)
         {
-            return 1;
+            return (Array.Empty<byte>(), 1);
         }
 
         int expected = request.ExpectedResponsePduLength;
         if (expected > 0)
         {
-            return expected - 1;
+            return (Array.Empty<byte>(), expected - 1);
         }
 
-        return (byte)functionCode switch
+        switch ((byte)functionCode)
         {
-            ModbusFunctionCode.GetCommEventLog
-                or ModbusFunctionCode.ReportSlaveId
-                or ModbusFunctionCode.ReadFileRecord
-                or ModbusFunctionCode.WriteFileRecord => 1 + ReadByteOrThrow("字节计数"),
-            ModbusFunctionCode.ReadFifoQueue => ReadFifoByteCount(),
-            _ => throw new ModbusIOException($"无法确定功能码 0x{functionCode:X2} 的响应长度。"),
-        };
-    }
+            case ModbusFunctionCode.GetCommEventLog:
+            case ModbusFunctionCode.ReportSlaveId:
+            case ModbusFunctionCode.ReadFileRecord:
+            case ModbusFunctionCode.WriteFileRecord:
+            {
+                int byteCount = ReadByteOrThrow("字节计数");
+                return (new[] { (byte)byteCount }, byteCount);
+            }
 
-    /// <summary>读 FIFO 队列响应的两字节字节计数，并换算为功能码之后的剩余长度。</summary>
-    private int ReadFifoByteCount()
-    {
-        int hi = ReadByteOrThrow("字节计数");
-        int lo = ReadByteOrThrow("字节计数");
-        return 2 + ((hi << 8) | lo);
+            case ModbusFunctionCode.ReadFifoQueue:
+            {
+                int hi = ReadByteOrThrow("字节计数");
+                int lo = ReadByteOrThrow("字节计数");
+                return (new[] { (byte)hi, (byte)lo }, (hi << 8) | lo);
+            }
+
+            default:
+                throw new ModbusIOException($"无法确定功能码 0x{functionCode:X2} 的响应长度。");
+        }
     }
 
     /// <summary>以串口参数构造 RTU 传输层。</summary>

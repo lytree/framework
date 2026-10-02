@@ -15,7 +15,7 @@ public sealed class PduCodecTests
     [Test]
     public async Task ReadBitsRequests_EncodeExpectedPdu()
     {
-        await Assert.That(TestHelpers.Dump(new ReadCoilsRequest(0x13, 0x13).ToPdu())).IsEqualTo("01 13 00 13");
+        await Assert.That(TestHelpers.Dump(new ReadCoilsRequest(0x13, 0x13).ToPdu())).IsEqualTo("01 00 13 00 13");
         await Assert.That(TestHelpers.Dump(new ReadInputDiscretesRequest(0, 8).ToPdu())).IsEqualTo("02 00 00 00 08");
     }
 
@@ -46,9 +46,9 @@ public sealed class PduCodecTests
     [Test]
     public async Task MultipleWriteRequests_EncodeExpectedPdu()
     {
-        var coils = BitVector.Parse("10000101");
+        var coils = BitVector.Parse("10000101");   // 位 0/5/7 置 1 → 数据字节 0xA1
         await Assert.That(TestHelpers.Dump(new WriteMultipleCoilsRequest(0, coils).ToPdu()))
-            .IsEqualTo("0F 00 00 00 08 01 85");
+            .IsEqualTo("0F 00 00 00 08 01 A1");
 
         var registers = new[] { new SimpleRegister(0x000A), new SimpleRegister(0x000B) };
         await Assert.That(TestHelpers.Dump(new WriteMultipleRegistersRequest(0, registers).ToPdu()))
@@ -100,8 +100,12 @@ public sealed class PduCodecTests
     public async Task ReadBitsResponse_ParsesBits()
     {
         var response = (ReadCoilsResponse)ModbusResponseFactory.FromPdu(TestHelpers.Hex("01 03 CD 6B 05"));
-        await Assert.That(response.Coils.Size).IsEqualTo(19);
-        await Assert.That(response.Coils.ToString()).IsEqualTo("10110011 11010110 101");
+
+        // 响应只给出字节计数，不携带位数量，因此按字节展开为 24 位。
+        await Assert.That(response.Coils.Size).IsEqualTo(24);
+        await Assert.That(response.Coils.ToString()).IsEqualTo("10110011 11010110 10100000");
+        await Assert.That(response.Coils.GetBit(0)).IsTrue();
+        await Assert.That(response.Coils.GetBit(1)).IsFalse();
     }
 
     [Test]
@@ -132,7 +136,7 @@ public sealed class PduCodecTests
     public async Task DiagnosticsResponses_ParseFields()
     {
         var status = (ReadExceptionStatusResponse)ModbusResponseFactory.FromPdu(TestHelpers.Hex("07 6D"));
-        await Assert.That(status.ExceptionStatus).IsEqualTo(0x6D);
+        await Assert.That((int)status.ExceptionStatus).IsEqualTo(0x6D);
 
         var diagnostics = (DiagnosticsResponse)ModbusResponseFactory.FromPdu(TestHelpers.Hex("08 00 00 12 34"));
         await Assert.That(diagnostics.SubFunction).IsEqualTo(0);
@@ -264,6 +268,6 @@ public sealed class PduCodecTests
         writer.WriteBytes(payload);
 
         await Assert.That(writer.Length).IsEqualTo(401);
-        await Assert.That(writer.ToArray()[400]).IsEqualTo(0x5A);
+        await Assert.That((int)writer.ToArray()[400]).IsEqualTo(0x5A);
     }
 }
