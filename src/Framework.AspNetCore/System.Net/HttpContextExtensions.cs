@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,8 @@ namespace Framework.AspNetCore.System.Net;
 
 public static class HttpContextExtensions
 {
+    private static readonly string[] MobileKeywords = ["Android", "iPhone", "iPod", "Windows Phone", "MQQBrowser"];
+
     /// <summary>
     /// 获取IP地址
     /// <para>https://gist.github.com/jjxtra/3b240b31a1ed3ad783a7dcdb6df12c36</para>
@@ -65,15 +67,14 @@ public static class HttpContextExtensions
     /// <returns></returns>
     private static bool CheckMobile(string agent)
     {
-        if (agent.Contains("Windows NT") || agent.Contains("Macintosh"))
+        if (agent.Contains("Windows NT", StringComparison.Ordinal) || agent.Contains("Macintosh", StringComparison.Ordinal))
             return false;
 
         bool flag = false;
-        string[] keywords = ["Android", "iPhone", "iPod", "Windows Phone", "MQQBrowser"];
 
-        foreach (string item in keywords)
+        foreach (string item in MobileKeywords)
         {
-            if (agent.Contains(item))
+            if (agent.Contains(item, StringComparison.Ordinal))
             {
                 flag = true;
                 break;

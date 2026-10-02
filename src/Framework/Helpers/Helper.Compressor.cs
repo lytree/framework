@@ -1,4 +1,4 @@
-﻿using SharpCompress.Archives;
+using SharpCompress.Archives;
 using SharpCompress.Common;
 using SharpCompress.Readers;
 using SharpCompress.Writers;
@@ -19,6 +19,7 @@ namespace Framework;
 /// </summary>
 public static partial class Helper
 {
+	private static readonly HttpClient SharedHttpClient = new();
 	/// <summary>
 	/// 将多个文件压缩到一个内存流中，可保存为zip文件，方便于web方式下载
 	/// </summary>
@@ -131,7 +132,7 @@ public static partial class Helper
 			dir = Path.GetDirectoryName(compressedFile);
 		}
 
-		ArchiveFactory.WriteToDirectory(compressedFile, Directory.CreateDirectory(dir).FullName, new ReaderOptions()
+		ArchiveFactory.WriteToDirectory(compressedFile, Directory.CreateDirectory(dir).FullName, new ExtractionOptions()
 		{
 			ExtractFullPath = true,
 			Overwrite = true
@@ -167,22 +168,15 @@ public static partial class Helper
 		if (remoteUrls.Any())
 		{
 			var streams = new ConcurrentDictionary<string, Stream>();
-			using var httpClient = new HttpClient();
-			Parallel.ForEach(remoteUrls, url =>
+			Task.WhenAll(remoteUrls.Select(async url =>
 			{
-				httpClient.GetAsync(url).ContinueWith(async t =>
+				using var res = await SharedHttpClient.GetAsync(url);
+				if (res.IsSuccessStatusCode)
 				{
-					if (t.IsCompleted)
-					{
-						var res = await t;
-						if (res.IsSuccessStatusCode)
-						{
-							Stream stream = await res.Content.ReadAsStreamAsync();
-							streams[Path.Combine(rootdir, Path.GetFileName(HttpUtility.UrlDecode(url.AbsolutePath)))] = stream;
-						}
-					}
-				}).Wait();
-			});
+					Stream stream = await res.Content.ReadAsStreamAsync();
+					streams[Path.Combine(rootdir, Path.GetFileName(HttpUtility.UrlDecode(url.AbsolutePath)))] = stream;
+				}
+			})).GetAwaiter().GetResult();
 			foreach (var kv in streams)
 			{
 				archive.AddEntry(kv.Key, kv.Value, true);

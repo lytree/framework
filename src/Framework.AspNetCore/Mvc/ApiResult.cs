@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Framework.AspNetCore.Mvc;
 
 [AttributeUsage(AttributeTargets.Field)]
-public class ApiResultAttribute : Attribute
+public sealed class ApiResultAttribute : Attribute
 {
     public string Code { get; set; }
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Threading.Tasks;
@@ -32,9 +32,12 @@ namespace Middleware.TelnetProxy
 		{
 			logger.LogInformation($"{connection.RemoteEndPoint}-->{connection.LocalEndPoint}-->{xorTelnetServer}");
 			var upstream = await connectionFactory.ConnectAsync(xorTelnetServer);
-			var task1 = connection.Transport.Input.CopyToAsync(upstream.Transport.Output);
-			var task2 = upstream.Transport.Input.CopyToAsync(connection.Transport.Output);
+			using var cts = CancellationTokenSource.CreateLinkedTokenSource(connection.ConnectionClosed);
+			var task1 = connection.Transport.Input.CopyToAsync(upstream.Transport.Output, cts.Token);
+			var task2 = upstream.Transport.Input.CopyToAsync(connection.Transport.Output, cts.Token);
 			await Task.WhenAny(task1, task2);
+			cts.Cancel();
+			try { await Task.WhenAll(task1, task2); } catch { }
 		}
 	}
 }

@@ -1,4 +1,4 @@
-﻿using Framework.System;
+using Framework.System;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -103,40 +103,42 @@ public static partial class  Extensions
 	public static string SetProperty<T>(this T obj, string name, object value) where T : class
 	{
 		var type = obj.GetType();
-		var parameter = Expression.Parameter(type, "e");
-		var property = Expression.PropertyOrField(parameter, name);
-		var before = Expression.Lambda(property, parameter).Compile().DynamicInvoke(obj);
+		var prop = type.GetProperty(name);
+		if (prop == null)
+		{
+			return value?.ToString();
+		}
+
+		var before = GetProperty(obj, name); // 使用 DelegateCache 缓存的 getter
 		if (value == before)
 		{
 			return value?.ToString();
 		}
 
-		if (property.Type.IsGenericType && property.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+		if (prop.PropertyType.IsGenericType && prop.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
 		{
-			if (value is IConvertible x && x.TryConvertTo(property.Type.GenericTypeArguments[0], out var v))
+			if (value is IConvertible x && x.TryConvertTo(prop.PropertyType.GenericTypeArguments[0], out var v))
 			{
-				type.GetProperty(name)?.SetValue(obj, v);
+				prop.SetValue(obj, v);
 			}
 			else
 			{
-				type.GetProperty(name)?.SetValue(obj, value);
+				prop.SetValue(obj, value);
 			}
 		}
 		else
 		{
-			var valueExpression = Expression.Parameter(property.Type, "v");
-			var assign = Expression.Assign(property, valueExpression);
-			if (value is IConvertible x && x.TryConvertTo(property.Type, out var v))
+			if (value is IConvertible x && x.TryConvertTo(prop.PropertyType, out var v))
 			{
-				Expression.Lambda(assign, parameter, valueExpression).Compile().DynamicInvoke(obj, v);
+				prop.SetValue(obj, v);
 			}
 			else
 			{
-				Expression.Lambda(assign, parameter, valueExpression).Compile().DynamicInvoke(obj, value);
+				prop.SetValue(obj, value);
 			}
 		}
 
-		return before.ToJsonString();
+		return before?.ToJsonString();
 	}
 
 	private static readonly ConcurrentDictionary<string, Delegate> DelegateCache = new();
@@ -162,14 +164,15 @@ public static partial class  Extensions
 	public static object GetProperty(this object obj, string name)
 	{
 		var type = obj.GetType();
-		if (DelegateCache.TryGetValue(type.Name + "." + name, out var func))
+		var key = type.FullName + "." + name;
+		if (DelegateCache.TryGetValue(key, out var func))
 		{
 			return func.DynamicInvoke(obj);
 		}
 		var parameter = Expression.Parameter(type, "e");
 		var property = Expression.PropertyOrField(parameter, name);
 		func = Expression.Lambda(property, parameter).Compile();
-		DelegateCache.TryAdd(type.Name + "." + name, func);
+		DelegateCache.TryAdd(key, func);
 		return func.DynamicInvoke(obj);
 	}
 

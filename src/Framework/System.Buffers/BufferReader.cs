@@ -1,4 +1,4 @@
-﻿using System.Buffers.Binary;
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -58,11 +58,10 @@ public ref struct BufferReader
 	/// <param name="byteCount">字节长度</param>
 	/// <param name="encoding">编码</param>
 	/// <returns></returns>
-	public unsafe string Read(int byteCount, Encoding encoding)
+	public string Read(int byteCount, Encoding encoding)
 	{
 		var text = Read(byteCount);
-		var bytes = (byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(text));
-		return encoding.GetString(bytes, byteCount);
+		return encoding.GetString(text);
 	}
 
 	/// <summary>

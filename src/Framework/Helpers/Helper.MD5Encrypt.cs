@@ -1,4 +1,4 @@
-﻿using Framework.System;
+using Framework.System;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,14 +34,8 @@ public static partial class Helper
     {
         if (password.IsNull())
             return string.Empty;
-        string pwd = string.Empty;
         byte[] s = MD5.HashData(Encoding.UTF8.GetBytes(password));
-        var format = lowerCase ? "x2" : "X2";
-        foreach (var item in s)
-        {
-            pwd = string.Concat(pwd, item.ToString(format));
-        }
-        return pwd;
+        return lowerCase ? Convert.ToHexString(s).ToLowerInvariant() : Convert.ToHexString(s);
     }
 
     /// <summary>
@@ -59,14 +53,7 @@ public static partial class Helper
 
     public static string GetHash(Stream stream)
     {
-        StringBuilder sb = new();
         using var md5 = MD5.Create();
-        byte[] hashBytes = md5.ComputeHash(stream);
-        foreach (byte bt in hashBytes)
-        {
-            sb.Append(bt.ToString("x2"));
-        }
-
-        return sb.ToString();
+        return Convert.ToHexString(md5.ComputeHash(stream)).ToLowerInvariant();
     }
 }

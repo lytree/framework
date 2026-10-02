@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ namespace Framework.AspNetCore.Application
     /// <summary>
     /// 表示应用程序创建者
     /// </summary>
-    public class ApplicationBuilder<TContext>
+    public sealed class ApplicationBuilder<TContext>
     {
         private readonly ApplicationDelegate<TContext> fallbackHandler;
         private readonly List<Func<ApplicationDelegate<TContext>, ApplicationDelegate<TContext>>> middlewares = new();

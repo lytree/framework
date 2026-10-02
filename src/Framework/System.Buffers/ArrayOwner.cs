@@ -1,4 +1,4 @@
-﻿
+
 using System.Diagnostics;
 
 namespace System.Buffers;
@@ -56,10 +56,5 @@ sealed class ArrayOwner<T> : IArrayOwner<T>
             GC.SuppressFinalize(this);
         }
         disposed = true;
-    }
-
-    ~ArrayOwner()
-    {
-        Dispose();
     }
 }

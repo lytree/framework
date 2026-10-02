@@ -1,5 +1,5 @@
-﻿using Framework.Repository.Attributes;
-using FreeSql.DataAnnotations;
+using Framework.Repository.Attributes;
+using LinqToDB.Mapping;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
@@ -24,7 +24,7 @@ public class Entity<TKey> : IEntity<TKey>
     /// </summary>
     [Description("主键Id")]
     [Snowflake]
-    [Column(Position = 1, IsIdentity = false, IsPrimary = true)]
+    [PrimaryKey, Column(Order = 1)]
     [JsonPropertyOrder(-30)]
     public virtual TKey Id { get; set; }
 }

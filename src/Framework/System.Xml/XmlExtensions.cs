@@ -1,4 +1,4 @@
-﻿using System.Xml.Linq;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 using System.Xml;
 using System.IO;
@@ -53,27 +53,28 @@ public static partial class Extensions
 	{
 		if (source == null) return string.Empty;
 
-		var xmlSerializer = new XmlSerializer(typeof(T));
-
 		using var stringWriter = new StringWriter();
 		using (var xmlWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings { Indent = true }))
 		{
-			xmlSerializer.Serialize(xmlWriter, source);
+			XmlSerializerCache<T>.Instance.Serialize(xmlWriter, source);
 			return stringWriter.ToString();
 		}
 	}
 
 	public static T DeserializeTo<T>(this string xmlSource)
 	{
-		var serializer = new XmlSerializer(typeof(T));
-
 		T deserialized = default(T);
 
 		using (StringReader reader = new StringReader(xmlSource))
 		{
-			deserialized = (T)serializer.Deserialize(reader);
+			deserialized = (T)XmlSerializerCache<T>.Instance.Deserialize(reader);
 		}
 
 		return deserialized;
+	}
+
+	private static class XmlSerializerCache<T>
+	{
+		public static readonly XmlSerializer Instance = new(typeof(T));
 	}
 }

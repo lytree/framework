@@ -1,5 +1,6 @@
-﻿using Framework.System;
+using Framework.System;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -11,12 +12,15 @@ namespace Framework.System;
 
 public static class EnumExtension
 {
+	private static readonly ConcurrentDictionary<Enum, string> DescriptionCache = new();
+
 	public static string GetDescription(this Enum item)
-	{
-		string name = item.ToString();
-		var desc = item.GetType().GetField(name)?.GetCustomAttribute<DescriptionAttribute>(false);
-		return desc?.Description ?? name;
-	}
+		=> DescriptionCache.GetOrAdd(item, v =>
+		{
+			string name = v.ToString();
+			var desc = v.GetType().GetField(name)?.GetCustomAttribute<DescriptionAttribute>(false);
+			return desc?.Description ?? name;
+		});
 
 	public static string ToNameWithDescription(this Enum item)
 	{
@@ -38,7 +42,7 @@ public static class EnumExtension
 			return null;
 
 		return [.. Enum.GetValues(enumType).Cast<Enum>()
-			.Where(m => !ignoreNull || !m.ToString().Equals("Null")).Select(x => new Dictionary<string, object>
+			.Where(m => !ignoreNull || !string.Equals(m.ToString(), "Null", StringComparison.Ordinal)).Select(x => new Dictionary<string, object>
 			{
 				["Label"] = x.GetDescription(),
 				["Value"] = x
@@ -53,7 +57,7 @@ public static class EnumExtension
 			return null;
 
 		return [.. Enum.GetValues(enumType).Cast<Enum>()
-			 .Where(m => !ignoreNull || !m.ToString().Equals("Null")).Select(x => new Dictionary<string, object>
+			 .Where(m => !ignoreNull || !string.Equals(m.ToString(), "Null", StringComparison.Ordinal)).Select(x => new Dictionary<string, object>
 			 {
 				 ["Label"] = x.GetDescription(),
 				 ["Value"] = x

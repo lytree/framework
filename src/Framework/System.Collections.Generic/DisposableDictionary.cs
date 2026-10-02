@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -62,9 +62,11 @@ public class DisposableDictionary<TKey, TValue> : NullableDictionary<TKey, TValu
 	/// <param name="disposing"></param>
 	public void Dispose(bool disposing)
 	{
+		if (!disposing) return;
 		foreach (var s in Values.Where(v => v != null))
 		{
 			s.Dispose();
 		}
+		Clear();
 	}
 }

@@ -1,11 +1,11 @@
-﻿
+
 using Framework.AspNetCore.Application;
 using System;
 using System.Threading.Tasks;
 
 namespace Middleware.Telnet.Middleware
 {
-	sealed class ByeMiddlware : IApplicationMiddleware<TelnetContext>
+	sealed class ByeMiddleware : IApplicationMiddleware<TelnetContext>
 	{
 		public async Task InvokeAsync(ApplicationDelegate<TelnetContext> next, TelnetContext context)
 		{

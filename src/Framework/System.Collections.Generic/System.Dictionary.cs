@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -95,10 +95,7 @@ public static partial class Extensions
 	/// <param name="key">The key.</param>
 	public static void RemoveIfContainsKey<TKey, TValue>(this IDictionary<TKey, TValue> @this, TKey key)
 	{
-		if (@this.ContainsKey(key))
-		{
-			@this.Remove(key);
-		}
+		@this.Remove(key);
 	}
 	/// <summary>
 	/// 遍历IEnumerable

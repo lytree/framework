@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -30,11 +30,11 @@ public static partial class Extensions
 	/// <param name="fs">源</param>
 	/// <param name="dest">目标地址</param>
 	/// <param name="bufferSize">缓冲区大小，默认8MB</param>
-	public static Task CopyToFileAsync(this Stream fs, string dest, int bufferSize = 1024 * 1024 * 8)
+	public static async Task CopyToFileAsync(this Stream fs, string dest, int bufferSize = 1024 * 1024 * 8)
 	{
 		using var fsWrite = new FileStream(dest, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-		var stream = new BufferedStream(fs, bufferSize);
-		return stream.CopyToAsync(fsWrite);
+		using var stream = new BufferedStream(fs, bufferSize);
+		await stream.CopyToAsync(fsWrite);
 	}
 
 	/// <summary>

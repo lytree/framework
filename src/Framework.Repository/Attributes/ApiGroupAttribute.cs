@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Framework.Repository.Attributes;
 
@@ -6,7 +6,7 @@ namespace Framework.Repository.Attributes;
 /// 接口分组
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true)]
-public class ApiGroupAttribute : Attribute
+public sealed class ApiGroupAttribute : Attribute
 {
     public bool NonGroup { get; set; }
 

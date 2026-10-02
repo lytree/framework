@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Framework.Repository.Attributes;
 
@@ -6,6 +6,6 @@ namespace Framework.Repository.Attributes;
 /// 禁用操作日志
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
-public class NoOprationLogAttribute : Attribute
+public sealed class NoOprationLogAttribute : Attribute
 {
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -36,8 +36,6 @@ public static partial class Helper
 
     public static void ClearTempFiles(string baseFolder)
     {
-        DateTime startTime = DateTime.UtcNow;
-
         FileInfo[] files = [.. tempFiles];
         foreach (FileInfo tempFile in files)
         {
@@ -62,7 +60,7 @@ public static partial class Helper
                 // If the file is older than 2 minutes, let's destroy it.
 
                 var tempFileInfo = new FileInfo(tempFilePath);
-                if (DateTime.Now - tempFileInfo.CreationTime > TimeSpan.FromMinutes(2))
+                if (DateTime.UtcNow - tempFileInfo.CreationTimeUtc > TimeSpan.FromMinutes(2))
                 {
                     try
                     {
@@ -75,6 +73,5 @@ public static partial class Helper
                 }
             }
         }
-        double elapsedMilliseconds = (DateTime.UtcNow - startTime).TotalMilliseconds;
     }
 }

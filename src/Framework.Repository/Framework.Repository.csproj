@@ -1,9 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
 	<PropertyGroup>
-		<TargetFrameworks>$(NetCore)</TargetFrameworks>
+		<TargetFrameworks>net10.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Version>1.0.0</Version>
@@ -11,18 +11,19 @@
 		<SignAssembly>False</SignAssembly>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="BouncyCastle.Cryptography" />
-		<PackageReference Include="FreeSql.DbContext" />
+		<PackageReference Include="linq2db" />
 		<PackageReference Include="Mapster" />
-		<PackageReference Include="FreeSql" />
-		<PackageReference Include="FreeSql.Repository" />
 		<PackageReference Include="System.Text.Json" />
 		<PackageReference Include="Yitter.IdGenerator" />
 	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\Framework\Framework.csproj" />
 	</ItemGroup>
+
 	<ItemGroup>
 		<Resource Include="README.md">
 			<PackagePath>\</PackagePath>

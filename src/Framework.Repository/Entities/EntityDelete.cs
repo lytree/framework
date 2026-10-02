@@ -1,4 +1,4 @@
-﻿using FreeSql.DataAnnotations;
+using LinqToDB.Mapping;
 using System.ComponentModel;
 
 namespace Framework.Repository.Entities;
@@ -12,8 +12,8 @@ public class EntityDelete<TKey> : EntityUpdate<TKey>, IDelete where TKey : struc
     /// 是否删除
     /// </summary>
     [Description("是否删除")]
-    [Column(Position = -9)]
-    public virtual bool IsDeleted { get; set; } = false;
+    [Column(Order = -9)]
+    public virtual bool IsDeleted { get; set; }
 }
 
 /// <summary>

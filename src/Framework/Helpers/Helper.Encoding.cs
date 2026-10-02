@@ -1,4 +1,4 @@
-﻿using Framework.System;
+using Framework.System;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,14 +21,7 @@ public static partial class Helper
         if (bytes == null)
             return string.Empty;
 
-        var result = new StringBuilder();
-        var format = lowerCase ? "x2" : "X2";
-        for (var i = 0; i < bytes.Length; i++)
-        {
-            result.Append(bytes[i].ToString(format));
-        }
-
-        return result.ToString();
+        return lowerCase ? Convert.ToHexString(bytes).ToLowerInvariant() : Convert.ToHexString(bytes);
     }
 
     /// <summary>
@@ -40,15 +33,7 @@ public static partial class Helper
     {
         if (s.IsNull())
             return [];
-        var bytes = new byte[s.Length / 2];
-
-        for (int x = 0; x < s.Length / 2; x++)
-        {
-            int i = Convert.ToInt32(s.Substring(x * 2, 2), 16);
-            bytes[x] = (byte)i;
-        }
-
-        return bytes;
+        return Convert.FromHexString(s);
     }
 
     /// <summary>

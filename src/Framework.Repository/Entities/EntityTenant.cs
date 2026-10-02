@@ -1,4 +1,4 @@
-﻿using FreeSql.DataAnnotations;
+using LinqToDB.Mapping;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,7 +18,7 @@ public class EntityTenant<TKey> : EntityBase<TKey>, ITenant where TKey : struct
 	/// 租户Id
 	/// </summary>
 	[Description("租户Id")]
-	[Column(Position = 2, CanUpdate = false)]
+	[Column(Order = 2, SkipOnUpdate = true)]
 	[JsonPropertyOrder(-20)]
 	public virtual long? TenantId { get; set; }
 }
@@ -26,6 +26,6 @@ public class EntityTenant<TKey> : EntityBase<TKey>, ITenant where TKey : struct
 /// <summary>
 /// 实体租户
 /// </summary>
-public class EntityTenant : EntityTenant<long>
+public sealed class EntityTenant : EntityTenant<long>
 {
 }

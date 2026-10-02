@@ -1,74 +1,59 @@
-﻿using FreeSql;
 using System;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Framework.Repository.Repositories;
 
-public interface IRepositoryBase<TEntity, TKey> : IBaseRepository<TEntity, TKey> where TEntity : class
+/// <summary>
+/// 通用仓储接口。
+/// 实现基于 linq2db <see cref="LinqToDB.IDataContext"/> 的 <see cref="LinqToDB.ITable{TEntity}"/>。
+/// </summary>
+public interface IRepositoryBase<TEntity, TKey> where TEntity : class
 {
+    /// <summary>
+    /// linq2db 数据上下文，可由实现暴露以提供事务 / 批量插入等扩展能力。
+    /// </summary>
+    LinqToDB.IDataContext DataContext { get; }
 
     /// <summary>
-    /// 获得Dto
+    /// 获得 Dto
     /// </summary>
-    /// <typeparam name="TDto"></typeparam>
-    /// <param name="id">主键</param>
-    /// <returns></returns>
     Task<TDto> GetAsync<TDto>(TKey id);
 
     /// <summary>
-    /// 根据条件获取Dto
+    /// 根据条件获取 Dto
     /// </summary>
-    /// <param name="exp"></param>
-    /// <returns></returns>
     Task<TDto> GetAsync<TDto>(Expression<Func<TEntity, bool>> exp);
 
     /// <summary>
     /// 根据条件获取实体
     /// </summary>
-    /// <param name="exp"></param>
-    /// <returns></returns>
     Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> exp);
 
     /// <summary>
     /// 软删除
     /// </summary>
-    /// <param name="id">主键</param>
-    /// <returns></returns>
     Task<bool> SoftDeleteAsync(TKey id);
 
     /// <summary>
     /// 批量软删除
     /// </summary>
-    /// <param name="ids">主键数组</param>
-    /// <returns></returns>
     Task<bool> SoftDeleteAsync(TKey[] ids);
 
     /// <summary>
     /// 软删除
     /// </summary>
-    /// <param name="exp"></param>
-    /// <param name="disableGlobalFilterNames">禁用全局过滤器名</param>
-    /// <returns></returns>
     Task<bool> SoftDeleteAsync(Expression<Func<TEntity, bool>> exp, params string[] disableGlobalFilterNames);
 
     /// <summary>
-    /// 递归删除
+    /// 递归删除：匹配行 + 全部子孙节点一起删除。
+    /// 要求 <typeparamref name="TEntity"/> 拥有类型为 <typeparamref name="TKey"/> 的 <c>ParentId</c> 字段，
+    /// 该字段参照自身的 <c>Id</c>。
     /// </summary>
-    /// <param name="exp"></param>
-    /// <param name="disableGlobalFilterNames">禁用全局过滤器名</param>
-    /// <returns></returns>
     Task<bool> DeleteRecursiveAsync(Expression<Func<TEntity, bool>> exp, params string[] disableGlobalFilterNames);
 
     /// <summary>
-    /// 递归软删除
+    /// 递归软删除：匹配行 + 全部子孙节点一起软删除。
     /// </summary>
-    /// <param name="exp"></param>
-    /// <param name="disableGlobalFilterNames">禁用全局过滤器名</param>
-    /// <returns></returns>
     Task<bool> SoftDeleteRecursiveAsync(Expression<Func<TEntity, bool>> exp, params string[] disableGlobalFilterNames);
-}
-
-public interface IRepositoryBase<TEntity> : IRepositoryBase<TEntity, long> where TEntity : class
-{
 }

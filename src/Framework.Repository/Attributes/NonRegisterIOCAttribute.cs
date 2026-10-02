@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Framework.Repository.Attributes;
 
@@ -6,6 +6,6 @@ namespace Framework.Repository.Attributes;
 /// 不注册到第三方IOC容器
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public class NonRegisterIOCAttribute : Attribute
+public sealed class NonRegisterIOCAttribute : Attribute
 {
 }

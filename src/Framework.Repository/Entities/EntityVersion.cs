@@ -1,4 +1,4 @@
-﻿using FreeSql.DataAnnotations;
+using LinqToDB.Mapping;
 using System.ComponentModel;
 
 namespace Framework.Repository.Entities;
@@ -12,13 +12,13 @@ public class EntityVersion<TKey> : EntityBase, IVersion
     /// 版本
     /// </summary>
     [Description("版本")]
-    [Column(Position = -30, IsVersion = true)]
+    [Column(Order = -30)]
     public virtual long Version { get; set; }
 }
 
 /// <summary>
 /// 实体版本
 /// </summary>
-public class EntityVersion : EntityVersion<long>
+public sealed class EntityVersion : EntityVersion<long>
 {
 }

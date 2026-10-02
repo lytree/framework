@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -29,10 +29,7 @@ public static partial class Helper
         foreach (var assemblyName in assemblyNames)
         {
             var assembly = Assembly.Load(assemblyName);
-            if (assembly != null)
-            {
-                assemblies.Add(assembly);
-            }
+            assemblies.Add(assembly);
         }
 
         return [.. assemblies];

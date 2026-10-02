@@ -1,10 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>$(NetCore)</TargetFrameworks>
+		<TargetFrameworks>net10.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Version>1.0.0</Version>
@@ -17,16 +16,17 @@
 		<PackageReference Include="BouncyCastle.Cryptography" />
 		<PackageReference Include="Yarp.ReverseProxy" />
 	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\Framework.AspNetCore\Framework.AspNetCore.csproj" />
 		<ProjectReference Include="..\Framework\Framework.csproj" />
 	</ItemGroup>
-	<ItemGroup>
-	  <Resource Include="README.md">
-	    <PackagePath>\</PackagePath>
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	    <Pack>True</Pack>
-	  </Resource>
-	</ItemGroup>
 
+	<ItemGroup>
+		<Resource Include="README.md">
+			<PackagePath>\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Pack>True</Pack>
+		</Resource>
+	</ItemGroup>
 </Project>

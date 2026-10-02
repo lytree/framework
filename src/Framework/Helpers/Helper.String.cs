@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -23,7 +23,7 @@ public static partial class Helper
 	public static string GenerateRandom(int length = 32)
 	{
 		var newRandom = new StringBuilder();
-		var rd = new Random();
+		var rd = Random.Shared;
 		for (int i = 0; i < length; i++)
 		{
 			newRandom.Append(_constant[rd.Next(_constant.Length)]);
@@ -38,7 +38,7 @@ public static partial class Helper
 	/// <returns></returns>
 	public static string GenerateRandomNumber(int length = 6)
 	{
-		var random = new Random();
+		var random = Random.Shared;
 		return new string([.. Enumerable.Repeat(_chars, length).Select(s => s[random.Next(s.Length)])]);
 	}
 

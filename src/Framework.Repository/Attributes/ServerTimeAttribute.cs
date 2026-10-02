@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 
 namespace Framework.Repository.Attributes;
 
 [AttributeUsage(AttributeTargets.Property)]
-public class ServerTimeAttribute : Attribute
+public sealed class ServerTimeAttribute : Attribute
 {
     /// <summary>
     /// 更新设置该字段服务器端时间，默认值false，指定为true更新时设置

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Buffers;
@@ -12,7 +12,7 @@ namespace Middleware.Echo
 	/// <summary>
 	/// Echo协议连接协议处理者
 	/// </summary>
-	public class EchoConnectionHandler : ConnectionHandler
+	public sealed class EchoConnectionHandler : ConnectionHandler
 	{
 		private readonly ILogger<EchoConnectionHandler> logger;
 		private static readonly byte[] helloWorld = Encoding.UTF8.GetBytes("Hello world");

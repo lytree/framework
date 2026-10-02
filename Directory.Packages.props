@@ -1,0 +1,50 @@
+<!--
+集中式包版本控制（单文件）。所有 NuGet 依赖版本统一在此声明；
+csproj 内仅写 <PackageReference Include="X" /> 不写版本（Central Package Management）。
+升级依赖：修改本文件中对应行即可，全仓库即时生效；个别项目如需临时覆盖，
+可在其 csproj 内写 <PackageReference Include="X" Version="x.y.z" />。
+-->
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ====== .NET 10 共享框架库（与 SDK 10.0.x 对齐） ====== -->
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.12" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.12" />
+    <PackageVersion Include="System.IO.Pipelines" Version="10.0.12" />
+
+    <!-- ====== 系统 / 工具库 ====== -->
+    <PackageVersion Include="BouncyCastle.Cryptography" Version="2.7.0" />
+    <PackageVersion Include="SharpCompress" Version="0.50.4" />
+    <PackageVersion Include="Mapster" Version="10.0.13" />
+
+    <!-- ====== MVVM ====== -->
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+
+    <!-- ====== 数据访问（linq2db） ====== -->
+    <PackageVersion Include="linq2db" Version="6.5.0" />
+    <PackageVersion Include="Yitter.IdGenerator" Version="1.0.15" />
+
+    <!-- ====== 日志 ====== -->
+    <PackageVersion Include="ZLogger" Version="2.5.10" />
+    <PackageVersion Include="NLog" Version="6.2.1" />
+    <PackageVersion Include="NLog.Extensions.Logging" Version="6.2.1" />
+    <PackageVersion Include="NLog.Web.AspNetCore" Version="6.2.1" />
+
+    <!-- ====== 终端 UI / 图形 ====== -->
+    <PackageVersion Include="Spectre.Console" Version="0.57.2" />
+    <PackageVersion Include="Spectre.Console.Ansi" Version="0.57.2" />
+    <PackageVersion Include="SkiaSharp" Version="4.153.1" />
+    <PackageVersion Include="ScottPlot" Version="5.1.59" />
+
+    <!-- ====== 反向代理 ====== -->
+    <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
+
+    <!-- ====== 测试 ====== -->
+    <PackageVersion Include="TUnit" Version="1.72.10" />
+  </ItemGroup>
+</Project>
