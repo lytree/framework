@@ -49,7 +49,7 @@ public static partial class Helper
 	/// <returns>文件流</returns>
 	public static PooledMemoryStream ZipStream(DisposableDictionary<string, Stream> streams, bool disposeAllStreams = false)
 	{
-		using var archive = ArchiveFactory.CreateArchive<ZipWriterOptions>();
+		using var archive = ArchiveFactory.Create(ArchiveType.Zip);
 		foreach (var pair in streams)
 		{
 			archive.AddEntry(pair.Key, pair.Value, true);
@@ -100,7 +100,7 @@ public static partial class Helper
 	/// <param name="disposeAllStreams">是否需要释放所有流</param>
 	public static void Zip(DisposableDictionary<string, Stream> streams, string zipFile, ArchiveType archiveType = ArchiveType.Zip, bool disposeAllStreams = false)
 	{
-		using var archive = ArchiveFactory.CreateArchive<ZipWriterOptions>();
+		using var archive = ArchiveFactory.Create(ArchiveType.Zip);
 		foreach (var pair in streams)
 		{
 			archive.AddEntry(pair.Key, pair.Value, true);
@@ -145,9 +145,9 @@ public static partial class Helper
 	/// <param name="files"></param>
 	/// <param name="rootdir"></param>
 	/// <returns></returns>
-	private static IWritableArchive<ZipWriterOptions> CreateZipArchive(List<string> files, string rootdir)
+	private static IWritableArchive CreateZipArchive(List<string> files, string rootdir)
 	{
-		var archive = ArchiveFactory.CreateArchive<ZipWriterOptions>();
+		var archive = ArchiveFactory.Create(ArchiveType.Zip);
 		var dic = GetFileEntryMaps(files);
 		var remoteUrls = files.Distinct().Where(s => s.StartsWith("http")).Select(s =>
 		{
