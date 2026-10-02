@@ -19,6 +19,7 @@ csproj 内仅写 <PackageReference Include="X" /> 不写版本（Central Package
 
     <!-- ====== 系统 / 工具库 ====== -->
     <PackageVersion Include="BouncyCastle.Cryptography" Version="2.7.0" />
+    <PackageVersion Include="System.IO.Ports" Version="10.0.12" />
     <PackageVersion Include="SharpCompress" Version="0.50.4" />
     <PackageVersion Include="Mapster" Version="10.0.13" />
 

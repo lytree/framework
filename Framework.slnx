@@ -23,11 +23,13 @@
     <Project Path="src/Framework.ZLogging/Framework.ZLogging.csproj" />
     <Project Path="src/Framework.Logging/Framework.Logging.csproj" />
     <Project Path="src/Framework.Mvvm/Framework.Mvvm.csproj" />
+    <Project Path="src/Framework.Modbus/Framework.Modbus.csproj" />
     <Project Path="src/Framework.Charts/Framework.Charts.csproj" />
     <Project Path="src/Framework/Framework.csproj" />
     <Project Path="src/Framework.Repository/Framework.Repository.csproj" />
   </Folder>
   <Folder Name="/test/">
+    <Project Path="test\Framework.Modbus.Tests\Framework.Modbus.Tests.csproj" />
     <Project Path="test\Framework.ZLogging.Tests\Framework.ZLogging.Tests.csproj" />
     <Project Path="test\Framework.Tests\Framework.Tests.csproj" />
   </Folder>
