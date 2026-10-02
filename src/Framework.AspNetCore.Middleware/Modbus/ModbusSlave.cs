@@ -6,7 +6,10 @@ namespace Middleware.Modbus
 	/// <summary>
 	/// Modbus 从站：把请求 PDU 分派到进程映像，并生成响应 PDU
 	/// </summary>
-	public sealed class ModbusSlave
+	/// <remarks>
+	/// 进程内直通访问（不经总线直接读写映像、值变更事件）见 ModbusSlave.DirectAccess.cs
+	/// </remarks>
+	public sealed partial class ModbusSlave
 	{
 		private readonly ModbusSlaveOptions options;
 		private readonly IProcessImage processImage;
@@ -137,14 +140,18 @@ namespace Middleware.Modbus
 		private WriteSingleResponse WriteSingleCoil(WriteSingleCoilRequest request)
 		{
 			ValidateRange(request.Address, 1, this.processImage.CoilsCount);
+			var oldValue = this.processImage.ReadCoil(request.Address);
 			this.processImage.WriteCoil(request.Address, request.Value);
+			this.RaiseValueChanged(ModbusDataArea.Coil, request.Address, oldValue, request.Value, ModbusWriteSource.Bus);
 			return new WriteSingleResponse(request.FunctionCode, request.Address, request.RawValue);
 		}
 
 		private WriteSingleResponse WriteSingleRegister(WriteSingleRegisterRequest request)
 		{
 			ValidateRange(request.Address, 1, this.processImage.HoldingRegistersCount);
+			var oldValue = this.processImage.ReadHoldingRegister(request.Address);
 			this.processImage.WriteHoldingRegister(request.Address, request.Value);
+			this.RaiseValueChanged(ModbusDataArea.HoldingRegister, request.Address, oldValue, request.Value, ModbusWriteSource.Bus);
 			return new WriteSingleResponse(request.FunctionCode, request.Address, request.Value);
 		}
 
@@ -153,7 +160,11 @@ namespace Middleware.Modbus
 			ValidateRange(request.Address, request.Count, this.processImage.CoilsCount);
 			for (var i = 0; i < request.Count; i++)
 			{
-				this.processImage.WriteCoil(request.Address + i, request.Values[i]);
+				var address = request.Address + i;
+				var value = request.Values[i];
+				var oldValue = this.processImage.ReadCoil(address);
+				this.processImage.WriteCoil(address, value);
+				this.RaiseValueChanged(ModbusDataArea.Coil, address, oldValue, value, ModbusWriteSource.Bus);
 			}
 			return new WriteMultipleResponse(request.FunctionCode, request.Address, request.Count);
 		}
@@ -163,7 +174,11 @@ namespace Middleware.Modbus
 			ValidateRange(request.Address, request.Count, this.processImage.HoldingRegistersCount);
 			for (var i = 0; i < request.Count; i++)
 			{
-				this.processImage.WriteHoldingRegister(request.Address + i, request.Values[i]);
+				var address = request.Address + i;
+				var value = request.Values[i];
+				var oldValue = this.processImage.ReadHoldingRegister(address);
+				this.processImage.WriteHoldingRegister(address, value);
+				this.RaiseValueChanged(ModbusDataArea.HoldingRegister, address, oldValue, value, ModbusWriteSource.Bus);
 			}
 			return new WriteMultipleResponse(request.FunctionCode, request.Address, request.Count);
 		}

@@ -24,6 +24,10 @@ Modbus/
 ├── ModbusFrameException.cs    ADU 帧结构错误（CRC 错误 / MBAP 头非法）
 ├── ModbusSlaveOptions.cs      从站地址、广播抑制
 ├── ModbusSlave.cs             从站核心：请求 PDU → 进程映像 → 响应 PDU
+├── ModbusSlave.DirectAccess.cs 进程内直通读写（不经总线）+ 值变更事件
+├── ModbusDataArea.cs          数据区枚举 / 写入来源枚举
+├── ModbusValue.cs             位或寄存器的值（结构体，无装箱）
+├── ModbusValueChangedEventArgs.cs 值变更事件参数
 ├── Pdu/                       与传输无关的协议数据单元
 │   ├── ModbusPdu.cs           PDU 抽象（功能码 / 长度 / 编码）
 │   ├── ModbusRequest.cs       按功能码分派的工厂 + 解析辅助
@@ -61,21 +65,59 @@ builder.WebHost.ConfigureKestrel(kestrel =>
 
 启动后从站应答功能码 01/02/03/04/05/06/15/16，数据取自 `IProcessImage`。
 
-写入进程映像（应用侧）：
+### 应用侧直接赋值（不经总线）
+
+数据供给方在进程内时（采集程序、上位机、数据库轮询、仿真器），不需要走 TCP，
+直接把值写进从站映像，总线上的客户端即可读到：
 
 ```csharp
-public class MyService(IProcessImage image)
+public class MyService(ModbusSlave slave)
 {
-    public void Refresh()
+    public void Refresh(ReadOnlySpan<byte> rawFromDevice)
     {
-        image.WriteInputRegister(0, 0x1234);   // 对应 FC04 读输入寄存器
-        image.WriteDiscreteInput(0, true);     // 对应 FC02 读离散输入
+        // 对应 FC04 读输入寄存器：大端字节流一次写一段
+        slave.SetInputRegisters(0, rawFromDevice);
+        slave.SetInputRegister(64, 0x1234);                 // 单点
+        slave.SetDiscreteInputs(0, new bool[] { true, false }); // 对应 FC02
+        slave.SetCoils(0, new bool[] { true, true });       // 对应 FC01（总线可读可写）
+        slave.Clear(ModbusDataArea.Coil, 0, 8);             // 批量清零
+
+        var v = slave.GetHoldingRegister(0);                // 也能直接读回
     }
 }
 ```
 
-需要自定义数据来源时，实现 `IProcessImage` 并用
-`AddModbusSlave(myProcessImage, options => ...)` 注册即可。
+- 四个数据区都有成对的 `Get*` / `Set*`；寄存器区额外提供「大端字节流」重载，
+  便于把设备返回的原始字节直接灌入映像。
+- 跨数据区的统一入口是 `SetValue(ModbusDataArea, address, value)` / `GetValue(...)`。
+- 越界抛 `ArgumentOutOfRangeException`——本地代码用异常更利于定位问题；
+  总线路径仍按规范翻译成 `IllegalDataAddress(0x02)`，两条路径互不影响。
+- 想完全掌控数据来源时，也可以继续实现 `IProcessImage` 并用
+  `AddModbusSlave(myProcessImage, options => ...)` 注册；`ModbusSlave` 的 Set/Get
+  相当于在映像之上补了边界校验与变更通知。
+
+### 感知写入（值变更事件）
+
+总线客户端下发的写入（FC05/06/15/16）与进程内赋值都会触发同一个事件：
+
+```csharp
+slave.ValueChanged += (sender, e) =>
+{
+    if (e.Source == ModbusWriteSource.Bus)   // 客户端下发的命令
+    {
+        Console.WriteLine($"{e.Area}[{e.Address}] {e.OldValue} -> {e.NewValue}");
+    }
+};
+```
+
+- `Source` 区分 `Bus`（总线请求）与 `Internal`（进程内赋值）。
+- 仅在值真正变化时触发；写入相同值不产生通知。
+- 订阅者抛出的异常会被记录并吞掉，不会影响从站与总线的正常工作。
+
+### 不依赖任何传输的入口
+
+`slave.Execute(unitId, pdu)` 只吃请求 PDU、吐响应 PDU，与承载无关：
+单元测试、进程内仿真，以及将来 UDP / 串口的收发循环都直接调它即可。
 
 ## 设计要点
 
@@ -90,6 +132,8 @@ public class MyService(IProcessImage image)
   `IllegalDataValue(0x03)`，未知功能码回 `IllegalFunction(0x01)`，未预期异常回
   `SlaveDeviceFailure(0x04)`；从站不会因为一个坏请求而断开连接。
 - **广播**：单元标识 0 视为广播，执行写入但不响应（`SuppressBroadcastResponse`，默认为 true）。
+- **双写入路径**：总线写入与进程内直通写入共用同一套映像和变更事件，差异只在错误表达
+  （协议异常码 vs `ArgumentOutOfRangeException`）与事件来源标记（`Bus` / `Internal`）。
 
 ## 扩展接缝
 
