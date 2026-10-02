@@ -14,10 +14,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="BouncyCastle.Cryptography" />
-		<PackageReference Include="FreeSql.DbContext" />
+		<PackageReference Include="linq2db" />
 		<PackageReference Include="Mapster" />
-		<PackageReference Include="FreeSql" />
-		<PackageReference Include="FreeSql.Repository" />
 		<PackageReference Include="System.Text.Json" />
 		<PackageReference Include="Yitter.IdGenerator" />
 	</ItemGroup>

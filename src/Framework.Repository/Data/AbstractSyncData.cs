@@ -1,14 +1,15 @@
 using System;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 using System.IO;
-using FreeSql.DataAnnotations;
-using System.Text.Json;
-using Framework.Repository;
-using System.Data.Common;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Threading.Tasks;
 using Framework.Repository.Entities;
 using Framework.System.Collections.Generic;
-using FreeSql;
+using LinqToDB;
+using LinqToDB.Async;
+using LinqToDB.Mapping;
 using Mapster;
 
 namespace Framework.Repository.Data;
@@ -18,8 +19,6 @@ public abstract class AbstractSyncData
     /// <summary>
     /// 检查实体属性是否为自增长
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
     private static bool CheckIdentity<T>() where T : class
     {
         var isIdentity = false;
@@ -39,16 +38,14 @@ public abstract class AbstractSyncData
     /// <summary>
     /// 获得表名
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    protected static string GetTableName<T>() where T : class, new()
+    protected static string? GetTableName<T>() where T : class, new()
     {
         var table = typeof(T).GetCustomAttributes(typeof(TableAttribute), false).FirstOrDefault() as TableAttribute;
-        if (table is null) return string.Empty;
+        if (table is null) return null;
         return table.Name;
     }
 
-    protected static bool IsSyncData(string tableName, string[]? syncDataIncludeTables, string[]? syncDataExcludeTables)
+    protected static bool IsSyncData(string? tableName, string[]? syncDataIncludeTables, string[]? syncDataExcludeTables)
     {
         var isSyncData = true;
 
@@ -68,23 +65,19 @@ public abstract class AbstractSyncData
     }
 
     /// <summary>
-    /// 初始化数据表数据
+    /// 初始化数据表数据。
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="db"></param>
-    /// <param name="tran"></param>
-    /// <param name="dataList"></param>
-    /// <returns></returns>
+    /// <param name="db">linq2db 数据上下文。</param>
+    /// <param name="dataList">待写入的数据列表。</param>
+    /// <param name="sysUpdateData">若为 <c>true</c>，对已存在的记录执行覆盖式更新；否则仅插入新记录。</param>
     protected virtual async Task InitDataAsync<T>(
-        IFreeSql db,
-        DbTransaction tran,
+        IDataContext db,
         T[] dataList,
         bool sysUpdateData
     ) where T : class, new()
     {
-        var table = typeof(T).GetCustomAttributes(typeof(TableAttribute), false).FirstOrDefault() as TableAttribute;
-        if (table is null) return;
-        var tableName = table.Name;
+        var tableName = GetTableName<T>();
+        if (tableName is null) return;
 
         try
         {
@@ -94,16 +87,29 @@ public abstract class AbstractSyncData
                 return;
             }
 
-            var insertOrUpdate = db.InsertOrUpdate<T>();
-            if (tran != null)
+            var table = db.GetTable<T>();
+
+            if (sysUpdateData)
             {
-                insertOrUpdate = insertOrUpdate.WithTransaction(tran);
+                var keyProp = typeof(T).GetProperties()
+                    .First(p => p.GetCustomAttributes(typeof(LinqToDB.Mapping.PrimaryKeyAttribute), false).Any());
+
+                var ids = dataList.Select(d => keyProp.GetValue(d)).OfType<object>().ToArray();
+                var existing = ids.Length > 0
+                    ? await table.Where(BuildInSelector<T>(keyProp, ids!)).ToListAsync()
+                    : new List<T>();
+
+                var existingIds = new HashSet<object?>(existing.Select(e => keyProp.GetValue(e)));
+                var toInsert = dataList.Where(d => !existingIds.Contains(keyProp.GetValue(d))).ToArray();
+                var toUpdate = dataList.Where(d => existingIds.Contains(keyProp.GetValue(d))).ToArray();
+
+                foreach (var item in toInsert) await db.InsertAsync(item);
+                foreach (var item in toUpdate) await db.UpdateAsync(item);
             }
-            if (!sysUpdateData)
+            else
             {
-                insertOrUpdate.IfExistsDoNothing();
+                foreach (var item in dataList) await db.InsertAsync(item);
             }
-            await insertOrUpdate.SetSource(dataList).ExecuteAffrowsAsync();
 
             Console.WriteLine($"table: {tableName} sync data succeed");
         }
@@ -111,14 +117,23 @@ public abstract class AbstractSyncData
         {
             var msg = $"table: {tableName} sync data failed.\n{ex.Message}";
             Console.WriteLine(msg);
-            throw new Exception(msg);
+            throw new Exception(msg, ex);
         }
     }
 
-    protected virtual T[] GetData<T>(bool isTenant = false, string path = "InitData/Admin")
+    private static Expression<Func<T, bool>> BuildInSelector<T>(PropertyInfo keyProp, object[] ids)
+    {
+        var param = Expression.Parameter(typeof(T), "e");
+        var member = Expression.Property(param, keyProp);
+        var body = ids.Select(id => (Expression)Expression.Equal(member, Expression.Convert(Expression.Constant(id), member.Type)))
+            .Aggregate((Expression)Expression.Constant(false), (acc, e) => Expression.OrElse(acc, e));
+        return Expression.Lambda<Func<T, bool>>(body, param);
+    }
+
+    protected virtual T[] GetData<T>(bool isTenant = false, string path = "InitData/Admin") where T : class, new()
     {
         var table = typeof(T).GetCustomAttributes(typeof(TableAttribute), false).FirstOrDefault() as TableAttribute;
-        var fileName = $"{table.Name}{(isTenant ? ".tenant" : "")}.json";
+        var fileName = $"{table?.Name}{(isTenant ? ".tenant" : "")}.json";
         var filePath = Path.Combine(AppContext.BaseDirectory, $"{path}/{fileName}").ToPath();
         if (!File.Exists(filePath))
         {
@@ -128,23 +143,22 @@ public abstract class AbstractSyncData
         }
         var jsonData = FileHelper.ReadFile(filePath);
         var data = Helper.JsonDeserialize<T[]>(jsonData);
-
+        if (data is null) throw new Exception($"无法反序列化数据文件 {filePath}");
         return data;
     }
+
     /// <summary>
-    /// 同步实体数据
+    /// 同步实体数据。
+    /// 跨实体的事务由调用方负责（例如使用 <c>db.RunInTransaction(...)</c>）。
     /// </summary>
-    /// <param name="db"></param>
-    /// <param name="unitOfWork"></param>
-    /// <param name="dbConfig">模块数据库配置</param>
-    /// <param name="appConfig">应用配置</param>
-    /// <param name="readPath">读取数据路径 InitData/xxx </param>
-    /// <param name="processChilds">处理子级列表</param>
-    /// <returns></returns>
-    protected virtual async Task SyncEntityAsync<T>(IFreeSql db,
-        IRepositoryUnitOfWork unitOfWork, string[]? syncDataIncludeTables, string[]? syncDataExcludeTables,
-        string readPath, bool isTenantParam = false,
-        bool processChilds = false,bool sysUpdateData = false)
+    protected virtual async Task SyncEntityAsync<T>(
+        IDataContext db,
+        string[]? syncDataIncludeTables,
+        string[]? syncDataExcludeTables,
+        string readPath,
+        bool isTenantParam = false,
+        bool processChilds = false,
+        bool sysUpdateData = false)
         where T : Entity<long>, new()
     {
         if (processChilds && !typeof(T).IsAssignableTo(typeof(IChilds<T>)))
@@ -161,10 +175,8 @@ public abstract class AbstractSyncData
             }
 
             var isTenant = isTenantParam && typeof(T).IsAssignableTo(typeof(EntityTenant));
-            var rep = db.GetRepository<T>();
-            rep.UnitOfWork = unitOfWork;
+            var table = db.GetTable<T>();
 
-            //数据列表
             var dataList = GetData<T>(isTenant, readPath);
 
             if (!(dataList?.Length > 0))
@@ -178,29 +190,29 @@ public abstract class AbstractSyncData
                 dataList = dataList.ToList().ToPlainList((a) => ((IChilds<T>)a).Childs).ToArray();
             }
 
-            //查询
             var dataIds = dataList.Select(e => e.Id).ToList();
-            var dbDataList = await rep.Where(a => dataIds.Contains(a.Id)).ToListAsync();
+            var dbDataList = await table.Where(a => dataIds.Contains(a.Id)).ToListAsync();
 
-            //新增
             var dbDataIds = dbDataList.Select(a => a.Id).ToList();
-            var insertDataList = dataList.Where(a => !dbDataIds.Contains(a.Id));
-            if (insertDataList.Any())
+            var insertDataList = dataList.Where(a => !dbDataIds.Contains(a.Id)).ToArray();
+            foreach (var item in insertDataList)
             {
-                await rep.InsertAsync(insertDataList);
+                await db.InsertAsync(item);
             }
 
-            //修改
             if (sysUpdateData && dbDataList?.Count > 0)
             {
                 foreach (var dbData in dbDataList)
                 {
-                    var data = dataList.Where(a => a.Id == dbData.Id).FirstOrDefault();
+                    var data = dataList.FirstOrDefault(a => a.Id == dbData.Id);
                     if (data == null) continue;
                     data.Adapt(dbData);
                 }
 
-                await rep.UpdateAsync(dbDataList);
+                foreach (var item in dbDataList)
+                {
+                    await db.UpdateAsync(item);
+                }
             }
 
             Console.WriteLine($"table: {tableName} sync data succeed");

@@ -29,14 +29,13 @@ dotnet pack src/Framework/Framework.csproj
 ```
 
 ## Package Versioning（集中式 CPM）
-- **全仓库统一版本控制**：单一文件 `Directory.Packages.props`（仓库根）。
-- 启用 Central Package Management (`ManagePackageVersionsCentrally=true`)：csproj 内 `<PackageReference Include="X" />` 不写版本，统一在根文件声明。
-- 分组按职责注释：Microsoft.Extensions / 系统库 / 加密 / 图形 / 日志 / MVVM / 数据访问 / 反向代理 / 测试。
-- 升级工作流：修改 `Directory.Packages.props` 中对应行即可，所有项目即时生效。
-- `packages/` git 子模块保留但**不再**用于包版本管理。
+- **全仓库统一版本控制**：根目录 `Directory.Packages.props` 单一文件声明所有 NuGet 依赖版本。
+- 启用 Central Package Management (`ManagePackageVersionsCentrally=true`)：csproj 内 `<PackageReference Include="X" />` 不写版本，统一在 `Directory.Packages.props` 中声明。
+- 升级工作流：修改 `Directory.Packages.props` 中对应行即可，所有项目即时生效；个别项目若需临时覆盖，可在其 csproj 内写 `<PackageReference Include="X" Version="x.y.z" />`。
+- 项目根目录不再保留任何 git 子模块；旧的 `packages` 子模块已移除。
 
 ## Architecture
-- **Monorepo**: 10 src packages under `src/`, 1 test project under `test/`
+- **Monorepo**: 10 src packages under `src/`, 2 test projects under `test/`
 - **Solution file**: `Framework.slnx` (not .sln)
 - **Package versioning**: see "Package Versioning" section above
 - **Target frameworks**: `net10.0` only (defined inline in each csproj)
@@ -48,7 +47,7 @@ dotnet pack src/Framework/Framework.csproj
 | `Framework` | Core utilities (imaging, compression, hashing, logging via ZLogger) |
 | `Framework.AspNetCore` | ASP.NET Core integration |
 | `Framework.Mvvm` | MVVM with CommunityToolkit.Mvvm |
-| `Framework.Repository` | FreeSql-based repository + Mapster |
+| `Framework.Repository` | linq2db-based repository + Mapster |
 | `Framework.Charts` | Chart generation |
 | `Framework.ZLogging` / `Framework.Logging` | Infrastructure |
 
@@ -78,7 +77,7 @@ dotnet pack src/Framework/Framework.csproj
 | `ExceptionRendering/` | 异常渲染（嵌套异常 / 自定义格式化器 / Markup 转义） |
 | `Concurrency/` | 并发与销毁竞争 |
 
-TUnit 1.65.0 用法约定：
+TUnit 1.72.10 用法约定：
 - 断言全部 `await Assert.That(...).IsXxx(...)`。
 - 共享 disposable 资源（`TempDirectory`）通过 `[ClassDataSource<TempDirectory>(Shared = SharedType.PerClass)]` 注入。
 - 跨测试需要隔离时使用 `[NotInParallel]`。
@@ -88,7 +87,3 @@ TUnit 1.65.0 用法约定：
 - Nullable reference types enabled
 - Many nullable warnings suppressed in `src/Directory.Build.props` (CS8600-8625, etc.)
 - XML doc generation enabled (`GenerateDocumentationFile`)
-
-
-
-

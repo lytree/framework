@@ -1,21 +1,19 @@
 <Solution>
-  <Folder Name="/packages/">
-    <File Path="packages/Directory.Packages.All.props" />
-    <File Path="packages/Directory.Packages.AspNet.props" />
-    <File Path="packages/Directory.Packages.Logging.props" />
-    <File Path="packages/Directory.Packages.Microsoft.props" />
-    <File Path="packages/Directory.Packages.Repository.props" />
-    <File Path="packages/Directory.Packages.System.props" />
-    <File Path="packages/Directory.Packages.Tool.props" />
-    <File Path="packages/LICENSE" />
-    <File Path="packages/README.md" />
+  <Folder Name="/central-packages/">
+    <File Path="central-packages/Directory.Packages.AspNet.props" />
+    <File Path="central-packages/Directory.Packages.Logging.props" />
+    <File Path="central-packages/Directory.Packages.Microsoft.props" />
+    <File Path="central-packages/Directory.Packages.Repository.props" />
+    <File Path="central-packages/Directory.Packages.System.props" />
+    <File Path="central-packages/Directory.Packages.Tool.props" />
+    <File Path="central-packages/LICENSE" />
+    <File Path="central-packages/README.md" />
   </Folder>
   <Folder Name="/document/">
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
+    <File Path="Directory.Packages.props" />
     <File Path="src/Directory.Build.props" />
-    <File Path="src/Directory.Build.targets" />
-    <File Path="src/Directory.Packages.props" />
     <File Path="NuGet.config" />
     <File Path="Readme.md" />
   </Folder>
@@ -34,4 +32,3 @@
     <Project Path="test\Framework.Tests\Framework.Tests.csproj" />
   </Folder>
 </Solution>
-
