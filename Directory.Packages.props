@@ -14,6 +14,13 @@ csproj 内仅写 <PackageReference Include="X" /> 不写版本（Central Package
   <ItemGroup>
     <!-- ====== .NET 10 共享框架库（与 SDK 10.0.x 对齐） ====== -->
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.12" />
     <PackageVersion Include="System.Text.Json" Version="10.0.12" />
     <PackageVersion Include="System.IO.Pipelines" Version="10.0.12" />
 
@@ -40,6 +47,10 @@ csproj 内仅写 <PackageReference Include="X" /> 不写版本（Central Package
     <PackageVersion Include="Spectre.Console.Ansi" Version="0.57.2" />
     <PackageVersion Include="SkiaSharp" Version="4.153.1" />
     <PackageVersion Include="ScottPlot" Version="5.1.59" />
+
+    <!-- ====== 图像处理（滑动验证码） ====== -->
+    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageVersion Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
 
     <!-- ====== 反向代理 ====== -->
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />

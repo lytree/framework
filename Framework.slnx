@@ -26,6 +26,8 @@
     <Project Path="src/Framework.Charts/Framework.Charts.csproj" />
     <Project Path="src/Framework/Framework.csproj" />
     <Project Path="src/Framework.Repository/Framework.Repository.csproj" />
+    <Project Path="src/Framework.DynamicApi/Framework.DynamicApi.csproj" />
+    <Project Path="src/Framework.SlideCaptcha/Framework.SlideCaptcha.csproj" />
   </Folder>
   <Folder Name="/test/">
     <Project Path="test\Framework.ZLogging.Tests\Framework.ZLogging.Tests.csproj" />
