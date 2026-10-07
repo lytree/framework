@@ -1,14 +1,4 @@
 <Solution>
-  <Folder Name="/central-packages/">
-    <File Path="central-packages/Directory.Packages.AspNet.props" />
-    <File Path="central-packages/Directory.Packages.Logging.props" />
-    <File Path="central-packages/Directory.Packages.Microsoft.props" />
-    <File Path="central-packages/Directory.Packages.Repository.props" />
-    <File Path="central-packages/Directory.Packages.System.props" />
-    <File Path="central-packages/Directory.Packages.Tool.props" />
-    <File Path="central-packages/LICENSE" />
-    <File Path="central-packages/README.md" />
-  </Folder>
   <Folder Name="/document/">
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
