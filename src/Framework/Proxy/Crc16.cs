@@ -28,6 +28,7 @@ namespace Framework.Proxy
     /// Compute standard CRC-16 hash value.  This class
     /// inherits from the standard .NET HashAlgorithm
     /// class.
+    /// 基于查表算法实现标准 CRC-16 校验。
     /// </summary>
     internal class Crc16 : HashAlgorithm
     {
@@ -41,6 +42,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Constructor
+        /// 创建并初始化 CRC-16 校验实例。
         /// </summary>
         public Crc16()
         {
@@ -49,6 +51,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Hash core override function.
+        /// 将指定范围内的输入字节合并到当前 CRC-16 状态。
         /// </summary>
         /// <param name="buffer">Data buffer to hash.</param>
         /// <param name="offset">Offset value in the data buffer.</param>
@@ -67,6 +70,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Hash final bytes.  Nothing to do except return the hash result.
+        /// 返回当前 CRC-16 状态的最终字节表示。
         /// </summary>
         /// <returns>Final hashed bytes.</returns>
         protected override byte[] HashFinal()
@@ -77,11 +81,13 @@ namespace Framework.Proxy
         /// <summary>
         /// Initialize the CRC16 hashing function by building a
         /// hash value table for fast lookup.
+        /// 构建用于 CRC-16 快速查表的字节映射表。
         /// </summary>
         public override void Initialize()
         {
             ushort value;
             ushort temp;
+            // 预计算每个可能字节的移位与多项式异或结果，避免在正式校验时逐位重复运算。
             // for each byte in the table loop
             for (ushort i = 0; i < _table.Length; ++i)
             {

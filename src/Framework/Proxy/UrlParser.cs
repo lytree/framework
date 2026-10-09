@@ -1,6 +1,9 @@
 using System.Text.RegularExpressions;
 namespace Framework.Proxy;
 
+/// <summary>
+/// 解析标准 URL、代理地址和 SOCKS 风格的地址字符串；标准 HTTP/HTTPS/FTP 地址优先交由 <see cref="Uri"/> 解析，其余格式使用代理正则表达式解析。
+/// </summary>
 public static partial class UrlParser
 {
     const string pattern = @"^(?:(?<scheme>[a-z][a-z0-9+.-]*)://)?(?:(?<user>[^:@/?#]+)(?::(?<pass>[^@/?#]*))?@)?(?<host>\[[0-9a-fA-F:]+\]|localhost|(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|\d{1,3}(?:\.\d{1,3}){3})(?::(?<port>\d{1,5}))?(?<path>/[^?#]*)?(?:\?(?<query>[^#]*))?(?:#(?<fragment>.*))?$";
@@ -12,6 +15,11 @@ public static partial class UrlParser
     // (?::(?<port>\d+))?       -> 可选的 :port
     private static readonly Regex ProxyRegex = UrlRegex();
 
+    /// <summary>
+    /// 将 URL 或代理地址字符串解析为各地址组件；空白或无法识别的输入会返回无效结果，而不会抛出格式异常。
+    /// </summary>
+    /// <param name="urlString">待解析的 URL、代理地址或 SOCKS 风格地址字符串。</param>
+    /// <returns><see cref="ParsedUrl"/> 解析结果；无法识别输入时，其 <see cref="ParsedUrl.IsValid"/> 为 <see langword="false"/>。</returns>
     public static ParsedUrl Parse(string urlString)
     {
         if (string.IsNullOrWhiteSpace(urlString))
@@ -87,24 +95,49 @@ public static partial class UrlParser
 public struct ParsedUrl
 {
     // --- 核心状态 ---
+    /// <summary>
+    /// 指示输入地址是否已成功解析。
+    /// </summary>
     public bool IsValid { get; set; }  // 解析是否成功
 
     // --- 地址组件 ---
+    /// <summary>
+    /// 获取或设置地址协议；无法确定协议时为 <c>unknown</c>。
+    /// </summary>
     public string Scheme { get; set; } // 协议 (e.g., http, https, socks5, unknown)
+    /// <summary>
+    /// 获取或设置主机名、IPv4 地址、IPv6 地址或代理主机地址。
+    /// </summary>
     public string Host { get; set; }   // 主机名或 IP 地址
+    /// <summary>
+    /// 获取或设置端口号；代理风格地址未指定端口时为 <c>-1</c>，标准绝对 URI 则可能由 <see cref="Uri"/> 填充协议默认端口。
+    /// </summary>
     public int Port { get; set; }      // 端口号 (-1 表示未指定或使用默认端口)
 
     // --- 认证信息 (通常用于代理或 FTP) ---
+    /// <summary>
+    /// 获取或设置用于代理或远程资源认证的用户名。
+    /// </summary>
     public string Username { get; set; } // 用户名
+    /// <summary>
+    /// 获取或设置用于代理或远程资源认证的密码。
+    /// </summary>
     public string Password { get; set; } // 密码
 
     // --- 标准 URL 路径和查询信息 (主要用于 HTTP/HTTPS) ---
+    /// <summary>
+    /// 获取或设置标准 URL 的绝对路径。
+    /// </summary>
     public string Path { get; set; }     // 路径 (e.g., /api/resource)
+    /// <summary>
+    /// 获取或设置标准 URL 的查询字符串，包含前导问号（如适用）。
+    /// </summary>
     public string Query { get; set; }    // 查询字符串 (e.g., ?key=value)
 
     /// <summary>
     /// 重写 ToString() 方法，用于调试和输出简洁的解析结果。
     /// </summary>
+    /// <returns>隐藏密码后的可读地址文本；解析失败时返回固定的中文失败提示。</returns>
     public override string ToString()
     {
         if (!IsValid) return "解析失败：格式无效";

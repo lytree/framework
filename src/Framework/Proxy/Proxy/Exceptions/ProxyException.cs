@@ -25,6 +25,7 @@ namespace Framework.Proxy
 
     /// <summary>
     /// This exception is thrown when a general, unexpected proxy error.   
+    /// 用于表示代理连接、握手或协议响应处理过程中出现的代理相关错误。
     /// </summary>
     [Serializable()]
     public class ProxyException : Exception
@@ -40,6 +41,7 @@ namespace Framework.Proxy
         /// Constructor.
         /// </summary>
         /// <param name="message">Exception message text.</param>
+        /// <remarks>创建不带内部异常信息的代理异常。</remarks>
         public ProxyException(string message)
             : base(message)
         {
@@ -50,6 +52,7 @@ namespace Framework.Proxy
         /// </summary>
         /// <param name="message">Exception message text.</param>
         /// <param name="innerException">The inner exception object.</param>
+        /// <remarks>内部异常用于保留底层网络或协议操作的原始失败原因。</remarks>
         public ProxyException(string message, Exception innerException)
             :
            base(message, innerException)

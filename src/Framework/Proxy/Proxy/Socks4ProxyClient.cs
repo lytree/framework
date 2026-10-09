@@ -29,6 +29,7 @@ namespace Framework.Proxy
 {
     /// <summary>
     /// Socks4 connection proxy class.  This class implements the Socks4 standard proxy protocol.
+    /// SOCKS4 TCP 代理客户端，负责连接代理、发送 CONNECT 握手并校验 8 字节响应。
     /// </summary>
     /// <remarks>
     /// This class implements the Socks4 proxy protocol standard for TCP communciations.
@@ -80,13 +81,16 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Create a Socks4 proxy client object.  The default proxy port 1080 is used.
+        /// 创建使用默认端口 1080 的 SOCKS4 代理客户端。
         /// </summary>
         public Socks4ProxyClient() { }
 
         /// <summary>
         /// Creates a Socks4 proxy client object using the supplied TcpClient object connection.
+        /// 使用调用方提供的 TCP 连接创建 SOCKS4 代理客户端。
         /// </summary>
         /// <param name="tcpClient">A TcpClient connection object.</param>
+        /// <exception cref="ArgumentNullException">当 <paramref name="tcpClient"/> 为 <see langword="null"/> 时抛出。</exception>
         public Socks4ProxyClient(TcpClient tcpClient)
         {
             _tcpClientCached = tcpClient ?? throw new ArgumentNullException(nameof(tcpClient));
@@ -94,9 +98,11 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Create a Socks4 proxy client object.  The default proxy port 1080 is used.
+        /// 创建带有用户标识并使用默认端口 1080 的 SOCKS4 代理客户端。
         /// </summary>
         /// <param name="proxyHost">Host name or IP address of the proxy server.</param>
         /// <param name="proxyUserId">Proxy user identification information.</param>
+        /// <exception cref="ArgumentNullException">当 <paramref name="proxyHost"/> 为 <see langword="null"/> 或空字符串，或 <paramref name="proxyUserId"/> 为 <see langword="null"/> 时抛出。</exception>
         public Socks4ProxyClient(string proxyHost, string proxyUserId)
         {
             if (string.IsNullOrEmpty(proxyHost))
@@ -112,10 +118,13 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Create a Socks4 proxy client object.
+        /// 创建指定主机、端口和用户标识的 SOCKS4 代理客户端。
         /// </summary>
         /// <param name="proxyHost">Host name or IP address of the proxy server.</param>
         /// <param name="proxyPort">Port used to connect to proxy server.</param>
         /// <param name="proxyUserId">Proxy user identification information.</param>
+        /// <exception cref="ArgumentNullException">当 <paramref name="proxyHost"/> 为 <see langword="null"/> 或空字符串，或 <paramref name="proxyUserId"/> 为 <see langword="null"/> 时抛出。</exception>
+        /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="proxyPort"/> 不在 1 至 65535 范围内时抛出。</exception>
         public Socks4ProxyClient(string proxyHost, int proxyPort, string proxyUserId)
         {
             if (string.IsNullOrEmpty(proxyHost))
@@ -134,8 +143,10 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Create a Socks4 proxy client object.  The default proxy port 1080 is used.
+        /// 创建指定代理主机并使用默认端口 1080 的 SOCKS4 代理客户端。
         /// </summary>
         /// <param name="proxyHost">Host name or IP address of the proxy server.</param>
+        /// <exception cref="ArgumentNullException">当 <paramref name="proxyHost"/> 为 <see langword="null"/> 或空字符串时抛出。</exception>
         public Socks4ProxyClient(string proxyHost)
         {
             if (string.IsNullOrEmpty(proxyHost))
@@ -147,9 +158,12 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Create a Socks4 proxy client object.
+        /// 创建指定代理主机和端口的 SOCKS4 代理客户端。
         /// </summary>
         /// <param name="proxyHost">Host name or IP address of the proxy server.</param>
         /// <param name="proxyPort">Port used to connect to proxy server.</param>
+        /// <exception cref="ArgumentNullException">当 <paramref name="proxyHost"/> 为 <see langword="null"/> 或空字符串时抛出。</exception>
+        /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="proxyPort"/> 不在 1 至 65535 范围内时抛出。</exception>
         public Socks4ProxyClient(string proxyHost, int proxyPort)
         {
             if (string.IsNullOrEmpty(proxyHost))
@@ -164,7 +178,9 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Gets or sets host name or IP address of the proxy server.
+        /// 获取或设置代理服务器的主机名或 IP 地址。
         /// </summary>
+        /// <returns>代理服务器的主机名或 IP 地址。</returns>
         public string ProxyHost
         {
             get { return _proxyHost; }
@@ -173,7 +189,9 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Gets or sets port used to connect to proxy server.
+        /// 获取或设置用于连接代理服务器的端口。
         /// </summary>
+        /// <returns>代理服务器端口。</returns>
         public int ProxyPort
         {
             get { return _proxyPort; }
@@ -182,19 +200,29 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Gets string representing the name of the proxy. 
+        /// 获取当前代理协议的名称。
         /// </summary>
         /// <remarks>This property will always return the value 'SOCKS4'</remarks>
+        /// <returns>固定返回 <c>SOCKS4</c>。</returns>
         virtual public string ProxyName
         {
             get { return PROXY_NAME; }
         }
 
+        /// <summary>
+        /// Gets or sets the amount of time, in milliseconds, that a TCP send operation may wait before timing out.
+        /// 设置代理连接后续使用的 TCP 发送超时时间，单位为毫秒。
+        /// </summary>
         public int SendTimeout
         {
             get => _sendTimeout;
             set => _sendTimeout = value;
         }
 
+        /// <summary>
+        /// Gets or sets the amount of time, in milliseconds, that a TCP receive operation may wait before timing out.
+        /// 设置代理连接后续使用的 TCP 接收超时时间，单位为毫秒。
+        /// </summary>
         public int ReceiveTimeout
         {
             get => _receiveTimeout;
@@ -203,7 +231,9 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Gets or sets proxy user identification information.
+        /// 获取或设置代理用户标识信息。
         /// </summary>
+        /// <returns>代理用户标识信息。</returns>
         public string ProxyUserId
         {
             get { return _proxyUserId; }
@@ -213,7 +243,9 @@ namespace Framework.Proxy
         /// <summary>
         /// Gets or sets the TcpClient object. 
         /// This property can be set prior to executing CreateConnection to use an existing TcpClient connection.
+        /// 获取或设置可选的预连接 TCP 客户端。
         /// </summary>
+        /// <returns>预连接客户端；未设置时为 <see langword="null"/>。</returns>
         public TcpClient TcpClient
         {
             get { return _tcpClientCached; }
@@ -223,6 +255,7 @@ namespace Framework.Proxy
         /// <summary>
         /// Creates a TCP connection to the destination host through the proxy server
         /// host.
+        /// 同步建立到目标地址的 SOCKS4 CONNECT 隧道连接。
         /// </summary>
         /// <param name="destinationHost">Destination host name or IP address of the destination server.</param>
         /// <param name="destinationPort">Port number to connect to on the destination server.</param>
@@ -230,6 +263,9 @@ namespace Framework.Proxy
         /// Returns an open TcpClient object that can be used normally to communicate
         /// with the destination server
         /// </returns>
+        /// <exception cref="ArgumentNullException">当 <paramref name="destinationHost"/> 为 <see langword="null"/> 或空字符串时抛出。</exception>
+        /// <exception cref="ArgumentOutOfRangeException">当目标端口不在 1 至 65535 范围内时抛出。</exception>
+        /// <exception cref="ProxyException">当代理地址或端口无效、连接失败、DNS 解析失败或 SOCKS4 服务器拒绝请求时抛出。</exception>
         /// <remarks>
         /// This method creates a connection to the proxy server and instructs the proxy server
         /// to make a pass through connection to the specified destination host on the specified
@@ -480,6 +516,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Gets a value indicating whether an asynchronous operation is running.
+        /// 获取当前是否有异步连接操作正在执行。
         /// </summary>
         /// <remarks>Returns true if an asynchronous operation is running; otherwise, false.
         /// </remarks>
@@ -490,6 +527,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Gets a value indicating whether an asynchronous operation is cancelled.
+        /// 获取当前异步连接操作是否已请求取消。
         /// </summary>
         /// <remarks>Returns true if an asynchronous operation is cancelled; otherwise, false.
         /// </remarks>
@@ -500,6 +538,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Cancels any asychronous operation that is currently active.
+        /// 请求取消当前正在执行的异步连接操作。
         /// </summary>
         public void CancelAsync()
         {
@@ -521,12 +560,14 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Event handler for CreateConnectionAsync method completed.
+        /// 异步连接操作完成时触发的事件。
         /// </summary>
         public event EventHandler<CreateConnectionAsyncCompletedEventArgs> CreateConnectionAsyncCompleted;
 
         /// <summary>
         /// Asynchronously creates a remote TCP connection through a proxy server to the destination host on the destination port
         /// using the supplied open TcpClient object with an open connection to proxy server.
+        /// 异步建立到目标地址的 SOCKS4 CONNECT 隧道连接，并通过完成事件返回结果。
         /// </summary>
         /// <param name="destinationHost">Destination host name or IP address.</param>
         /// <param name="destinationPort">Port number to connect to on the destination host.</param>
@@ -534,7 +575,9 @@ namespace Framework.Proxy
         /// Returns TcpClient object that can be used normally to communicate
         /// with the destination server.  
         /// </returns>
+        /// <exception cref="InvalidOperationException">当已有异步代理连接操作正在运行时抛出。</exception>
         /// <remarks>
+        /// 该方法本身无返回值；实际连接结果通过 <see cref="CreateConnectionAsyncCompleted"/> 事件返回。
         /// This instructs the proxy server to make a pass through connection to the specified destination host on the specified
         /// port.  
         /// </remarks>

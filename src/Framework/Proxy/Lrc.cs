@@ -23,6 +23,7 @@ namespace Framework.Proxy
 {
     /// <summary>
     /// Longitudinal Redundancy Check hash algorithm implementation.
+    /// 实现对输入字节逐位异或汇总的纵向冗余校验算法。
     /// </summary>
     internal class Lrc : HashAlgorithm
     {
@@ -30,6 +31,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Initializes an implementation of HashAlgorithm.
+        /// 将 LRC 计算状态重置为零。
         /// </summary>
         public override void Initialize()
         {
@@ -38,6 +40,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Computes LRC hash on supplied data.
+        /// 将指定范围内的输入字节异或合并到当前 LRC 状态。
         /// </summary>
         /// <param name="buffer">Buffer data to computer LRC value on.</param>
         /// <param name="offset">Offset value to begin hash function processing.</param>
@@ -53,6 +56,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Finialize LRC hash value.
+        /// 返回单字节的最终 LRC 校验结果。
         /// </summary>
         /// <returns>Finalize byte array.</returns>
         protected override byte[] HashFinal()

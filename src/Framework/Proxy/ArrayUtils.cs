@@ -32,26 +32,31 @@ namespace Framework.Proxy
     {
         /// <summary>
         /// Odd parity.
+        /// 奇校验：校验位用于使每个字节中 1 的总数为奇数。
         /// </summary>
         Odd,
         /// <summary>
         /// Even parity.
+        /// 偶校验：校验位用于使每个字节中 1 的总数为偶数。
         /// </summary>
         Even
     };
 
     /// <summary>
     /// Array utility class for working with byte arrays.
+    /// 提供字节数组比较、十六进制转换、填充、校验与加密等内部辅助操作。
     /// </summary>
     internal class ArrayUtils
     {
 
         /// <summary>
         /// Compares two byte arrays to make sure they contain the exact same data and are the same length.
+        /// 按长度和元素逐一比较两个字节数组是否完全相同。
         /// </summary>
         /// <param name="array1">First array to compare.</param>
         /// <param name="array2">Second array to compare.</param>
         /// <returns>A value of true if the arrays are the same; otherwise false.</returns>
+        /// <exception cref="ArgumentNullException">当任一输入数组为 <see langword="null"/> 时抛出。</exception>
         static public bool Compare(byte[] array1, byte[] array2)
         {
             if (array1 == null)
@@ -78,10 +83,12 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Encodes a byte array to a string in 2 character hex format.
+        /// 将字节数组编码为每字节两位的十六进制字符串。
         /// </summary>
         /// <param name="data">Array of bytes to convert.</param>
         /// <returns>String containing encoded bytes.</returns>
         /// <remarks>e.g. 0x55 ==> "55", also left pads with 0 so that 0x01 is "01" and not "1"</remarks>
+        /// <exception cref="ArgumentNullException">当 <paramref name="data"/> 为 <see langword="null"/> 时抛出。</exception>
         public static string HexEncode(byte[] data)
         {
             if (data == null)
@@ -95,6 +102,7 @@ namespace Framework.Proxy
         //   Benton Stark    03-09-2011
         /// <summary>
         /// Encodes a byte to a string in 2 character hex format.
+        /// 将单个字节编码为两位十六进制字符串。
         /// </summary>
         /// <param name="data">Byte to convert.</param>
         /// <returns>String containing encoded byte.</returns>
@@ -108,11 +116,13 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Encodes a byte array to a string in 2 character hex format.
+        /// 将字节数组编码为十六进制字符串，并可选择使用冒号分隔各字节。
         /// </summary>
         /// <param name="data">Array of bytes to convert.</param>
         /// <param name="insertColonDelimiter">Insert colon as the delimiter between bytes.</param>
         /// <returns>String containing encoded bytes.</returns>
         /// <remarks>e.g. 0x55 ==> "55", also left pads with 0 so that 0x01 is "01" and not "1"</remarks>
+        /// <exception cref="ArgumentNullException">当 <paramref name="data"/> 为 <see langword="null"/> 时抛出。</exception>
         public static string HexEncode(byte[] data, bool insertColonDelimiter)
         {
             if (data == null)
@@ -125,12 +135,14 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Encodes a byte array to a string in 2 character hex format.
+        /// 将字节数组编码为十六进制字符串，并可选择使用冒号分隔各字节。
         /// </summary>
         /// <param name="data">Array of bytes to encode.</param>
         /// <param name="insertColonDelimiter">Insert colon as the delimiter between bytes.</param>
         /// <param name="length">Number of bytes to encode.</param>
         /// <returns>String containing encoded bytes.</returns>
         /// <remarks>e.g. 0x55 ==> "55", also left pads with 0 so that 0x01 is "01" and not "1"</remarks>
+        /// <exception cref="ArgumentNullException">当 <paramref name="data"/> 为 <see langword="null"/> 时抛出。</exception>
         public static string HexEncode(byte[] data, bool insertColonDelimiter, int length)
         {
             if (data == null)
@@ -153,10 +165,13 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Decodes a 2 character hex format string to a byte array.
+        /// 将十六进制字符串解码为字节数组。
         /// </summary>
         /// <param name="s">String containing hex values to decode..</param>
         /// <returns>Array of decoded bytes.</returns>
         /// <remarks>Input string may contain a ':' delimiter between each encoded byte pair.</remarks>
+        /// <exception cref="ArgumentNullException">当 <paramref name="s"/> 为 <see langword="null"/> 时抛出。</exception>
+        /// <exception cref="FormatException">当十六进制字符数量为奇数或包含无效字符时抛出。</exception>
         public static byte[] HexDecode(string s)
         {
             return HexDecode(s, 0);
@@ -164,11 +179,14 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Decodes a 2 character hex format string to a byte array.
+        /// 将十六进制字符串解码为字节数组，并可在高位补齐指定数量的零字节。
         /// </summary>
         /// <param name="s">String containing hex values to decode..</param>
         /// <param name="paddingBytes">Number of most significant byte padding to add.</param>
         /// <returns>Array of decoded bytes.</returns>
         /// <remarks>Input string may contain a ':' delimiter between each encoded byte pair.</remarks>
+        /// <exception cref="ArgumentNullException">当 <paramref name="s"/> 为 <see langword="null"/> 时抛出。</exception>
+        /// <exception cref="FormatException">当十六进制字符数量为奇数或包含无效字符时抛出。</exception>
         public static byte[] HexDecode(string s, int paddingBytes)
         {
             if (s == null)
@@ -194,6 +212,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Converts a 32-bit integer value to a 24-bit integer value.
+        /// 将 32 位整数的低 24 位编码为三字节数组。
         /// </summary>
         /// <param name="value">32-bit integer.</param>
         /// <returns>24-bit integer as a byte array.</returns>
@@ -211,9 +230,12 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Converts a 24-bit integer byte array to a 32-bit integer.
+        /// 将三字节的 24 位整数数据解码为 32 位整数。
         /// </summary>
         /// <param name="int24">24-bit integer value.</param>
         /// <returns>Unsigned 32-bit integer value.</returns>
+        /// <exception cref="ArgumentNullException">当 <paramref name="int24"/> 为 <see langword="null"/> 时抛出。</exception>
+        /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="int24"/> 的长度不等于 3 时抛出。</exception>
         public static int GetInt32(byte[] int24)
         {
             if (int24 == null)
@@ -230,9 +252,11 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Copies a byte array by creating a new array and transferring the values.
+        /// 复制字节数组并返回与输入内容相同的新数组。
         /// </summary>
         /// <param name="array">Byte array to clone.</param>
         /// <returns>Cloned array.</returns>
+        /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
         public static byte[] Clone(byte[] array)
         {
             if (array == null)
@@ -245,9 +269,11 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Returns a copy of the supplied array in reverse order.
+        /// 返回按相反顺序排列的字节数组副本。
         /// </summary>
         /// <param name="array">Array to reverse.</param>
         /// <returns>Reverse array.</returns>
+        /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
         public static byte[] Reverse(byte[] array)
         {
             if (array == null)
@@ -262,6 +288,7 @@ namespace Framework.Proxy
         /// <summary>
         /// Gets the length of an array object but does not throw an exception
         /// if the array is null.
+        /// 安全获取字节数组长度，输入为空时返回零。
         /// </summary>
         /// <param name="array">Array (can be null)</param>
         /// <returns>Length of array of 0 if the array is null.</returns>
@@ -276,6 +303,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Pad with bytes all of the same value as the number of padding bytes.
+        /// 按 PKCS#7 规则使用填充字节数量作为填充值。
         /// </summary>
         /// <param name="array">Byte array to pad.</param>
         /// <param name="blockSize">Standard block size.</param>
@@ -286,7 +314,9 @@ namespace Framework.Proxy
         /// bytes of data with the value 0x06.  Similarly, if you are short 2 bytes then appended 
         /// 2 padding bytes with the value 0x02.
         /// </remarks>
-        /// <returns></returns>
+        /// <returns>按块大小补齐后的新字节数组；输入长度已是块大小的整数倍时返回副本。</returns>
+        /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
+        /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="blockSize"/> 小于或等于 0 时抛出。</exception>
         public static byte[] PadArrayPkcs7(byte[] array, int blockSize)
         {
             if (array == null)
@@ -314,8 +344,10 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Set the least significant odd party bit for supplied byte array.
+        /// 为字节数组中的每个字节设置奇校验位。
         /// </summary>
-        /// <param name="bytes"></param>
+        /// <param name="bytes">要原位设置奇校验位的字节数组。</param>
+        /// <exception cref="ArgumentNullException">当 <paramref name="bytes"/> 为 <see langword="null"/> 时抛出。</exception>
         public static void SetOddParity(byte[] bytes)
         {
             if (bytes == null)
@@ -337,10 +369,12 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Set the most significate parity bit for supplied byte array.
+        /// 按指定奇偶校验规则生成带校验位的新字节数组。
         /// </summary>
         /// <param name="array">Input byte array.</param>
         /// <param name="parity">Parity to set.</param>
         /// <returns>New byte array with the correct parity.</returns>
+        /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
         public static byte[] SetParity(byte[] array, ParityOptions parity)
         {
             if (array == null)
@@ -395,10 +429,12 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Creates an array of bytes.
+        /// 创建指定长度且所有元素初始化为给定值的字节数组。
         /// </summary>
         /// <param name="length">Length of the array.</param>
         /// <param name="byteValue">Initial value for the array.</param>
         /// <returns>Padding byte array.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="length"/> 小于或等于 0 时抛出。</exception>
         public static byte[] CreateArray(int length, byte byteValue)
         {
             if (length <= 0)
@@ -416,13 +452,15 @@ namespace Framework.Proxy
         /// Retrieves a substring from this instance. The substring starts at a specified
         /// character position and has a specified length.
         /// </summary>
-        /// <param name="array"></param>
+        /// <param name="array">作为复制来源的字节数组。</param>
         /// <param name="startIndex">The index of the start of the substring.</param>
         /// <param name="length">The number of characters in the substring.</param>
         /// <returns>
         /// A Byte array equivalent to the substring of length that begins
         /// at startIndex.
         ///</returns>
+        /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
+        /// <exception cref="Exception">当 <paramref name="length"/> 大于源数组长度时抛出。</exception>
         public static byte[] Subarray(byte[] array, int startIndex, int length)
         {
             if (array == null)
@@ -437,9 +475,11 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Trim zero padding from the right side of the array.
+        /// 移除字节数组末尾连续的零填充字节。
         /// </summary>
         /// <param name="array">Array to trim.</param>
         /// <returns>Resized array without zero's padding.</returns>
+        /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
         public static byte[] TrimPadding(byte[] array)
         {
             if (array == null)
@@ -460,8 +500,10 @@ namespace Framework.Proxy
         /// <summary>
         /// Clears all the bytes in an array by setting the elements to zero
         /// and then resizes the array to 0.
+        /// 将数组元素清零；调用方持有的数组长度不会因此改变。
         /// </summary>
         /// <param name="array">Array of bytes to clear.</param>
+        /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
         public static void Clear(byte[] array)
         {
             if (array == null)
@@ -478,6 +520,7 @@ namespace Framework.Proxy
         // Benton Stark    03-07-2011
         /// <summary>
         /// Tests if string data supplied is valid hex encoded value.
+        /// 判断输入字符串是否为有效的十六进制编码。
         /// </summary>
         /// <param name="data">String containing data</param>
         /// <returns>True if string is valid hex encoded value; otherwise false</returns>
@@ -494,8 +537,10 @@ namespace Framework.Proxy
         //Benton Stark    09-25-2012  
         /// <summary>
         /// Zeros an array by setting all byte values to the value 0.
+        /// 将字节数组中的所有元素原位设置为零。
         /// </summary>
         /// <param name="array">Array to zero.</param>
+        /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
         public static void Zero(byte[] array)
         {
             if (array == null)
@@ -510,10 +555,13 @@ namespace Framework.Proxy
         //Benton Stark    10-09-2012  
         /// <summary>
         /// Takes two equal size input byte arrays and xors their values and returns the xor result as a new byte array.
+        /// 将两个等长字节数组逐字节异或，并返回结果数组。
         /// </summary>
         /// <param name="array1">Array #1.</param>
         /// <param name="array2">Array #2.</param>
         /// <returns>New xor byte array.</returns>
+        /// <exception cref="ArgumentNullException">当任一输入数组为 <see langword="null"/> 时抛出。</exception>
+        /// <exception cref="ArgumentOutOfRangeException">当两个输入数组长度不相等时抛出。</exception>
         public static byte[] Xor(byte[] array1, byte[] array2)
         {
             if (array1 == null)
@@ -536,9 +584,11 @@ namespace Framework.Proxy
         //Benton Stark    10-21-2013  
         /// <summary>
         /// Combine 2 or more byte arrays into a single, contegious byte array.
+        /// 按参数顺序将多个字节数组合并为一个连续数组。
         /// </summary>
         /// <param name="list">Byte array parameter list.</param>
         /// <returns>Single byte array.</returns>
+        /// <exception cref="ArgumentNullException">当参数数组本身或其任意元素为 <see langword="null"/> 时抛出。</exception>
         public static byte[] Combine(params byte[][] list)
         {
             if (list == null)
@@ -563,6 +613,7 @@ namespace Framework.Proxy
         //Benton Stark    10-21-2013  
         /// <summary>
         /// Encrypt cleartext data using specified symmetric cipher and optional IV.
+        /// 使用指定的对称算法、密钥和可选初始化向量加密明文。
         /// </summary>
         /// <param name="algo">Symmetric cipher algorithm object.</param>
         /// <param name="key">Symmetric algorithm key.</param>
@@ -570,6 +621,7 @@ namespace Framework.Proxy
         /// <param name="mode">Symmetric cipher block mode.</param>
         /// <param name="cleartext">Cleartext data to encrypt.</param>
         /// <returns>Ciphertext data.</returns>
+        /// <exception cref="ArgumentNullException">当算法、密钥或明文数据为 <see langword="null"/> 时抛出。</exception>
         public static byte[] Encrypt(SymmetricAlgorithm algo, byte[] key, byte[] iv, CipherMode mode, byte[] cleartext)
         {
             if (algo == null)
@@ -588,6 +640,7 @@ namespace Framework.Proxy
         //Benton Stark    10-21-2013  
         /// <summary>
         /// Decrypt ciphertext data using specified symmetric cipher and optional IV.
+        /// 使用指定的对称算法、密钥和可选初始化向量解密密文。
         /// </summary>
         /// <param name="algo">Symmetric cipher algorithm object.</param>
         /// <param name="key">Symmetric algorithm key.</param>
@@ -595,6 +648,7 @@ namespace Framework.Proxy
         /// <param name="mode">Symmetric cipher block mode.</param>
         /// <param name="ciphertext">Ciphertext data to decrypt.</param>
         /// <returns>Cleartext data.</returns>
+        /// <exception cref="ArgumentNullException">当算法、密钥或密文数据为 <see langword="null"/> 时抛出。</exception>
         public static byte[] Decrypt(SymmetricAlgorithm algo, byte[] key, byte[] iv, CipherMode mode, byte[] ciphertext)
         {
             if (algo == null)
@@ -613,10 +667,13 @@ namespace Framework.Proxy
         //Benton Stark    10-21-2013  
         /// <summary>
         /// Zero pads an array of bytes to specific size.
+        /// 将字节数组扩展到指定长度，并以零填充尾部空间。
         /// </summary>
         /// <param name="data">Data to zero pad.</param>
         /// <param name="size">Size of the return array.</param>
         /// <returns>Array of bytes zero padded.</returns>
+        /// <exception cref="ArgumentNullException">当 <paramref name="data"/> 为 <see langword="null"/> 时抛出。</exception>
+        /// <exception cref="ArgumentOutOfRangeException">当源数据长度大于 <paramref name="size"/> 时抛出。</exception>
         public static byte[] ZeroPad(byte[] data, int size)
         {
             if (data == null)
@@ -633,10 +690,13 @@ namespace Framework.Proxy
         //Benton Stark    07-25-2014  
         /// <summary>
         /// Pads an array of bytes to specific size using hex value 0xFF.
+        /// 将字节数组扩展到指定长度，并以 0xFF 填充尾部空间。
         /// </summary>
         /// <param name="data">Data to pad.</param>
         /// <param name="size">Size of the return array.</param>
         /// <returns>Array of bytes padded.</returns>
+        /// <exception cref="ArgumentNullException">当 <paramref name="data"/> 为 <see langword="null"/> 时抛出。</exception>
+        /// <exception cref="ArgumentOutOfRangeException">当源数据长度大于 <paramref name="size"/> 时抛出。</exception>
         public static byte[] PadArrayFF(byte[] data, int size)
         {
             return PadArray(data, size, 0xff);
@@ -645,11 +705,14 @@ namespace Framework.Proxy
         //Benton Stark    07-25-2014  
         /// <summary>
         /// Pads an array of bytes to specific size using a supplied padding value.
+        /// 将字节数组扩展到指定长度，并以指定值填充尾部空间。
         /// </summary>
         /// <param name="data">Data to pad.</param>
         /// <param name="size">Size of the return array.</param>
         /// <param name="padValue">Padding value to use.</param>
         /// <returns>Array of bytes padded.</returns>
+        /// <exception cref="ArgumentNullException">当 <paramref name="data"/> 为 <see langword="null"/> 时抛出。</exception>
+        /// <exception cref="ArgumentOutOfRangeException">当源数据长度大于 <paramref name="size"/> 时抛出。</exception>
         public static byte[] PadArray(byte[] data, int size, byte padValue)
         {
             if (data == null)
@@ -667,10 +730,12 @@ namespace Framework.Proxy
         //Benton Stark    10-21-2013  
         /// <summary>
         /// Compute a hash value across one or more byte arrays.
+        /// 按参数顺序拼接多个字节数组，并使用指定哈希算法计算其哈希值。
         /// </summary>
         /// <param name="algo">Hashing algorithm to use.</param>
         /// <param name="list">Byte array to compute hash across.</param>
         /// <returns>Byte array containing hash value.</returns>
+        /// <exception cref="ArgumentNullException">当算法、输入数组集合或其任意元素为 <see langword="null"/> 时抛出。</exception>
         public static byte[] Hash(HashAlgorithm algo, params byte[][] list)
         {
             if (algo == null)

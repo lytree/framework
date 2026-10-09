@@ -24,6 +24,7 @@ namespace Framework.Proxy
     /// <summary>
     /// Builds a one-dimensional byte array of a fixed size and allows the consumer to easily
     /// append data to that byte array.
+    /// 用于按固定容量顺序组装一维字节数组的内部构建器；容量在构造或重新调整后固定，写入超出容量时拒绝追加。
     /// </summary>
     internal class ArrayBuilder
     {
@@ -32,6 +33,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Constructor.
+        /// 创建指定固定容量的字节数组构建器。
         /// </summary>
         /// <param name="size">The fixed size of the one-dimensional byte array to build.</param>
         public ArrayBuilder(long size)
@@ -42,6 +44,7 @@ namespace Framework.Proxy
         /// <summary>
         /// Gets the length of the ArrayBuilder buffer in bytes.
         /// </summary>
+        /// <returns>固定大小的底层字节数组长度。</returns>
         public int Length
         {
             get { return _buffer.Length; }
@@ -49,6 +52,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Appends bytes to the byte array.
+        /// 将字节数组的全部内容追加到构建器当前位置。
         /// </summary>
         /// <param name="data">Bytes to append.</param>
         public void Append(params byte[] data)
@@ -58,9 +62,11 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Appends bytes to the byte array at a specific starting index.
+        /// 从源数组的指定索引开始追加字节，并推进内部写入位置。
         /// </summary>
         /// <param name="data">Bytes to append.</param>
         /// <param name="startIndex">Starting point to append bytes.</param>
+        /// <exception cref="Exception">当追加后的数据长度超过固定缓冲区容量时抛出。</exception>
         public void Append(byte[] data, long startIndex)
         {
             if (_index + data.Length - startIndex > _buffer.Length)
@@ -74,6 +80,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Returns the byte array.
+        /// 复制并返回底层字节数组，避免调用方直接修改内部数据。
         /// </summary>
         /// <returns>Array of bytes.</returns>
         public byte[] GetBytes()
@@ -89,6 +96,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Clears the bytes array.  Any appended data will be lost.  The original byte array size is preserved.
+        /// 清空底层数组并将写入位置重置为起点，容量保持不变。
         /// </summary>
         public void Clear()
         {
@@ -98,6 +106,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Creates a new byte array of the size specificed.  Any appended data will be lost.
+        /// 按新容量重建底层数组并重置写入位置，已追加的数据会丢失。
         /// </summary>
         /// <param name="size">Size to rediminsion the array.</param>
         public void Redim(long size)

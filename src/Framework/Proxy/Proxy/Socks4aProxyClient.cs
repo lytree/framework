@@ -25,6 +25,7 @@ namespace Framework.Proxy
     /// <summary>
     /// Socks4a connection proxy class.  This class implements the Socks4a standard proxy protocol
     /// which is an extension of the Socks4 protocol 
+    /// SOCKS4a TCP 代理客户端；目标以域名形式交给代理端解析。
     /// </summary>
     /// <remarks>
     /// In Socks version 4A if the client cannot resolve the destination host's domain name 
@@ -36,6 +37,7 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Default constructor.
+        /// 创建使用默认配置的 SOCKS4a 代理客户端。
         /// </summary>
         public Socks4aProxyClient()
             : base()
@@ -43,51 +45,65 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Creates a Socks4 proxy client object using the supplied TcpClient object connection.
+        /// 使用调用方提供的 TCP 连接创建 SOCKS4a 代理客户端。
         /// </summary>
         /// <param name="tcpClient">An open TcpClient object with an established connection.</param>
+        /// <exception cref="ArgumentNullException">当 <paramref name="tcpClient"/> 为 <see langword="null"/> 时抛出。</exception>
         public Socks4aProxyClient(TcpClient tcpClient)
             : base(tcpClient)
         { }
 
         /// <summary>
         /// Create a Socks4a proxy client object.  The default proxy port 1080 is used.
+        /// 创建带有用户标识并使用默认端口 1080 的 SOCKS4a 代理客户端。
         /// </summary>
         /// <param name="proxyHost">Host name or IP address of the proxy server.</param>
         /// <param name="proxyUserId">Proxy user identification information for an IDENTD server.</param>
+        /// <exception cref="ArgumentNullException">当 <paramref name="proxyHost"/> 为 <see langword="null"/> 或空字符串，或 <paramref name="proxyUserId"/> 为 <see langword="null"/> 时抛出。</exception>
         public Socks4aProxyClient(string proxyHost, string proxyUserId)
             : base(proxyHost, proxyUserId)
         { }
 
         /// <summary>
         /// Create a Socks4a proxy client object.
+        /// 创建指定主机、端口和用户标识的 SOCKS4a 代理客户端。
         /// </summary>
         /// <param name="proxyHost">Host name or IP address of the proxy server.</param>
         /// <param name="proxyPort">Port used to connect to proxy server.</param>
         /// <param name="proxyUserId">Proxy user identification information.</param>
+        /// <exception cref="ArgumentNullException">当 <paramref name="proxyHost"/> 为 <see langword="null"/> 或空字符串，或 <paramref name="proxyUserId"/> 为 <see langword="null"/> 时抛出。</exception>
+        /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="proxyPort"/> 不在 1 至 65535 范围内时抛出。</exception>
         public Socks4aProxyClient(string proxyHost, int proxyPort, string proxyUserId)
             : base(proxyHost, proxyPort, proxyUserId)
         { }
 
         /// <summary>
         /// Create a Socks4 proxy client object.  The default proxy port 1080 is used.
+        /// 创建指定代理主机并使用默认端口 1080 的 SOCKS4a 代理客户端。
         /// </summary>
         /// <param name="proxyHost">Host name or IP address of the proxy server.</param>
+        /// <exception cref="ArgumentNullException">当 <paramref name="proxyHost"/> 为 <see langword="null"/> 或空字符串时抛出。</exception>
         public Socks4aProxyClient(string proxyHost) : base(proxyHost)
         { }
 
         /// <summary>
         /// Create a Socks4a proxy client object.
+        /// 创建指定代理主机和端口的 SOCKS4a 代理客户端。
         /// </summary>
         /// <param name="proxyHost">Host name or IP address of the proxy server.</param>
         /// <param name="proxyPort">Port used to connect to proxy server.</param>
+        /// <exception cref="ArgumentNullException">当 <paramref name="proxyHost"/> 为 <see langword="null"/> 或空字符串时抛出。</exception>
+        /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="proxyPort"/> 不在 1 至 65535 范围内时抛出。</exception>
         public Socks4aProxyClient(string proxyHost, int proxyPort)
             : base(proxyHost, proxyPort)
         { }
 
         /// <summary>
         /// Gets String representing the name of the proxy. 
+        /// 获取当前代理客户端的协议名称。
         /// </summary>
         /// <remarks>This property will always return the value 'SOCKS4a'</remarks>
+        /// <returns>固定返回 <c>SOCKS4a</c>。</returns>
         public override string ProxyName
         {
             get { return PROXY_NAME; }

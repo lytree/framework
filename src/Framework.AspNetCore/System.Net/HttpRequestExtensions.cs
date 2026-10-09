@@ -9,15 +9,30 @@ using System.Threading.Tasks;
 
 namespace Framework.AspNetCore.System.Net;
 
+/// <summary>
+/// 提供针对 <see cref="HttpRequest"/> 的浏览器识别扩展方法。
+/// </summary>
 public static partial class HttpRequestExtensions
 {
 
+    /// <summary>
+    /// 判断当前请求是否来自移动端浏览器。
+    /// <para>基于 <c>User-Agent</c> 头与两份预编译正则（设备关键字 + UA 前缀）进行匹配；
+    /// 任一正则命中即视为移动端。</para>
+    /// </summary>
+    /// <param name="request">ASP.NET Core 的当前 HTTP 请求。</param>
+    /// <returns>移动端返回 <c>true</c>，否则返回 <c>false</c>。</returns>
     public static bool IsMobileBrowser(this HttpRequest request)
     {
         var userAgent = request.GetUserAgent();
         return BRegex().IsMatch(userAgent) || VRegex().IsMatch(userAgent[..4]);
     }
 
+    /// <summary>
+    /// 获取当前请求的 <c>User-Agent</c> 头原始字符串。
+    /// </summary>
+    /// <param name="request">ASP.NET Core 的当前 HTTP 请求。</param>
+    /// <returns><c>User-Agent</c> 头的字符串值；若未携带该头则返回空串。</returns>
     public static string GetUserAgent(this HttpRequest request)
     {
         return request.Headers.UserAgent;
