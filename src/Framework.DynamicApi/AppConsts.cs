@@ -74,10 +74,14 @@ public static class AppConsts
     public static bool FormatResult { get; set; } = true;
 
     /// <summary>
-    /// 获取或设置结果包装所使用的开放泛型类型（例如 <c>ResponseResult<T></c>）。
-    /// 默认为 <see cref="FormatResultContext.FormatResultType"/>。
+    /// 获取或设置结果包装所使用的开放泛型类型（例如 <c>ResponseResult&lt;T&gt;</c>）。
+    /// 转发到 <see cref="FormatResultContext"/>，避免与该上下文重复定义导致行为不一致。
     /// </summary>
-    public static Type FormatResultType { get; set; } = FormatResultContext.FormatResultType;
+    public static Type FormatResultType
+    {
+        get => FormatResultContext.FormatResultType;
+        set => FormatResultContext.FormatResultType = value;
+    }
 
     static AppConsts()
     {

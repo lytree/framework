@@ -428,6 +428,19 @@ namespace Framework.Proxy
                 throw new ProxyException("The proxy destination does not accept the supported proxy client authentication methods.");
             }
 
+            // 服务器选择了我们没有实现的认证方法（GSSAPI 或保留/IANA 私有范围），
+            // 原实现会落到 username/password 子协商并向代理写错位的子协议，握手一定失败。
+            // 显式拒绝以避免发送错误子协商的副作用。
+            if (acceptedAuthMethod == SOCKS5_AUTH_METHOD_GSSAPI
+                || (acceptedAuthMethod >= SOCKS5_AUTH_METHOD_IANA_ASSIGNED_RANGE_BEGIN && acceptedAuthMethod <= SOCKS5_AUTH_METHOD_IANA_ASSIGNED_RANGE_END)
+                || (acceptedAuthMethod >= SOCKS5_AUTH_METHOD_RESERVED_RANGE_BEGIN && acceptedAuthMethod <= SOCKS5_AUTH_METHOD_RESERVED_RANGE_END))
+            {
+                _tcpClient.Close();
+                throw new ProxyException(string.Format(CultureInfo.InvariantCulture,
+                    "The SOCKS5 proxy selected authentication method 0x{0:X2} which is not supported by this client (only NO_AUTH and USERNAME/PASSWORD are implemented).",
+                    acceptedAuthMethod));
+            }
+
             // if the server accepts a username and password authentication and none is provided by the user then throw an error
             if (acceptedAuthMethod == SOCKS5_AUTH_METHOD_USERNAME_PASSWORD && _proxyAuthMethod == SocksAuthentication.None)
             {
@@ -602,14 +615,33 @@ namespace Framework.Proxy
 
             byte[] response = new byte[255];
 
-            // read proxy server response
-            stream.Read(response, 0, response.Length);
+            // 按 SOCKS5 协议至少包含 10 字节（VER + REP + RSV + ATYP + 4 字节 IPv4 + 2 字节端口），
+            // 域名或 IPv6 响应会更长。先读固定 4 字节头部，再依据 ATYP 读取剩余部分，
+            // 避免使用 Read 时只读到部分字节就返回，导致后续解析读到未初始化的零字节。
+            int read = stream.ReadAtLeast(response, 4, throwOnEndOfStream: true);
+            if (read < 4)
+                throw new ProxyException("SOCKS5 proxy response is too short.");
 
             byte replyCode = response[1];
-
-            //  evaluate the reply code for an error condition
             if (replyCode != SOCKS5_CMD_REPLY_SUCCEEDED)
+            {
                 HandleProxyCommandError(response, destinationHost, destinationPort);
+                return;
+            }
+
+            // 读取 BND.ADDR 与 BND.PORT，按地址族长度补齐。
+            byte addrType = response[3];
+            int addrLen = addrType switch
+            {
+                SOCKS5_ADDRTYPE_IPV4 => 4,
+                SOCKS5_ADDRTYPE_IPV6 => 16,
+                SOCKS5_ADDRTYPE_DOMAIN_NAME => response[4],
+                _ => throw new ProxyException(string.Format(CultureInfo.InvariantCulture,
+                    "SOCKS5 proxy returned an unsupported address type {0}.", addrType))
+            };
+            int totalLen = 4 + addrLen + 2;
+            if (read < totalLen)
+                stream.ReadExactly(response, read, totalLen - read);
         }
         private void HandleProxyCommandError(byte[] response, string destinationHost, int destinationPort)
         {
@@ -704,12 +736,21 @@ namespace Framework.Proxy
         /// Cancels any asychronous operation that is currently active.
         /// 请求取消当前正在执行的异步连接操作。
         /// </summary>
+        /// <remarks>
+        /// BackgroundWorker 本身无法打断同步阻塞的网络调用。本实现除了设置取消标志外，
+        /// 还会主动关闭正在协商的 <see cref="TcpClient"/>，让阻塞在 <c>ReadExactly</c> 上的
+        /// 工作线程抛出 <see cref="IOException"/>，并被 <see cref="CreateConnectionAsync_DoWork"/>
+        /// 捕获后以取消状态上报到完成事件。
+        /// </remarks>
         public void CancelAsync()
         {
-            if (_asyncWorker != null && !_asyncWorker.CancellationPending && _asyncWorker.IsBusy)
+            if (_asyncWorker != null && _asyncWorker.IsBusy)
             {
                 _asyncCancelled = true;
                 _asyncWorker.CancelAsync();
+                // 主动关闭底层 socket，使阻塞中的网络读取/连接立即抛异常。
+                try { _tcpClient?.Close(); }
+                catch { /* ignore */ }
             }
         }
 
@@ -744,7 +785,7 @@ namespace Framework.Proxy
         /// 该方法本身无返回值；实际连接结果通过 <see cref="CreateConnectionAsyncCompleted"/> 事件返回。
         /// This method instructs the proxy server
         /// to make a pass through connection to the specified destination host on the specified
-        /// port.  
+        /// port.
         /// </remarks>
         public void CreateConnectionAsync(string destinationHost, int destinationPort)
         {
@@ -770,13 +811,20 @@ namespace Framework.Proxy
             }
             catch (Exception ex)
             {
+                // 捕获工作线程异常，包括被取消时关闭 socket 引发的 IOException/ObjectDisposedException。
                 _asyncException = ex;
+                if (_asyncCancelled)
+                    e.Cancel = true;
             }
         }
 
         private void CreateConnectionAsync_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            CreateConnectionAsyncCompleted?.Invoke(this, new CreateConnectionAsyncCompletedEventArgs(_asyncException, _asyncCancelled, (TcpClient)e.Result));
+            // 取消路径下 Result 为 null，事件参数正确反映 cancelled/error 状态。
+            TcpClient result = null;
+            if (!e.Cancelled && e.Error == null)
+                result = e.Result as TcpClient;
+            CreateConnectionAsyncCompleted?.Invoke(this, new CreateConnectionAsyncCompletedEventArgs(_asyncException, _asyncCancelled, result));
         }
 
 

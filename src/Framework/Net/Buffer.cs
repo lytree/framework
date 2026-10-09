@@ -86,12 +86,19 @@ class Buffer : IBufferWriter<byte>
 
     /// <summary>
     /// Get a span of bytes from the current buffer
-    /// 获取从当前读取位置开始的字节跨度；实现直接以 <see cref="Size"/> 作为长度。
+    /// 获取从当前读取位置开始、长度等于"已写入但尚未消费"字节数的 <see cref="Span{T}"/>。
     /// </summary>
-    /// <returns>从 <see cref="Offset"/> 开始、长度为 <see cref="Size"/> 的字节跨度。</returns>
+    /// <returns>从 <see cref="Offset"/> 开始、长度为 <c>Size - Offset</c> 的字节跨度。</returns>
+    /// <remarks>
+    /// 原实现以 <see cref="Size"/> 作为长度，在 <see cref="Offset"/> 非零时会导致 <c>AsSpan</c> 越过数组边界。
+    /// 这里改为与 <see cref="AsReadableSpan"/> 一致：只覆盖尚未被读取指针消费的有效数据。
+    /// </remarks>
     public Span<byte> AsSpan()
     {
-        return _data.AsSpan((int)_offset, (int)_size);
+        int readable = (int)(_size - _offset);
+        if (readable < 0)
+            readable = 0;
+        return _data.AsSpan((int)_offset, readable);
     }
     // 获取当前可读区域的 Span（考虑 _offset）
     /// <summary>

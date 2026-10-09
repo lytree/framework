@@ -1,4 +1,4 @@
-﻿using Framework.SlideCaptcha.Resources;
+using Framework.SlideCaptcha.Resources;
 
 namespace Framework.SlideCaptcha
 {
@@ -51,9 +51,24 @@ namespace Framework.SlideCaptcha
 		public int ExpirySeconds { get; set; } = 60;
 
 		/// <summary>
-		/// 存储键前缀
+		/// 存储键前缀。
+		/// 拼接规则：<c>KeyPrefix + key</c>，最终键以 <c>"slide-captcha"</c> 开头。
 		/// </summary>
-		public string StoreageKeyPrefix { get; set; } = "slide-captcha";
+		public string StorageKeyPrefix { get; set; } = "slide-captcha";
+
+		/// <summary>
+		/// 存储键前缀（拼写错误，保留为 <see cref="StorageKeyPrefix"/> 的别名以兼容旧配置）。
+		/// </summary>
+		[Obsolete("StoreageKeyPrefix 拼写错误，请改用 StorageKeyPrefix。", false)]
+		public string? StoreageKeyPrefix
+		{
+			get => StorageKeyPrefix;
+			set
+			{
+				if (value != null)
+					StorageKeyPrefix = value;
+			}
+		}
 
 		/// <summary>
 		/// 容错值(校验时用，缺口位置与实际滑动位置匹配容错范围)

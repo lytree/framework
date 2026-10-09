@@ -21,10 +21,26 @@ public static partial class Helper
     /// <typeparam name="T">目标类型，必须具备由 <see cref="TypeDescriptor"/> 公开的属性元数据。</typeparam>
     /// <param name="propertyDisplayName">属性名。必须与 <see cref="TypeDescriptor.GetProperties(Type)"/> 返回的属性名精确匹配。</param>
     /// <returns>该属性上 <see cref="DisplayNameAttribute"/> 的 <see cref="DisplayNameAttribute.DisplayName"/> 文本。</returns>
-    /// <exception cref="ArgumentNullException"><typeparamref name="T"/> 上不存在名为 <paramref name="propertyDisplayName"/> 的属性，或对应属性未标注 <see cref="DisplayNameAttribute"/> 时可能引发空引用异常（具体取决于运行时路径）。</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="propertyDisplayName"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <exception cref="ArgumentException"><typeparamref name="T"/> 上不存在名为 <paramref name="propertyDisplayName"/> 的属性，或对应属性未标注 <see cref="DisplayNameAttribute"/> 时抛出。</exception>
     public static string GetAttributeDisplayName<T>(string propertyDisplayName)
     {
-        return (TypeDescriptor.GetProperties(typeof(T))[propertyDisplayName].Attributes[typeof(DisplayNameAttribute)] as DisplayNameAttribute).DisplayName;
+        if (string.IsNullOrEmpty(propertyDisplayName))
+            throw new ArgumentNullException(nameof(propertyDisplayName));
+
+        var property = TypeDescriptor.GetProperties(typeof(T))[propertyDisplayName];
+        if (property == null)
+            throw new ArgumentException(
+                $"Property '{propertyDisplayName}' is not defined on type {typeof(T).FullName}.",
+                nameof(propertyDisplayName));
+
+        var attribute = property.Attributes[typeof(DisplayNameAttribute)] as DisplayNameAttribute;
+        if (attribute == null)
+            throw new ArgumentException(
+                $"Property '{propertyDisplayName}' on type {typeof(T).FullName} is not decorated with DisplayNameAttribute.",
+                nameof(propertyDisplayName));
+
+        return attribute.DisplayName;
     }
 
     /// <summary>
@@ -33,9 +49,25 @@ public static partial class Helper
     /// <typeparam name="T">目标类型，必须具备由 <see cref="TypeDescriptor"/> 公开的属性元数据。</typeparam>
     /// <param name="propertyDisplayName">属性名。必须与 <see cref="TypeDescriptor.GetProperties(Type)"/> 返回的属性名精确匹配。</param>
     /// <returns>该属性上 <see cref="DisplayAttribute"/> 的 <see cref="DisplayAttribute.Name"/> 文本。</returns>
-    /// <exception cref="ArgumentNullException"><typeparamref name="T"/> 上不存在名为 <paramref name="propertyDisplayName"/> 的属性，或对应属性未标注 <see cref="DisplayAttribute"/> 时可能引发空引用异常（具体取决于运行时路径）。</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="propertyDisplayName"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <exception cref="ArgumentException"><typeparamref name="T"/> 上不存在名为 <paramref name="propertyDisplayName"/> 的属性，或对应属性未标注 <see cref="DisplayAttribute"/> 时抛出。</exception>
     public static string GetAttributeDisplay<T>(string propertyDisplayName)
     {
-        return (TypeDescriptor.GetProperties(typeof(T))[propertyDisplayName].Attributes[typeof(DisplayAttribute)] as DisplayAttribute).Name;
+        if (string.IsNullOrEmpty(propertyDisplayName))
+            throw new ArgumentNullException(nameof(propertyDisplayName));
+
+        var property = TypeDescriptor.GetProperties(typeof(T))[propertyDisplayName];
+        if (property == null)
+            throw new ArgumentException(
+                $"Property '{propertyDisplayName}' is not defined on type {typeof(T).FullName}.",
+                nameof(propertyDisplayName));
+
+        var attribute = property.Attributes[typeof(DisplayAttribute)] as DisplayAttribute;
+        if (attribute == null)
+            throw new ArgumentException(
+                $"Property '{propertyDisplayName}' on type {typeof(T).FullName} is not decorated with DisplayAttribute.",
+                nameof(propertyDisplayName));
+
+        return attribute.Name;
     }
 }

@@ -149,10 +149,15 @@ namespace Framework.Proxy
             {
                 throw new ArgumentNullException(nameof(data));
             }
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), "length must be non-negative.");
+            // 实际编码长度以 data.Length 为上限，避免越界。
+            int len = Math.Min(length, data.Length);
 
-            StringBuilder buffer = new StringBuilder(length * 2);
+            // 预分配容量按编码后字符数估算：每字节 2 个十六进制字符 +（可选）分隔符。
+            int capacity = len * 2 + (insertColonDelimiter && len > 1 ? (len - 1) : 0);
+            StringBuilder buffer = new StringBuilder(capacity);
 
-            int len = data.Length;
             for (int i = 0; i < len; i++)
             {
                 buffer.Append(data[i].ToString("x").PadLeft(2, '0')); //same as "%02X" in C
@@ -212,27 +217,30 @@ namespace Framework.Proxy
 
         /// <summary>
         /// Converts a 32-bit integer value to a 24-bit integer value.
-        /// 将 32 位整数的低 24 位编码为三字节数组。
+        /// 将 32 位整数的低 24 位编码为三字节数组，按大端序（网络字节序）输出。
         /// </summary>
         /// <param name="value">32-bit integer.</param>
-        /// <returns>24-bit integer as a byte array.</returns>
+        /// <returns>24-bit integer as a byte array (big-endian).</returns>
         /// <exception cref="ArgumentOutOfRangeException">If value is greater than 16777215.</exception>
         public static byte[] GetInt24(int value)
         {
             if (value > 16777215)
                 throw new ArgumentOutOfRangeException(nameof(value), "value can not be greater than 16777215 (max unsigned 24-bit integer)");
 
-            byte[] bytes = BitConverter.GetBytes(value);
-            byte[] buffer = new byte[3];
-            Array.Copy(bytes, 0, buffer, 0, 3);
-            return buffer;
+            // 固定大端序，避免在不同字节序主机上得到的字节序列不同。
+            return new byte[]
+            {
+                (byte)((value >> 16) & 0xFF),
+                (byte)((value >> 8) & 0xFF),
+                (byte)(value & 0xFF)
+            };
         }
 
         /// <summary>
         /// Converts a 24-bit integer byte array to a 32-bit integer.
-        /// 将三字节的 24 位整数数据解码为 32 位整数。
+        /// 将三字节的 24 位整数数据按大端序解码为 32 位整数。
         /// </summary>
-        /// <param name="int24">24-bit integer value.</param>
+        /// <param name="int24">24-bit integer value (big-endian).</param>
         /// <returns>Unsigned 32-bit integer value.</returns>
         /// <exception cref="ArgumentNullException">当 <paramref name="int24"/> 为 <see langword="null"/> 时抛出。</exception>
         /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="int24"/> 的长度不等于 3 时抛出。</exception>
@@ -245,9 +253,8 @@ namespace Framework.Proxy
             {
                 throw new ArgumentOutOfRangeException(nameof(int24), "byte size must be exactly three");
             }
-            ArrayBuilder buffer = new ArrayBuilder(4);
-            buffer.Append(int24);
-            return BitConverter.ToInt32(buffer.GetBytes(), 0);
+            // 大端序解析：高位字节在前。
+            return (int24[0] << 16) | (int24[1] << 8) | int24[2];
         }
 
         /// <summary>
@@ -327,10 +334,9 @@ namespace Framework.Proxy
 
             byte[] buffer = ArrayUtils.Clone(array);
             int rem = array.Length % blockSize;
-            int pads = blockSize - rem;
-
-            if (rem == 0)
-                return buffer;
+            // 按 PKCS#7 规范：即使输入已与块对齐，仍需添加一整个填充块，
+            // 否则在解填充侧会因为"末字节不是合法填充值"而失败。
+            int pads = (rem == 0) ? blockSize : (blockSize - rem);
 
             Array.Resize<byte>(ref buffer, buffer.Length + pads);
 
@@ -466,8 +472,15 @@ namespace Framework.Proxy
             if (array == null)
                 throw new ArgumentNullException(nameof(array));
 
-            if (length > array.Length)
-                throw new Exception("length exceeds size of array");
+            // 完整边界校验：原实现只判 length > array.Length，会漏掉 startIndex < 0、
+            // startIndex + length 越界等情形，并抛出一个与上下文完全无关的普通 Exception。
+            if (startIndex < 0)
+                throw new ArgumentOutOfRangeException(nameof(startIndex), "startIndex must be non-negative.");
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), "length must be non-negative.");
+            if (startIndex + length > array.Length)
+                throw new ArgumentException("startIndex + length exceeds size of array.", nameof(length));
+
             byte[] buf = new byte[length];
             Array.Copy(array, startIndex, buf, 0, length);
             return buf;
@@ -498,23 +511,22 @@ namespace Framework.Proxy
 
         // BKS 12-21-2009
         /// <summary>
-        /// Clears all the bytes in an array by setting the elements to zero
-        /// and then resizes the array to 0.
+        /// Clears all the bytes in an array by setting the elements to zero.
         /// 将数组元素清零；调用方持有的数组长度不会因此改变。
         /// </summary>
         /// <param name="array">Array of bytes to clear.</param>
         /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
+        /// <remarks>
+        /// 原实现还调用了 <c>Array.Resize(ref array, 0)</c>，但 <c>ref</c> 形参在方法内被重新分配后，
+        /// 调用方持有的数组引用长度不会改变。这行调用对调用方没有任何效果，且容易误导阅读者认为
+        /// "传入的数组会被清空到 0 长度"。这里删掉该调用，方法名 <c>Clear</c> 与实际行为一致。
+        /// </remarks>
         public static void Clear(byte[] array)
         {
             if (array == null)
                 throw new ArgumentNullException(nameof(array));
 
-            for (int i = 0; i < array.Length; i++)
-            {
-                array[i] = 0;
-            }
-
-            Array.Resize<byte>(ref array, 0);
+            Array.Clear(array, 0, array.Length);
         }
 
         // Benton Stark    03-07-2011
@@ -610,7 +622,7 @@ namespace Framework.Proxy
             return rtn;
         }
 
-        //Benton Stark    10-21-2013  
+        //Benton Stark    10-21-2013
         /// <summary>
         /// Encrypt cleartext data using specified symmetric cipher and optional IV.
         /// 使用指定的对称算法、密钥和可选初始化向量加密明文。
@@ -622,6 +634,11 @@ namespace Framework.Proxy
         /// <param name="cleartext">Cleartext data to encrypt.</param>
         /// <returns>Ciphertext data.</returns>
         /// <exception cref="ArgumentNullException">当算法、密钥或明文数据为 <see langword="null"/> 时抛出。</exception>
+        /// <remarks>
+        /// 原实现仅调用 <see cref="ICryptoTransform.TransformBlock"/>，缺少 <c>TransformFinalBlock</c>，
+        /// 对分组密码（DES/AES 等）来说既不会应用填充也不会写入最后一块，结果是无效密文。
+        /// 这里改用 <see cref="ICryptoTransform.TransformFinalBlock"/>，让底层算法自己负责填充与最终块加密。
+        /// </remarks>
         public static byte[] Encrypt(SymmetricAlgorithm algo, byte[] key, byte[] iv, CipherMode mode, byte[] cleartext)
         {
             if (algo == null)
@@ -631,13 +648,12 @@ namespace Framework.Proxy
             if (cleartext == null)
                 throw new ArgumentNullException(nameof(cleartext));
             algo.Mode = mode;
-            ICryptoTransform c = algo.CreateEncryptor(key, iv);
-            byte[] ciphertext = new byte[cleartext.Length];
-            c.TransformBlock(cleartext, 0, cleartext.Length, ciphertext, 0);
-            return ciphertext;
+            using ICryptoTransform c = algo.CreateEncryptor(key, iv);
+            // TransformFinalBlock 内部会处理分块、填充与最后一段，输出长度 != cleartext.Length（通常多一个填充块）。
+            return c.TransformFinalBlock(cleartext, 0, cleartext.Length);
         }
 
-        //Benton Stark    10-21-2013  
+        //Benton Stark    10-21-2013
         /// <summary>
         /// Decrypt ciphertext data using specified symmetric cipher and optional IV.
         /// 使用指定的对称算法、密钥和可选初始化向量解密密文。
@@ -649,6 +665,11 @@ namespace Framework.Proxy
         /// <param name="ciphertext">Ciphertext data to decrypt.</param>
         /// <returns>Cleartext data.</returns>
         /// <exception cref="ArgumentNullException">当算法、密钥或密文数据为 <see langword="null"/> 时抛出。</exception>
+        /// <remarks>
+        /// 原实现仅调用 <see cref="ICryptoTransform.TransformBlock"/>，缺失 <c>TransformFinalBlock</c>，
+        /// 无法对最后一块做去填充，对分组密码来说输出是无效明文。
+        /// 改用 <see cref="ICryptoTransform.TransformFinalBlock"/>，由底层算法负责去填充与最终块解密。
+        /// </remarks>
         public static byte[] Decrypt(SymmetricAlgorithm algo, byte[] key, byte[] iv, CipherMode mode, byte[] ciphertext)
         {
             if (algo == null)
@@ -656,12 +677,10 @@ namespace Framework.Proxy
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
             if (ciphertext == null)
-                throw new ArgumentNullException("cleartext");
+                throw new ArgumentNullException(nameof(ciphertext));
             algo.Mode = mode;
-            ICryptoTransform d = algo.CreateDecryptor(key, iv);
-            byte[] cleartext = new byte[ciphertext.Length];
-            d.TransformBlock(ciphertext, 0, ciphertext.Length, cleartext, 0);
-            return cleartext;
+            using ICryptoTransform d = algo.CreateDecryptor(key, iv);
+            return d.TransformFinalBlock(ciphertext, 0, ciphertext.Length);
         }
 
         //Benton Stark    10-21-2013  

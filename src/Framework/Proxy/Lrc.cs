@@ -17,6 +17,7 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.Security.Cryptography;
 
 namespace Framework.Proxy
@@ -47,10 +48,15 @@ namespace Framework.Proxy
         /// <param name="count">Count of bytes to perform hash function on.</param>
         protected override void HashCore(byte[] buffer, int offset, int count)
         {
-            // Save the text in the buffer. 
-            for (int i = offset; i < count; i++)
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer));
+            if (offset < 0 || count < 0 || offset + count > buffer.Length)
+                throw new ArgumentOutOfRangeException(nameof(count), "offset+count is out of buffer range.");
+
+            // 原实现为 for (i = offset; i < count; i++) 会越界。修正为按 [offset, offset+count) 遍历。
+            for (int i = 0; i < count; i++)
             {
-                _lrc ^= buffer[i];
+                _lrc ^= buffer[offset + i];
             }
         }
 

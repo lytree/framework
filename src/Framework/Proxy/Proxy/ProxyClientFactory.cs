@@ -80,18 +80,30 @@ namespace Framework.Proxy
         /// </summary>
         /// <param name="proxy">The type of proxy client to create.</param>
         /// <returns>Proxy client object.</returns>
-        /// <remarks>当前实现以小写精确匹配 <c>http</c>、<c>socket4</c>、<c>socket4a</c> 和 <c>socket5</c>。</remarks>
+        /// <remarks>协议名称按大小写不敏感匹配；HTTP 代理在未提供凭据时自动退化为无认证构造函数。</remarks>
         /// <exception cref="ProxyException">当协议名称不属于当前实现支持的值时抛出。</exception>
         /// <exception cref="ArgumentOutOfRangeException">当解析结果中的端口不在 1 至 65535 范围内时，由具体代理客户端构造函数抛出。</exception>
         public IProxyClient CreateProxyClient(ParsedUrl proxy)
         {
+            if (proxy.Scheme == null)
+                throw new ProxyException("Unknown proxy type <null>.");
 
-            return proxy.Scheme switch
+            // 按 RFC 3986 协议名天然大小写不敏感，这里显式归一化以避免因大小写差异导致路由失败。
+            string scheme = proxy.Scheme.ToLowerInvariant();
+
+            // HTTP 代理：未提供凭据时退化为无认证构造函数，否则某些实现会拒绝匿名代理。
+            if (scheme == "http")
             {
-                "http" => new HttpProxyClient(proxy.Host, proxy.Port, proxy.Username, proxy.Password),
-                "socket4" => new Socks4ProxyClient(proxy.Host, proxy.Port, proxy.Username),
-                "socket4a" => new Socks4aProxyClient(proxy.Host, proxy.Port, proxy.Username),
-                "socket5" => new Socks5ProxyClient(proxy.Host, proxy.Port, proxy.Username, proxy.Password),
+                if (string.IsNullOrEmpty(proxy.Username) && string.IsNullOrEmpty(proxy.Password))
+                    return new HttpProxyClient(proxy.Host, proxy.Port);
+                return new HttpProxyClient(proxy.Host, proxy.Port, proxy.Username, proxy.Password);
+            }
+
+            return scheme switch
+            {
+                "socks4" => new Socks4ProxyClient(proxy.Host, proxy.Port, proxy.Username),
+                "socks4a" => new Socks4aProxyClient(proxy.Host, proxy.Port, proxy.Username),
+                "socks5" => new Socks5ProxyClient(proxy.Host, proxy.Port, proxy.Username, proxy.Password),
                 _ => throw new ProxyException(string.Format("Unknown proxy type {0}.", proxy.Scheme)),
             };
         }

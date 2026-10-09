@@ -10,7 +10,7 @@ namespace Framework.SlideCaptcha.Storage
 	/// <summary>
 	/// 基于 <see cref="IDistributedCache"/> 的 <see cref="IStorage"/> 默认实现：
 	/// 在写入时把对象 <see cref="JsonSerializer.Serialize"/> 为 UTF-8 字节，读取时反序列化；
-	/// 同时使用 <see cref="CaptchaOptions.StoreageKeyPrefix"/> 为所有 key 加上前缀，避免与其他业务缓存键冲突。
+	/// 同时使用 <see cref="CaptchaOptions.StorageKeyPrefix"/> 为所有 key 加上前缀，避免与其他业务缓存键冲突。
 	/// </summary>
 	public class DefaultStorage : IStorage
 	{
@@ -20,7 +20,7 @@ namespace Framework.SlideCaptcha.Storage
 		/// <summary>
 		/// 初始化 <see cref="DefaultStorage"/>。
 		/// </summary>
-		/// <param name="options">用于读取 <see cref="CaptchaOptions"/> 中 <c>StoreageKeyPrefix</c> 的 options 监控器。</param>
+		/// <param name="options">用于读取 <see cref="CaptchaOptions"/> 中 <c>StorageKeyPrefix</c> 的 options 监控器。</param>
 		/// <param name="cache">底层分布式缓存（如 Redis、Memory）。</param>
 		public DefaultStorage(IOptionsMonitor<CaptchaOptions> options, IDistributedCache cache)
 		{
@@ -29,14 +29,21 @@ namespace Framework.SlideCaptcha.Storage
 		}
 
 		/// <summary>
-		/// 为给定 <paramref name="key"/> 拼接 <see cref="CaptchaOptions.StoreageKeyPrefix"/> 形成最终在分布式缓存中使用的键。
+		/// 为给定 <paramref name="key"/> 拼接 <see cref="CaptchaOptions.StorageKeyPrefix"/> 形成最终在分布式缓存中使用的键。
 		/// 每次调用都重新读取当前配置，配置中前缀改动可即时生效。
 		/// </summary>
 		/// <param name="key">业务侧传入的原始键。</param>
 		/// <returns>拼接前缀后的缓存键。</returns>
 		private string WrapKey(string key)
 		{
-			return $"{_options.CurrentValue.StoreageKeyPrefix}{key}";
+#pragma warning disable CS0618 // 旧拼写 StoreageKeyPrefix 仍可能被业务配置使用，保留 fallback
+			string prefix = _options.CurrentValue.StorageKeyPrefix
+#pragma warning restore CS0618
+#pragma warning disable CS0618
+							?? _options.CurrentValue.StoreageKeyPrefix
+#pragma warning restore CS0618
+							?? string.Empty;
+			return prefix + key;
 		}
 
 		/// <summary>

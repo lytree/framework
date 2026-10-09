@@ -62,6 +62,13 @@ public static partial class UrlParser
             string portString = match.Groups["port"].Value;
             int port = string.IsNullOrEmpty(portString) ? -1 : int.Parse(portString);
 
+            // 端口范围校验：正则允许 \d{1,5}（0-99999），但合法 TCP 端口是 1-65535。
+            // 超范围视为解析失败，避免在后续工厂抛出难定位的 ArgumentOutOfRangeException。
+            if (port != -1 && (port < 1 || port > 65535))
+            {
+                return new ParsedUrl { IsValid = false };
+            }
+
             // 如果没有端口，并且没有协议头，我们可能需要判断它是否是一个有效的地址，这里我们假设它是有效的
             if (port == -1 && !match.Groups["scheme"].Success)
             {

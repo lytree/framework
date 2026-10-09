@@ -58,24 +58,31 @@ namespace Framework.Proxy
         /// <param name="count">Number of bytes to hash.</param>
         protected override void HashCore(byte[] buffer, int offset, int count)
         {
-            // computer the hash on the bytes given
-            for (int i = offset; i < count; i++)
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer));
+            if (offset < 0 || count < 0 || offset + count > buffer.Length)
+                throw new ArgumentOutOfRangeException(nameof(count), "offset+count is out of buffer range.");
+
+            // 反射多项式查表算法：低字节索引 = (CRC ^ byte) & 0xFF；
+            // 状态用 CRC 自身右移 8 位后与表项异或更新。
+            for (int i = 0; i < count; i++)
             {
-                // xor byte with existing crc value
-                byte index = (byte)(_crc ^ buffer[i]);
-                // update crc via xor with lookup table
+                byte index = (byte)((_crc ^ buffer[offset + i]) & 0xFF);
                 _crc = (ushort)((_crc >> 8) ^ _table[index]);
             }
         }
 
         /// <summary>
         /// Hash final bytes.  Nothing to do except return the hash result.
-        /// 返回当前 CRC-16 状态的最终字节表示。
+        /// 返回当前 CRC-16 状态的最终字节表示（按主机字节序）。
         /// </summary>
         /// <returns>Final hashed bytes.</returns>
         protected override byte[] HashFinal()
         {
-            return BitConverter.GetBytes(_crc);
+            byte[] hashBuffer = BitConverter.GetBytes(_crc);
+            // 同步设置基类 HashValue，保证 HashAlgorithm.Hash 与 TransformBlock 链路在所有 .NET 版本下都能读到结果。
+            this.HashValue = hashBuffer;
+            return hashBuffer;
         }
 
         /// <summary>
@@ -85,23 +92,18 @@ namespace Framework.Proxy
         /// </summary>
         public override void Initialize()
         {
-            ushort value;
-            ushort temp;
+            _crc = 0;
             // 预计算每个可能字节的移位与多项式异或结果，避免在正式校验时逐位重复运算。
-            // for each byte in the table loop
+            // 标准反射式 CRC-16（多项式 0xA001）查表生成：仅右移 value，不右移 temp。
             for (ushort i = 0; i < _table.Length; ++i)
             {
-                value = 0;
-                temp = i;
-                // set the bits of each byte
+                ushort value = i;
                 for (byte j = 0; j < 8; ++j)
                 {
-                    if (((value ^ temp) & 0x0001) != 0)
+                    if ((value & 0x0001) != 0)
                         value = (ushort)((value >> 1) ^ Polynomial);
                     else
                         value >>= 1;
-
-                    temp >>= 1;
                 }
                 _table[i] = value;
             }

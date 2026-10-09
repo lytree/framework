@@ -20,6 +20,7 @@
 using System;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -417,6 +418,12 @@ namespace Framework.Proxy
         /// </summary>
         /// <param name="destinationHost">Host name or IP address.</param>
         /// <returns>Byte array representing IP address in bytes.</returns>
+        /// <remarks>
+        /// SOCKS4 协议 DSTIP 字段固定 4 字节，只能承载 IPv4。
+        /// 原实现直接取 <c>Dns.GetHostEntry(...).AddressList[0]</c>，在现代系统上常常是 IPv6，
+        /// 会把 16 字节写入 4 字节槽位导致协议错位。改为优先选择 IPv4，找不到时退回 IPv6 并通过
+        /// <see cref="IPAddress.MapToIPv4"/> 取得映射的 IPv4 地址。
+        /// </remarks>
         internal byte[] GetIPAddressBytes(string destinationHost)
         {
 
@@ -425,13 +432,26 @@ namespace Framework.Proxy
             {
                 try
                 {
-                    ipAddr = Dns.GetHostEntry(destinationHost).AddressList[0];
+                    var addresses = Dns.GetHostEntry(destinationHost).AddressList;
+                    if (addresses == null || addresses.Length == 0)
+                        throw new ProxyException(string.Format(CultureInfo.InvariantCulture, "DNS resolution for host name {0} returned no addresses.", destinationHost));
+
+                    // 优先 IPv4，避免在纯 IPv6 解析结果下写入 16 字节到 4 字节槽位。
+                    ipAddr = addresses.FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork)
+                             ?? addresses[0].MapToIPv4();
+                }
+                catch (ProxyException)
+                {
+                    throw;
                 }
                 catch (Exception ex)
                 {
                     throw new ProxyException(string.Format(CultureInfo.InvariantCulture, "A error occurred while attempting to DNS resolve the host name {0}.", destinationHost), ex);
                 }
             }
+
+            if (ipAddr.AddressFamily == AddressFamily.InterNetworkV6)
+                ipAddr = ipAddr.MapToIPv4();
 
             // return address bytes
             return ipAddr.GetAddressBytes();
