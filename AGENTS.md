@@ -35,7 +35,7 @@ dotnet pack src/Framework/Framework.csproj
 - 项目根目录不再保留任何 git 子模块；旧的 `packages` 子模块已移除。
 
 ## Architecture
-- **Monorepo**: 10 src packages under `src/`, 2 test projects under `test/`
+- **Monorepo**: 9 src packages under `src/`, 3 test projects under `test/`
 - **Solution file**: `Framework.slnx` (not .sln)
 - **Package versioning**: see "Package Versioning" section above
 - **Target frameworks**: `net10.0` only (defined inline in each csproj)
@@ -49,6 +49,7 @@ dotnet pack src/Framework/Framework.csproj
 | `Framework.Mvvm` | MVVM with CommunityToolkit.Mvvm |
 | `Framework.Repository` | linq2db-based repository + Mapster |
 | `Framework.Charts` | Chart generation |
+| `Framework.Modbus` | Modbus 主站（TCP / UDP / RTU / ASCII）+ 全功能码，设计参照 jamod |
 | `Framework.ZLogging` / `Framework.Logging` | Infrastructure |
 
 ## CI / Release
@@ -57,6 +58,7 @@ dotnet pack src/Framework/Framework.csproj
 
 ## Test Projects
 - `test/Framework.ZLogging.Tests/` — ZLogging 单元测试（TUnit，30+ 用例）
+- `test/Framework.Modbus.Tests/` — Modbus 测试（TUnit，93 用例：校验向量 / PDU 编解码 / RTU·ASCII 组帧 / TCP 回环集成）
 - `test/Framework.Tests/` — Framework 核心工具测试（TUnit，PooledMemoryStream 等）
 
 ## Testing Platform (MTP)

@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net10.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<Version>1.0.0</Version>
+		<PackageId>YLFramework.Modbus</PackageId>
+		<SignAssembly>False</SignAssembly>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<Description>Modbus 主站（Master）实现 —— TCP / UDP / RTU / ASCII 四种传输通道、完整功能码集合与 jamod 风格的门面 API。</Description>
+		<PackageTags>modbus;modbus-tcp;modbus-rtu;modbus-ascii;master;plc;scada;industrial</PackageTags>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="System.IO.Ports" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Resource Include="README.md">
+			<PackagePath>\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Pack>True</Pack>
+		</Resource>
+	</ItemGroup>
+</Project>
