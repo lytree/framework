@@ -62,6 +62,13 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 - 每个包按自身 csproj 的 `<Version>` 打包；构建不依赖 GitVersion，CI 里也不再安装 GitVersion.Tool
 - 本地等价命令：`dotnet run build/Build.cs -t Pack --Package=YLFramework.Repository`
 
+### NuGet Trusted Publishing（OIDC，无长期 API Key）
+- nuget.org 上已建策略 `framework`：Publisher `GitHubActions` / Repository Owner `lytree` / Repository `framework` / Workflow `public.yml` / Environment `release` / Glob `YLFramework.*`，Scope 为 `Push new packages and package versions`
+- 因此 `.github/workflows/public.yml` 必须保持三件事一致：作业级 `environment: release`、`permissions: id-token: write`、`uses: NuGet/login@v1`（`user: lytree`）
+- 推送用的 `NUGET_API_KEY` 由 `NuGet/login` 用 OIDC token 换取的**临时 Key**（有效期 1 小时），`build/Build.cs` 仍按同名环境变量读取，无需改动；仓库不再需要 `NUGET_API_KEY` secret
+- 改策略名 / 仓库名 / 工作流文件名 / 环境名任一项时，nuget.org 策略与 YAML 必须同步改，否则换 Key 会因 claim 不匹配失败
+- 新建策略有过期风险：NuGet 需要一次成功发布才能拿到 GitHub repo/owner ID 并「永久激活」，7 天内不发布策略会自动失效（可点 `Activate for 7 days` 重置窗口）
+
 ## Test Projects
 - `test/Framework.ZLogging.Tests/` — ZLogging 单元测试（TUnit，75 用例）
 - `test/Framework.Tests/` — Framework 核心工具测试（TUnit，PooledMemoryStream 等）

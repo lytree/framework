@@ -12,6 +12,11 @@ jobs:
     ubuntu-latest:
         name: ubuntu-latest
         runs-on: ubuntu-latest
+        # 与 nuget.org 的 Trusted Publishing 策略保持一致（策略里 Environment = release）
+        environment: release
+        permissions:
+            contents: read
+            id-token: write # NuGet Trusted Publishing 需要 OIDC token
         steps:
             - uses: actions/checkout@v4
               with:
@@ -39,6 +44,12 @@ jobs:
                       echo "version=" >> "$GITHUB_OUTPUT"
                       echo "全量发布：$TAG（版本取自各包 csproj 的 <Version>）"
                   fi
+            - name: 🔐 NuGet login (OIDC → 临时 API Key)
+              id: nuget-login
+              uses: NuGet/login@v1
+              with:
+                  # nuget.org 账号名（profile name），不是邮箱
+                  user: lytree
             - name: "Run: Push"
               run: |
                   if [ -n "${{ steps.tag.outputs.package }}" ]; then
@@ -47,7 +58,8 @@ jobs:
                       dotnet run build/Build.cs -t Push
                   fi
               env:
-                  NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+                  # 临时 Key 有效期 1 小时，由 NuGet/login 从 OIDC token 换取
+                  NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
             - name: "Publish: package"
               uses: actions/upload-artifact@v4
               with:
