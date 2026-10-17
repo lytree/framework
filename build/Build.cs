@@ -123,8 +123,11 @@ public class PackTask : FrostingTask<BuildContext>
                     OutputDirectory = BuildParameters.PackageOutputDirectory,
                     NoBuild = true, // 已经在 Compile Task 中完成
                     NoRestore = true,
-                    ArgumentCustomization = args => args
-                    .Append($"-property:PackageVersion={(context.HasVersion ? context.Arguments.GetArgument(BuildParameters.Version) : version.SemVer)}")
+                    // 各包版本由自身 csproj 的 <Version> 决定（不再统一）；
+                    // 仅在显式传入 -Version 参数时才覆盖单个项目的版本
+                    ArgumentCustomization = args => context.HasVersion
+                        ? args.Append($"-property:PackageVersion={context.Arguments.GetArgument(BuildParameters.Version)}")
+                        : args
                 });
             }
         }

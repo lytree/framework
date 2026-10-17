@@ -17,10 +17,11 @@
 		<PackageReference Include="BouncyCastle.Cryptography" />
 	</ItemGroup>
 
+	<!-- 共享源码：直接引入 src/Shared 中需要的文件编译 -->
 	<ItemGroup>
-		<Compile Include="..\Framework\Helpers\Helper.Json.cs" />
-		<Compile Include="..\Framework\System.Text.Json.Serialization\DateTimeJsonConverter.cs" />
-		<Compile Include="..\Framework\System.Text.Json.Serialization\DateTimeOffsetJsonConverter.cs" />
+		<Compile Include="..\Shared\Helpers\Helper.Json.cs" Link="Shared\Helpers\Helper.Json.cs" />
+		<Compile Include="..\Shared\System.Text.Json.Serialization\DateTimeJsonConverter.cs" Link="Shared\System.Text.Json.Serialization\DateTimeJsonConverter.cs" />
+		<Compile Include="..\Shared\System.Text.Json.Serialization\DateTimeOffsetJsonConverter.cs" Link="Shared\System.Text.Json.Serialization\DateTimeOffsetJsonConverter.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

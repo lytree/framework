@@ -6,7 +6,7 @@
 
 | 文件 | 作用 |
 |------|------|
-| `Framework.Logging.csproj` | 引用 NLog / NLog.Extensions.Logging / NLog.Web.AspNetCore |
+| `Logging.csproj` | 引用 NLog / NLog.Extensions.Logging / NLog.Web.AspNetCore |
 | `NLog.config` | 默认 NLog 配置：彩色控制台 + 按天滚动文件 + 自动布局 |
 
 ## 快速上手
@@ -18,7 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.AddNLogWeb();
 ```
 
-或通过 `Framework.Logging` 提供的统一入口（视项目实际扩展而定）：
+或通过 `Logging` 提供的统一入口（视项目实际扩展而定）：
 
 ```csharp
 builder.Logging.AddFrameworkNLog();
@@ -39,11 +39,11 @@ builder.Logging.AddFrameworkNLog();
 
 | 维度 | YLFramework.Logging | YLFramework.ZLogging |
 |------|--------------------|----------------------|
-| 后端 | NLog | ZLogger（零分配） |
+| 后端 | NLog | 自研 ILoggerProvider（仅依赖 Spectre.Console） |
 | 输出风格 | 模板化字符串、彩色控制台 | Spectre.Console 强类型 IRenderable |
-| 文件输出 | 内置滚动、压缩、归档 | 简易追加写 |
-| 结构化日志 | 支持（`${event-properties:item=...}`） | 弱（主要靠 format message） |
-| 适用场景 | 传统 ASP.NET Core 业务服务 | CLI / 高吞吐 / 强类型输出 |
+| 文件输出 | 内置滚动、压缩、归档、按天滚动 | 自研批量写：按体积滚动、断连重连、IO 退避重试 |
+| 结构化日志 | 支持（`${event-properties:item=...}`） | 专用指令 `{Value:format}`（table / panel / json / hex…） |
+| 适用场景 | 传统 ASP.NET Core 业务服务 | CLI / 需要富终端渲染与对象转储的场景 |
 
 ## 依赖
 

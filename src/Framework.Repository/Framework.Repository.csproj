@@ -20,8 +20,18 @@
 		<PackageReference Include="Yitter.IdGenerator" />
 	</ItemGroup>
 
+	<!-- 共享源码：直接引入 src/Shared 中需要的文件编译，不再引用独立 Framework 程序集 -->
 	<ItemGroup>
-		<ProjectReference Include="..\Framework\Framework.csproj" />
+		<Compile Include="..\Shared\Helpers\Helper.Entity.cs" Link="Shared\Helpers\Helper.Entity.cs" />
+		<Compile Include="..\Shared\Helpers\Helper.Interface.cs" Link="Shared\Helpers\Helper.Interface.cs" />
+		<Compile Include="..\Shared\Helpers\Helper.Json.cs" Link="Shared\Helpers\Helper.Json.cs" />
+		<Compile Include="..\Shared\Helpers\Helper.Encoding.cs" Link="Shared\Helpers\Helper.Encoding.cs" />
+		<Compile Include="..\Shared\Helpers\Helper.DateTime.cs" Link="Shared\Helpers\Helper.DateTime.cs" />
+		<Compile Include="..\Shared\System\*.cs" Link="Shared\System\%(Filename)%(Extension)" />
+		<Compile Include="..\Shared\System.Reflection\*.cs" Link="Shared\System.Reflection\%(Filename)%(Extension)" />
+		<Compile Include="..\Shared\System.Collections.Generic\*.cs" Link="Shared\System.Collections.Generic\%(Filename)%(Extension)" />
+		<Compile Include="..\Shared\System.Convert\*.cs" Link="Shared\System.Convert\%(Filename)%(Extension)" />
+		<Compile Include="..\Shared\System.Text.Json.Serialization\*.cs" Link="Shared\System.Text.Json.Serialization\%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup>

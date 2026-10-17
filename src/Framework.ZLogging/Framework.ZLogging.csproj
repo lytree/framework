@@ -13,15 +13,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ZLogger" />
+		<PackageReference Include="Microsoft.Extensions.Logging" />
 		<PackageReference Include="Spectre.Console" />
 		<PackageReference Include="Spectre.Console.Ansi" />
-		<PackageReference Include="Microsoft.Extensions.Logging" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Compile Include="..\Framework\System.Buffers\IWrittenBufferWriter.cs" />
-		<Compile Include="..\Framework\System.Buffers\ArrayPoolBufferWriter.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -31,4 +25,5 @@
 			<Pack>True</Pack>
 		</Resource>
 	</ItemGroup>
+
 </Project>

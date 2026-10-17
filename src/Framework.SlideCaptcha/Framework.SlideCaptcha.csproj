@@ -6,6 +6,7 @@
 		<Nullable>enable</Nullable>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<Version>1.0.0</Version>
 		<PackageId>YLFramework.SlideCaptcha</PackageId>
 		<Description>滑动验证码库（图片生成、轨迹校验、模板资源管理）</Description>
 		<PackageTags>SlideCaptcha;Captcha;ImageSharp;Validator;</PackageTags>

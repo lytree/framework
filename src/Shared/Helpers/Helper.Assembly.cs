@@ -1,0 +1,35 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+
+/// <summary>
+/// 程序集帮助类
+/// </summary>
+internal static partial class Helper
+{
+    /// <summary>
+    /// 根据程序集名称列表获取程序集列表
+    /// </summary>
+    /// <param name="assemblyNames"></param>
+    /// <returns></returns>
+    public static Assembly[] GetAssemblyList(string[] assemblyNames)
+    {
+        List<Assembly> assemblies = [];
+
+        if (!(assemblyNames?.Length > 0))
+        {
+            return [.. assemblies];
+        }
+
+        foreach (var assemblyName in assemblyNames)
+        {
+            var assembly = Assembly.Load(assemblyName);
+            assemblies.Add(assembly);
+        }
+
+        return [.. assemblies];
+    }
+}

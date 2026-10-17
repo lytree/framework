@@ -1,0 +1,778 @@
+//
+//  Author:
+//       Benton Stark <benton.stark@gmail.com>
+//
+//  Copyright (c) 2016 Benton Stark
+//
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Lesser General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+using System;
+using System.Collections;
+using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
+
+/// <summary>
+/// Parity options.
+/// </summary>
+internal enum ParityOptions
+{
+    /// <summary>
+    /// Odd parity.
+    /// 奇校验：校验位用于使每个字节中 1 的总数为奇数。
+    /// </summary>
+    Odd,
+    /// <summary>
+    /// Even parity.
+    /// 偶校验：校验位用于使每个字节中 1 的总数为偶数。
+    /// </summary>
+    Even
+};
+
+/// <summary>
+/// Array utility class for working with byte arrays.
+/// 提供字节数组比较、十六进制转换、填充、校验与加密等内部辅助操作。
+/// </summary>
+internal class ArrayUtils
+{
+
+    /// <summary>
+    /// Compares two byte arrays to make sure they contain the exact same data and are the same length.
+    /// 按长度和元素逐一比较两个字节数组是否完全相同。
+    /// </summary>
+    /// <param name="array1">First array to compare.</param>
+    /// <param name="array2">Second array to compare.</param>
+    /// <returns>A value of true if the arrays are the same; otherwise false.</returns>
+    /// <exception cref="ArgumentNullException">当任一输入数组为 <see langword="null"/> 时抛出。</exception>
+    static public bool Compare(byte[] array1, byte[] array2)
+    {
+        if (array1 == null)
+            throw new ArgumentNullException(nameof(array1));
+
+        if (array2 == null)
+            throw new ArgumentNullException(nameof(array2));
+
+        if (array1.Length != array2.Length)
+        {
+            return false;
+        }
+
+        int len = array1.Length;
+        for (int i = 0; i < len; i++)
+        {
+            if (array1[i] != array2[i])
+                return false;
+        }
+
+        return true;
+    }
+
+
+    /// <summary>
+    /// Encodes a byte array to a string in 2 character hex format.
+    /// 将字节数组编码为每字节两位的十六进制字符串。
+    /// </summary>
+    /// <param name="data">Array of bytes to convert.</param>
+    /// <returns>String containing encoded bytes.</returns>
+    /// <remarks>e.g. 0x55 ==> "55", also left pads with 0 so that 0x01 is "01" and not "1"</remarks>
+    /// <exception cref="ArgumentNullException">当 <paramref name="data"/> 为 <see langword="null"/> 时抛出。</exception>
+    public static string HexEncode(byte[] data)
+    {
+        if (data == null)
+        {
+            throw new ArgumentNullException(nameof(data));
+        }
+
+        return HexEncode(data, false, data.Length);
+    }
+
+    //   Benton Stark    03-09-2011
+    /// <summary>
+    /// Encodes a byte to a string in 2 character hex format.
+    /// 将单个字节编码为两位十六进制字符串。
+    /// </summary>
+    /// <param name="data">Byte to convert.</param>
+    /// <returns>String containing encoded byte.</returns>
+    /// <remarks>e.g. 0x55 ==> "55", also left pads with 0 so that 0x01 is "01" and not "1"</remarks>
+    public static string HexEncode(byte data)
+    {
+        byte[] b = new byte[1];
+        b[0] = data;
+        return HexEncode(b, false, b.Length);
+    }
+
+    /// <summary>
+    /// Encodes a byte array to a string in 2 character hex format.
+    /// 将字节数组编码为十六进制字符串，并可选择使用冒号分隔各字节。
+    /// </summary>
+    /// <param name="data">Array of bytes to convert.</param>
+    /// <param name="insertColonDelimiter">Insert colon as the delimiter between bytes.</param>
+    /// <returns>String containing encoded bytes.</returns>
+    /// <remarks>e.g. 0x55 ==> "55", also left pads with 0 so that 0x01 is "01" and not "1"</remarks>
+    /// <exception cref="ArgumentNullException">当 <paramref name="data"/> 为 <see langword="null"/> 时抛出。</exception>
+    public static string HexEncode(byte[] data, bool insertColonDelimiter)
+    {
+        if (data == null)
+        {
+            throw new ArgumentNullException(nameof(data));
+        }
+
+        return HexEncode(data, insertColonDelimiter, data.Length);
+    }
+
+    /// <summary>
+    /// Encodes a byte array to a string in 2 character hex format.
+    /// 将字节数组编码为十六进制字符串，并可选择使用冒号分隔各字节。
+    /// </summary>
+    /// <param name="data">Array of bytes to encode.</param>
+    /// <param name="insertColonDelimiter">Insert colon as the delimiter between bytes.</param>
+    /// <param name="length">Number of bytes to encode.</param>
+    /// <returns>String containing encoded bytes.</returns>
+    /// <remarks>e.g. 0x55 ==> "55", also left pads with 0 so that 0x01 is "01" and not "1"</remarks>
+    /// <exception cref="ArgumentNullException">当 <paramref name="data"/> 为 <see langword="null"/> 时抛出。</exception>
+    public static string HexEncode(byte[] data, bool insertColonDelimiter, int length)
+    {
+        if (data == null)
+        {
+            throw new ArgumentNullException(nameof(data));
+        }
+        if (length < 0)
+            throw new ArgumentOutOfRangeException(nameof(length), "length must be non-negative.");
+        // 实际编码长度以 data.Length 为上限，避免越界。
+        int len = Math.Min(length, data.Length);
+
+        // 预分配容量按编码后字符数估算：每字节 2 个十六进制字符 +（可选）分隔符。
+        int capacity = len * 2 + (insertColonDelimiter && len > 1 ? (len - 1) : 0);
+        StringBuilder buffer = new StringBuilder(capacity);
+
+        for (int i = 0; i < len; i++)
+        {
+            buffer.Append(data[i].ToString("x").PadLeft(2, '0')); //same as "%02X" in C
+            if (insertColonDelimiter && i < len - 1)
+                buffer.Append(':');
+        }
+        return buffer.ToString();
+    }
+
+
+    /// <summary>
+    /// Decodes a 2 character hex format string to a byte array.
+    /// 将十六进制字符串解码为字节数组。
+    /// </summary>
+    /// <param name="s">String containing hex values to decode..</param>
+    /// <returns>Array of decoded bytes.</returns>
+    /// <remarks>Input string may contain a ':' delimiter between each encoded byte pair.</remarks>
+    /// <exception cref="ArgumentNullException">当 <paramref name="s"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <exception cref="FormatException">当十六进制字符数量为奇数或包含无效字符时抛出。</exception>
+    public static byte[] HexDecode(string s)
+    {
+        return HexDecode(s, 0);
+    }
+
+    /// <summary>
+    /// Decodes a 2 character hex format string to a byte array.
+    /// 将十六进制字符串解码为字节数组，并可在高位补齐指定数量的零字节。
+    /// </summary>
+    /// <param name="s">String containing hex values to decode..</param>
+    /// <param name="paddingBytes">Number of most significant byte padding to add.</param>
+    /// <returns>Array of decoded bytes.</returns>
+    /// <remarks>Input string may contain a ':' delimiter between each encoded byte pair.</remarks>
+    /// <exception cref="ArgumentNullException">当 <paramref name="s"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <exception cref="FormatException">当十六进制字符数量为奇数或包含无效字符时抛出。</exception>
+    public static byte[] HexDecode(string s, int paddingBytes)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+
+        if (s.IndexOf(':') > -1)
+            s = s.Replace(":", "");
+
+        if ((s.Length % 2) != 0)
+        {
+            throw new FormatException("parameter 's' must have an even number of hex characters");
+        }
+
+        byte[] result = new byte[s.Length / 2 + paddingBytes];
+        for (int i = 0; i < result.Length - paddingBytes; i++)
+        {
+            result[i] = byte.Parse(s.Substring(i * 2, 2), NumberStyles.AllowHexSpecifier);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Converts a 32-bit integer value to a 24-bit integer value.
+    /// 将 32 位整数的低 24 位编码为三字节数组，按大端序（网络字节序）输出。
+    /// </summary>
+    /// <param name="value">32-bit integer.</param>
+    /// <returns>24-bit integer as a byte array (big-endian).</returns>
+    /// <exception cref="ArgumentOutOfRangeException">If value is greater than 16777215.</exception>
+    public static byte[] GetInt24(int value)
+    {
+        if (value > 16777215)
+            throw new ArgumentOutOfRangeException(nameof(value), "value can not be greater than 16777215 (max unsigned 24-bit integer)");
+
+        // 固定大端序，避免在不同字节序主机上得到的字节序列不同。
+        return new byte[]
+        {
+            (byte)((value >> 16) & 0xFF),
+            (byte)((value >> 8) & 0xFF),
+            (byte)(value & 0xFF)
+        };
+    }
+
+    /// <summary>
+    /// Converts a 24-bit integer byte array to a 32-bit integer.
+    /// 将三字节的 24 位整数数据按大端序解码为 32 位整数。
+    /// </summary>
+    /// <param name="int24">24-bit integer value (big-endian).</param>
+    /// <returns>Unsigned 32-bit integer value.</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="int24"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="int24"/> 的长度不等于 3 时抛出。</exception>
+    public static int GetInt32(byte[] int24)
+    {
+        if (int24 == null)
+            throw new ArgumentNullException(nameof(int24));
+
+        if (int24.Length != 3)
+        {
+            throw new ArgumentOutOfRangeException(nameof(int24), "byte size must be exactly three");
+        }
+        // 大端序解析：高位字节在前。
+        return (int24[0] << 16) | (int24[1] << 8) | int24[2];
+    }
+
+    /// <summary>
+    /// Copies a byte array by creating a new array and transferring the values.
+    /// 复制字节数组并返回与输入内容相同的新数组。
+    /// </summary>
+    /// <param name="array">Byte array to clone.</param>
+    /// <returns>Cloned array.</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
+    public static byte[] Clone(byte[] array)
+    {
+        if (array == null)
+            throw new ArgumentNullException(nameof(array));
+
+        byte[] buffer = new byte[array.Length];
+        Array.Copy(array, buffer, buffer.Length);
+        return buffer;
+    }
+
+    /// <summary>
+    /// Returns a copy of the supplied array in reverse order.
+    /// 返回按相反顺序排列的字节数组副本。
+    /// </summary>
+    /// <param name="array">Array to reverse.</param>
+    /// <returns>Reverse array.</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
+    public static byte[] Reverse(byte[] array)
+    {
+        if (array == null)
+            throw new ArgumentNullException(nameof(array));
+
+        byte[] buffer = new byte[array.Length];
+        Array.Copy(array, buffer, buffer.Length);
+        Array.Reverse(buffer);
+        return buffer;
+    }
+
+    /// <summary>
+    /// Gets the length of an array object but does not throw an exception
+    /// if the array is null.
+    /// 安全获取字节数组长度，输入为空时返回零。
+    /// </summary>
+    /// <param name="array">Array (can be null)</param>
+    /// <returns>Length of array of 0 if the array is null.</returns>
+    public static int GetLengthSafe(byte[] array)
+    {
+        if (array == null)
+            return 0;
+        else
+            return array.Length;
+
+    }
+
+    /// <summary>
+    /// Pad with bytes all of the same value as the number of padding bytes.
+    /// 按 PKCS#7 规则使用填充字节数量作为填充值。
+    /// </summary>
+    /// <param name="array">Byte array to pad.</param>
+    /// <param name="blockSize">Standard block size.</param>
+    /// <remarks>
+    /// This padding technique is documented in the RSA specification PKCS#5, PKCS#7 as well 
+    /// as the RFC 3852 Section 6.3.  This method will paddi with bytes all of the same value 
+    /// as the number of bytes padded.  So if you are short by 6 bytes then simply append six 
+    /// bytes of data with the value 0x06.  Similarly, if you are short 2 bytes then appended 
+    /// 2 padding bytes with the value 0x02.
+    /// </remarks>
+    /// <returns>按块大小补齐后的新字节数组；输入长度已是块大小的整数倍时返回副本。</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="blockSize"/> 小于或等于 0 时抛出。</exception>
+    public static byte[] PadArrayPkcs7(byte[] array, int blockSize)
+    {
+        if (array == null)
+            throw new ArgumentNullException(nameof(array));
+
+        if (blockSize <= 0)
+            throw new ArgumentOutOfRangeException(nameof(blockSize), "must be 1 or greater");
+
+        byte[] buffer = ArrayUtils.Clone(array);
+        int rem = array.Length % blockSize;
+        // 按 PKCS#7 规范：即使输入已与块对齐，仍需添加一整个填充块，
+        // 否则在解填充侧会因为"末字节不是合法填充值"而失败。
+        int pads = (rem == 0) ? blockSize : (blockSize - rem);
+
+        Array.Resize<byte>(ref buffer, buffer.Length + pads);
+
+        for (int i = array.Length; i < buffer.Length; i++)
+        {
+            buffer[i] = (byte)pads;
+        }
+
+        return buffer;
+    }
+
+    /// <summary>
+    /// Set the least significant odd party bit for supplied byte array.
+    /// 为字节数组中的每个字节设置奇校验位。
+    /// </summary>
+    /// <param name="bytes">要原位设置奇校验位的字节数组。</param>
+    /// <exception cref="ArgumentNullException">当 <paramref name="bytes"/> 为 <see langword="null"/> 时抛出。</exception>
+    public static void SetOddParity(byte[] bytes)
+    {
+        if (bytes == null)
+            throw new ArgumentNullException(nameof(bytes));
+
+        for (int i = 0; i < bytes.Length; i++)
+        {
+            int b = bytes[i];
+            bytes[i] = (byte)((b & 0xfe) |
+                            ((((b >> 1) ^
+                            (b >> 2) ^
+                            (b >> 3) ^
+                            (b >> 4) ^
+                            (b >> 5) ^
+                            (b >> 6) ^
+                            (b >> 7)) ^ 0x01) & 0x01));
+        }
+    }
+
+    /// <summary>
+    /// Set the most significate parity bit for supplied byte array.
+    /// 按指定奇偶校验规则生成带校验位的新字节数组。
+    /// </summary>
+    /// <param name="array">Input byte array.</param>
+    /// <param name="parity">Parity to set.</param>
+    /// <returns>New byte array with the correct parity.</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
+    public static byte[] SetParity(byte[] array, ParityOptions parity)
+    {
+        if (array == null)
+            throw new ArgumentNullException(nameof(array));
+
+        // An odd parity bit is set to 1 if the number of ones in a given set of bits is even 
+        // (making the total number of ones, including the parity bit, odd).
+        // http://en.wikipedia.org/wiki/Parity_bit
+
+        // load the bytes into one contiguous bit array structure
+        BitArray bits = new BitArray(array);
+        byte[] buffer = Clone(array);
+
+        // two loops - the outer is to loop through the bytes
+        // and the inner is to loop through the bits in a particular byte
+        for (int i = 0; i < array.Length; i++)
+        {
+            int oneCount = 0;
+            // loop through the bits in the byte starting with
+            // the second bit and running to the 8th bit. 
+            // (remember that the array is zero indexed so it is off by 1)
+            for (int j = 0; j < 7; j++)
+            {
+                if (bits[i * 8 + j] == true)
+                    oneCount++;
+            }
+
+            // set the parity bit (bit position 0) for the byte now that we have the one's count
+            // if the number of one's is even then set to 1 ("true" for the BitArray)
+            // so that now the total number of bits (8) are now odd when added up
+            // the opposite is true for even parity
+            switch (parity)
+            {
+                case ParityOptions.Odd:
+                    if (oneCount % 2 == 0)
+                        buffer[i] |= (1 << 7);
+                    else
+                        buffer[i] &= unchecked((byte)(~(1 << 7)));
+                    break;
+                case ParityOptions.Even:
+                    if (oneCount % 2 == 0)
+                        buffer[i] &= unchecked((byte)(~(1 << 7)));
+                    else
+                        buffer[i] |= (1 << 7);
+                    break;
+            }
+        }
+
+        return buffer;
+
+    }
+
+    /// <summary>
+    /// Creates an array of bytes.
+    /// 创建指定长度且所有元素初始化为给定值的字节数组。
+    /// </summary>
+    /// <param name="length">Length of the array.</param>
+    /// <param name="byteValue">Initial value for the array.</param>
+    /// <returns>Padding byte array.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="length"/> 小于或等于 0 时抛出。</exception>
+    public static byte[] CreateArray(int length, byte byteValue)
+    {
+        if (length <= 0)
+            throw new ArgumentOutOfRangeException("length must be greater than 0");
+
+        byte[] buf = new byte[length];
+        for (int i = 0; i < buf.Length; i++)
+        {
+            buf[i] = byteValue;
+        }
+        return buf;
+    }
+
+    /// <summary>
+    /// Retrieves a substring from this instance. The substring starts at a specified
+    /// character position and has a specified length.
+    /// </summary>
+    /// <param name="array">作为复制来源的字节数组。</param>
+    /// <param name="startIndex">The index of the start of the substring.</param>
+    /// <param name="length">The number of characters in the substring.</param>
+    /// <returns>
+    /// A Byte array equivalent to the substring of length that begins
+    /// at startIndex.
+    ///</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <exception cref="Exception">当 <paramref name="length"/> 大于源数组长度时抛出。</exception>
+    public static byte[] Subarray(byte[] array, int startIndex, int length)
+    {
+        if (array == null)
+            throw new ArgumentNullException(nameof(array));
+
+        // 完整边界校验：原实现只判 length > array.Length，会漏掉 startIndex < 0、
+        // startIndex + length 越界等情形，并抛出一个与上下文完全无关的普通 Exception。
+        if (startIndex < 0)
+            throw new ArgumentOutOfRangeException(nameof(startIndex), "startIndex must be non-negative.");
+        if (length < 0)
+            throw new ArgumentOutOfRangeException(nameof(length), "length must be non-negative.");
+        if (startIndex + length > array.Length)
+            throw new ArgumentException("startIndex + length exceeds size of array.", nameof(length));
+
+        byte[] buf = new byte[length];
+        Array.Copy(array, startIndex, buf, 0, length);
+        return buf;
+    }
+
+    /// <summary>
+    /// Trim zero padding from the right side of the array.
+    /// 移除字节数组末尾连续的零填充字节。
+    /// </summary>
+    /// <param name="array">Array to trim.</param>
+    /// <returns>Resized array without zero's padding.</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
+    public static byte[] TrimPadding(byte[] array)
+    {
+        if (array == null)
+            throw new ArgumentNullException(nameof(array));
+
+        int j = array.Length;
+        for (int i = array.Length - 1; i >= 0; i--)
+        {
+            if (array[i] != 0)
+                break;
+            j--;
+        }
+
+        return ArrayUtils.Subarray(array, 0, j);
+    }
+
+    // BKS 12-21-2009
+    /// <summary>
+    /// Clears all the bytes in an array by setting the elements to zero.
+    /// 将数组元素清零；调用方持有的数组长度不会因此改变。
+    /// </summary>
+    /// <param name="array">Array of bytes to clear.</param>
+    /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <remarks>
+    /// 原实现还调用了 <c>Array.Resize(ref array, 0)</c>，但 <c>ref</c> 形参在方法内被重新分配后，
+    /// 调用方持有的数组引用长度不会改变。这行调用对调用方没有任何效果，且容易误导阅读者认为
+    /// "传入的数组会被清空到 0 长度"。这里删掉该调用，方法名 <c>Clear</c> 与实际行为一致。
+    /// </remarks>
+    public static void Clear(byte[] array)
+    {
+        if (array == null)
+            throw new ArgumentNullException(nameof(array));
+
+        Array.Clear(array, 0, array.Length);
+    }
+
+    // Benton Stark    03-07-2011
+    /// <summary>
+    /// Tests if string data supplied is valid hex encoded value.
+    /// 判断输入字符串是否为有效的十六进制编码。
+    /// </summary>
+    /// <param name="data">String containing data</param>
+    /// <returns>True if string is valid hex encoded value; otherwise false</returns>
+    public static bool IsHexValue(string data)
+    {
+        try
+        {
+            HexDecode(data);
+        }
+        catch { return false; }
+        return true;
+    }
+
+    //Benton Stark    09-25-2012  
+    /// <summary>
+    /// Zeros an array by setting all byte values to the value 0.
+    /// 将字节数组中的所有元素原位设置为零。
+    /// </summary>
+    /// <param name="array">Array to zero.</param>
+    /// <exception cref="ArgumentNullException">当 <paramref name="array"/> 为 <see langword="null"/> 时抛出。</exception>
+    public static void Zero(byte[] array)
+    {
+        if (array == null)
+            throw new ArgumentNullException(nameof(array));
+
+        for (int i = 0; i < array.Length; i++)
+        {
+            array[i] = 0;
+        }
+    }
+
+    //Benton Stark    10-09-2012  
+    /// <summary>
+    /// Takes two equal size input byte arrays and xors their values and returns the xor result as a new byte array.
+    /// 将两个等长字节数组逐字节异或，并返回结果数组。
+    /// </summary>
+    /// <param name="array1">Array #1.</param>
+    /// <param name="array2">Array #2.</param>
+    /// <returns>New xor byte array.</returns>
+    /// <exception cref="ArgumentNullException">当任一输入数组为 <see langword="null"/> 时抛出。</exception>
+    /// <exception cref="ArgumentOutOfRangeException">当两个输入数组长度不相等时抛出。</exception>
+    public static byte[] Xor(byte[] array1, byte[] array2)
+    {
+        if (array1 == null)
+            throw new ArgumentNullException(nameof(array1));
+        if (array2 == null)
+            throw new ArgumentNullException(nameof(array2));
+        if (array1.Length != array2.Length)
+            throw new ArgumentOutOfRangeException("array1 and array2 must have same length");
+
+        int len = array1.Length;
+        byte[] xor = new byte[len];
+        for (int i = 0; i < len; i++)
+        {
+            xor[i] = (byte)(Convert.ToInt32(array1[i]) ^ Convert.ToInt32(array2[i]));
+        }
+
+        return xor;
+    }
+
+    //Benton Stark    10-21-2013  
+    /// <summary>
+    /// Combine 2 or more byte arrays into a single, contegious byte array.
+    /// 按参数顺序将多个字节数组合并为一个连续数组。
+    /// </summary>
+    /// <param name="list">Byte array parameter list.</param>
+    /// <returns>Single byte array.</returns>
+    /// <exception cref="ArgumentNullException">当参数数组本身或其任意元素为 <see langword="null"/> 时抛出。</exception>
+    public static byte[] Combine(params byte[][] list)
+    {
+        if (list == null)
+            throw new ArgumentNullException(nameof(list));
+        int size = 0;
+        foreach (byte[] item in list)
+        {
+            if (item == null)
+                throw new ArgumentNullException("list contains null array");
+            size += item.Length;
+        }
+        ArrayBuilder b = new ArrayBuilder(size);
+        foreach (byte[] item in list)
+        {
+            b.Append(item);
+        }
+        byte[] rtn = b.GetBytes();
+        b.Clear();
+        return rtn;
+    }
+
+    //Benton Stark    10-21-2013
+    /// <summary>
+    /// Encrypt cleartext data using specified symmetric cipher and optional IV.
+    /// 使用指定的对称算法、密钥和可选初始化向量加密明文。
+    /// </summary>
+    /// <param name="algo">Symmetric cipher algorithm object.</param>
+    /// <param name="key">Symmetric algorithm key.</param>
+    /// <param name="iv">Optional IV value (can be null or empty byte array).</param>
+    /// <param name="mode">Symmetric cipher block mode.</param>
+    /// <param name="cleartext">Cleartext data to encrypt.</param>
+    /// <returns>Ciphertext data.</returns>
+    /// <exception cref="ArgumentNullException">当算法、密钥或明文数据为 <see langword="null"/> 时抛出。</exception>
+    /// <remarks>
+    /// 原实现仅调用 <see cref="ICryptoTransform.TransformBlock"/>，缺少 <c>TransformFinalBlock</c>，
+    /// 对分组密码（DES/AES 等）来说既不会应用填充也不会写入最后一块，结果是无效密文。
+    /// 这里改用 <see cref="ICryptoTransform.TransformFinalBlock"/>，让底层算法自己负责填充与最终块加密。
+    /// </remarks>
+    public static byte[] Encrypt(SymmetricAlgorithm algo, byte[] key, byte[] iv, CipherMode mode, byte[] cleartext)
+    {
+        if (algo == null)
+            throw new ArgumentNullException(nameof(algo));
+        if (key == null)
+            throw new ArgumentNullException(nameof(key));
+        if (cleartext == null)
+            throw new ArgumentNullException(nameof(cleartext));
+        algo.Mode = mode;
+        using ICryptoTransform c = algo.CreateEncryptor(key, iv);
+        // TransformFinalBlock 内部会处理分块、填充与最后一段，输出长度 != cleartext.Length（通常多一个填充块）。
+        return c.TransformFinalBlock(cleartext, 0, cleartext.Length);
+    }
+
+    //Benton Stark    10-21-2013
+    /// <summary>
+    /// Decrypt ciphertext data using specified symmetric cipher and optional IV.
+    /// 使用指定的对称算法、密钥和可选初始化向量解密密文。
+    /// </summary>
+    /// <param name="algo">Symmetric cipher algorithm object.</param>
+    /// <param name="key">Symmetric algorithm key.</param>
+    /// <param name="iv">Optional IV value (can be null or empty byte array).</param>
+    /// <param name="mode">Symmetric cipher block mode.</param>
+    /// <param name="ciphertext">Ciphertext data to decrypt.</param>
+    /// <returns>Cleartext data.</returns>
+    /// <exception cref="ArgumentNullException">当算法、密钥或密文数据为 <see langword="null"/> 时抛出。</exception>
+    /// <remarks>
+    /// 原实现仅调用 <see cref="ICryptoTransform.TransformBlock"/>，缺失 <c>TransformFinalBlock</c>，
+    /// 无法对最后一块做去填充，对分组密码来说输出是无效明文。
+    /// 改用 <see cref="ICryptoTransform.TransformFinalBlock"/>，由底层算法负责去填充与最终块解密。
+    /// </remarks>
+    public static byte[] Decrypt(SymmetricAlgorithm algo, byte[] key, byte[] iv, CipherMode mode, byte[] ciphertext)
+    {
+        if (algo == null)
+            throw new ArgumentNullException(nameof(algo));
+        if (key == null)
+            throw new ArgumentNullException(nameof(key));
+        if (ciphertext == null)
+            throw new ArgumentNullException(nameof(ciphertext));
+        algo.Mode = mode;
+        using ICryptoTransform d = algo.CreateDecryptor(key, iv);
+        return d.TransformFinalBlock(ciphertext, 0, ciphertext.Length);
+    }
+
+    //Benton Stark    10-21-2013  
+    /// <summary>
+    /// Zero pads an array of bytes to specific size.
+    /// 将字节数组扩展到指定长度，并以零填充尾部空间。
+    /// </summary>
+    /// <param name="data">Data to zero pad.</param>
+    /// <param name="size">Size of the return array.</param>
+    /// <returns>Array of bytes zero padded.</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="data"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <exception cref="ArgumentOutOfRangeException">当源数据长度大于 <paramref name="size"/> 时抛出。</exception>
+    public static byte[] ZeroPad(byte[] data, int size)
+    {
+        if (data == null)
+            throw new ArgumentNullException(nameof(data));
+        if (data.Length > size)
+            throw new ArgumentOutOfRangeException(nameof(size));
+        ArrayBuilder b = new ArrayBuilder(size);
+        b.Append(data);
+        byte[] pad = b.GetBytes();
+        b.Clear();  // clear the private key from the array builder memory
+        return pad; // return pointer to the byte array
+    }
+
+    //Benton Stark    07-25-2014  
+    /// <summary>
+    /// Pads an array of bytes to specific size using hex value 0xFF.
+    /// 将字节数组扩展到指定长度，并以 0xFF 填充尾部空间。
+    /// </summary>
+    /// <param name="data">Data to pad.</param>
+    /// <param name="size">Size of the return array.</param>
+    /// <returns>Array of bytes padded.</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="data"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <exception cref="ArgumentOutOfRangeException">当源数据长度大于 <paramref name="size"/> 时抛出。</exception>
+    public static byte[] PadArrayFF(byte[] data, int size)
+    {
+        return PadArray(data, size, 0xff);
+    }
+
+    //Benton Stark    07-25-2014  
+    /// <summary>
+    /// Pads an array of bytes to specific size using a supplied padding value.
+    /// 将字节数组扩展到指定长度，并以指定值填充尾部空间。
+    /// </summary>
+    /// <param name="data">Data to pad.</param>
+    /// <param name="size">Size of the return array.</param>
+    /// <param name="padValue">Padding value to use.</param>
+    /// <returns>Array of bytes padded.</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="data"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <exception cref="ArgumentOutOfRangeException">当源数据长度大于 <paramref name="size"/> 时抛出。</exception>
+    public static byte[] PadArray(byte[] data, int size, byte padValue)
+    {
+        if (data == null)
+            throw new ArgumentNullException(nameof(data));
+        if (data.Length > size)
+            throw new ArgumentOutOfRangeException(nameof(size));
+        ArrayBuilder b = new ArrayBuilder(size);
+        b.Append(data);
+        b.Append(ArrayUtils.CreateArray(size - data.Length, padValue));
+        byte[] pad = b.GetBytes(); // get a copy of the padded bytes
+        b.Clear();  // clear the private key from the array builder memory
+        return pad; // return pointer to the byte array
+    }
+
+    //Benton Stark    10-21-2013  
+    /// <summary>
+    /// Compute a hash value across one or more byte arrays.
+    /// 按参数顺序拼接多个字节数组，并使用指定哈希算法计算其哈希值。
+    /// </summary>
+    /// <param name="algo">Hashing algorithm to use.</param>
+    /// <param name="list">Byte array to compute hash across.</param>
+    /// <returns>Byte array containing hash value.</returns>
+    /// <exception cref="ArgumentNullException">当算法、输入数组集合或其任意元素为 <see langword="null"/> 时抛出。</exception>
+    public static byte[] Hash(HashAlgorithm algo, params byte[][] list)
+    {
+        if (algo == null)
+            throw new ArgumentNullException(nameof(algo));
+        if (list == null)
+            throw new ArgumentNullException(nameof(list));
+        int size = 0;
+        foreach (byte[] item in list)
+        {
+            if (item == null)
+                throw new ArgumentNullException("list contains null array");
+            size += item.Length;
+        }
+        ArrayBuilder b = new ArrayBuilder(size);
+        foreach (byte[] item in list)
+        {
+            b.Append(item);
+        }
+        byte[] hash = algo.ComputeHash(b.GetBytes());
+        b.Clear();
+        return hash;
+    }
+}

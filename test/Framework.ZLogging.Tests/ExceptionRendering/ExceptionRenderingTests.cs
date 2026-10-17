@@ -8,27 +8,19 @@ namespace Framework.ZLogging.Tests.ExceptionRendering;
 [ClassDataSource<TempDirectory>(Shared = SharedType.PerClass)]
 public class ExceptionRenderingTests(TempDirectory temp)
 {
+    static Task<string> WriteAndRead(TempDirectory temp, Action<ILogger> log)
+        => LogTestHelper.CaptureAsync(temp.NewFile(".log"), log);
+
     [Test]
-    public async Task Log_WithException_WritesExceptionDetails()
+    public async Task Log_WithException_WritesInnerExceptionChain()
     {
-        var filePath = temp.NewFile(".log");
-        var options = new ZLoggerSpectreConsoleOptions
+        var content = await WriteAndRead(temp, logger =>
         {
-            FilePath = filePath,
-            FileAppend = false
-        };
-        options.UsePlainTextFormatter();
+            var inner = new InvalidOperationException("inner");
+            var outer = new ApplicationException("outer", inner);
+            logger.LogError(outer, "boom");
+        });
 
-        var provider = new ZLoggerSpectreConsoleLoggerProvider(options);
-        var logger = provider.CreateLogger("Ex");
-
-        var inner = new InvalidOperationException("inner");
-        var outer = new ApplicationException("outer", inner);
-        logger.LogError(outer, "boom");
-
-        await provider.DisposeAsync();
-
-        var content = await File.ReadAllTextAsync(filePath);
         await Assert.That(content).Contains("boom");
         await Assert.That(content).Contains("outer");
         await Assert.That(content).Contains("inner");
@@ -36,71 +28,53 @@ public class ExceptionRenderingTests(TempDirectory temp)
     }
 
     [Test]
-    public async Task Log_WithException_WritesExceptionMessage()
+    public async Task Log_WithException_WritesTypeNameAndStackTrace()
     {
-        var filePath = temp.NewFile(".log");
-        var options = new ZLoggerSpectreConsoleOptions
+        Exception? captured = null;
+        var content = await WriteAndRead(temp, logger =>
         {
-            FilePath = filePath,
-            FileAppend = false
-        };
-        options.UsePlainTextFormatter();
-
-        var provider = new ZLoggerSpectreConsoleLoggerProvider(options);
-        var logger = provider.CreateLogger("Ex");
-
-        var ex = new InvalidOperationException("plain exception message");
-        logger.LogError(ex, "boom");
-
-        await provider.DisposeAsync();
-
-        var content = await File.ReadAllTextAsync(filePath);
-        await Assert.That(content).Contains("plain exception message");
-    }
-
-    [Test]
-    public async Task CustomExceptionFormatter_IsUsed()
-    {
-        var filePath = temp.NewFile(".log");
-        var options = new ZLoggerSpectreConsoleOptions
-        {
-            FilePath = filePath,
-            FileAppend = false
-        };
-        options.UsePlainTextFormatter();
-        var customCalled = false;
-        options.SetExceptionFormatter((console, ex) =>
-        {
-            customCalled = true;
-            Spectre.Console.AnsiConsole.WriteLine($"CUSTOM:{ex.GetType().Name}");
+            try { throw new InvalidOperationException("thrown here"); }
+            catch (Exception ex) { captured = ex; logger.LogError(ex, "msg"); }
         });
 
-        var provider = new ZLoggerSpectreConsoleLoggerProvider(options);
-        var logger = provider.CreateLogger("Ex");
-        logger.LogError(new InvalidOperationException("x"), "boom");
-
-        await provider.DisposeAsync();
-
-        await Assert.That(customCalled).IsTrue();
+        await Assert.That(content).Contains("System.InvalidOperationException");
+        await Assert.That(content).Contains("thrown here");
+        await Assert.That(captured?.StackTrace).IsNotNull();
+        // 堆栈必须完整落盘，否则事后无法定位问题。
+        await Assert.That(content).Contains("ExceptionRenderingTests");
     }
 
     [Test]
     public async Task NoStackTrace_DoesNotThrow()
     {
+        var content = await WriteAndRead(temp, logger =>
+            logger.LogError(new Exception("no stack"), "msg"));
+
+        await Assert.That(content).Contains("no stack");
+    }
+
+    [Test]
+    public async Task AggregateException_IsRenderedWithoutLoss()
+    {
+        var content = await WriteAndRead(temp, logger =>
+            logger.LogError(new AggregateException(new Exception("a"), new Exception("b")), "many"));
+
+        await Assert.That(content).Contains("a");
+        await Assert.That(content).Contains("b");
+    }
+
+    [Test]
+    public async Task ExceptionOutput_DoesNotBreakPipeline()
+    {
         var filePath = temp.NewFile(".log");
-        var options = new ZLoggerSpectreConsoleOptions
+        var errors = new List<Exception>();
+        var content = await LogTestHelper.CaptureAsync(filePath, logger =>
         {
-            FilePath = filePath,
-            FileAppend = false
-        };
-        options.UsePlainTextFormatter();
+            logger.LogError(new InvalidOperationException("x"), "boom");
+            logger.LogInformation("after");
+        }, options => options.InternalErrorLogger = errors.Add);
 
-        var provider = new ZLoggerSpectreConsoleLoggerProvider(options);
-        var logger = provider.CreateLogger("Ex");
-        logger.LogError(new Exception("no stack"), "msg");
-
-        await provider.DisposeAsync();
-
-        await Assert.That(File.Exists(filePath)).IsTrue();
+        await Assert.That(content).Contains("after");
+        await Assert.That(errors).IsEmpty();
     }
 }

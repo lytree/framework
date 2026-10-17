@@ -1,6 +1,6 @@
 # YLFramework.AspNetCore
 
-`YLFramework.AspNetCore` 为 ASP.NET Core 应用提供一组跨场景的基础设施：统一的 API 响应模型、连接管道扩展、异常处理中间件、模块化路由注册。命名空间与本项目同名 `Framework.AspNetCore`（以及 `Application` / `Mvc` / `Routing` / `Microsoft.AspNetCore.Connections` 等子命名空间）。
+`YLFramework.AspNetCore` 为 ASP.NET Core 应用提供一组跨场景的基础设施：统一的 API 响应模型、连接管道扩展、异常处理中间件、模块化路由注册。命名空间保留 `Framework` 前缀，即 `Framework.AspNetCore`（以及 `Application` / `Mvc` / `Routing` / `Microsoft.AspNetCore.Connections` 等子命名空间）。
 
 ## 功能概览
 

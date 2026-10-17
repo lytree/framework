@@ -1,7 +1,7 @@
 ﻿<Project>
 	<PropertyGroup>
 
-		<Version>1.0.3-alpha.4</Version>
+		<!-- 包版本由各项目 csproj 自行声明（<Version>），此处不再做统一版本管理 -->
 		<Deterministic>true</Deterministic>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
