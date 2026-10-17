@@ -52,6 +52,7 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 | `Framework.Mvvm` | MVVM with CommunityToolkit.Mvvm |
 | `Framework.Repository` | linq2db-based repository + Mapster |
 | `Framework.Charts` | Chart generation |
+| `Framework.Modbus` | Modbus 主站（TCP / UDP / RTU / ASCII）+ 全功能码，设计参照 jamod |
 | `Framework.ZLogging` / `Framework.Logging` | Infrastructure |
 
 ## CI / Release
