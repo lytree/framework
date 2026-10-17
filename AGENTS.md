@@ -4,7 +4,7 @@
 - Build orchestrated by Cake Frosting: `dotnet run build/Build.cs`
 - Default task chain: Clean → Restore → Compile → Pack (Push on tag push)
 - Output packages to `./nugets/`
-- Version via GitVersion (semantic versioning, tag prefix `[vV]`)
+- Versioning: 每个包在自身 csproj 声明 `<Version>`，不依赖 GitVersion / Git tag 推算（`GitVersion.yml` 已移除）
 - .NET SDK pinned via `global.json` to `10.0.400` (`rollForward=latestFeature`)
 
 ## Developer Commands
@@ -57,7 +57,7 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 
 ## CI / Release
 - Push tag matching `V*.*.*` triggers `build/Build.cs -t Push` which packs and pushes to NuGet
-- 每个包按自身 csproj 的 `<Version>` 打包；GitVersion 只用于展示/参考，不再统一注入 PackageVersion
+- 每个包按自身 csproj 的 `<Version>` 打包；构建不依赖 GitVersion，CI 里也不再安装 GitVersion.Tool
 
 ## Test Projects
 - `test/Framework.ZLogging.Tests/` — ZLogging 单元测试（TUnit，75 用例）

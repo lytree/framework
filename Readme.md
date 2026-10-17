@@ -22,14 +22,13 @@
 
 ```
 .
-├── src/                 # 9 个生产包 + Shared 共享源码
+├── src/                 # 10 个生产包 + Shared 共享源码
 │   └── Shared/          # 共享源码，被各包 <Compile Include> 引入编译
-├── test/                # 2 个测试工程（TUnit + MTP）
-├── build/Build.cs       # Cake Frosting 编排
+├── test/                # 3 个测试工程（TUnit + MTP）
+├── build/Build.cs       # Cake Frosting 编排（+ build/Directory.Packages.props 关闭该目录 CPM）
 ├── Directory.Packages.props  # 集中式 NuGet 依赖版本（CPM）
 ├── Directory.Build.props     # 全仓库默认开关
 ├── Framework.slnx       # 解决方案
-├── GitVersion.yml       # GitVersion 语义版本
 └── global.json          # .NET SDK 锁定
 ```
 
@@ -56,7 +55,7 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 - **依赖版本集中**：`Directory.Packages.props` 启用 **Central Package Management**，所有 NuGet 依赖版本集中在该文件，`.csproj` 中 `<PackageReference>` 不写版本；升级依赖只改这一处
 - **包版本各自独立**：每个包的 `<Version>` 在自己的 `.csproj` 中声明，不再由 `src/Directory.Build.props` 统一管理；`Pack` 默认按各自版本打包
 - 需要临时统一覆盖时：`dotnet run build/Build.cs -Version 1.2.3`
-- [GitVersion](https://gitversion.net/) 仍用于生成构建信息与标签版本参考（标签前缀 `V`）
+- **不使用 GitVersion**：版本号完全由各 csproj 的 `<Version>` 决定，构建与发布不依赖任何 Git 版本推算工具；发版只需先改 `<Version>`，再推一个 `V*` 标签触发 CI
 
 ## 命名空间约定
 

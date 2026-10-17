@@ -1,5 +1,4 @@
 #:package Cake.Frosting@*
-#:package Cake.GitVersioning@*
 
 
 using System.Threading.Tasks;
@@ -10,11 +9,9 @@ using Cake.Common.Tools.DotNet.Build;
 using Cake.Common.Tools.DotNet.Clean;
 using Cake.Common.Tools.DotNet.NuGet.Push;
 using Cake.Common.Tools.DotNet.Pack;
-using Cake.Common.Tools.GitVersion;
 using Cake.Core;
 using Cake.Core.Diagnostics;
 using Cake.Frosting;
-using Newtonsoft.Json;
 
 public static class Program
 {
@@ -97,47 +94,26 @@ public class PackTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
     {
-
-        // 1. 调用 GitVersion
-        // GitVersionSettings 可以用来设置工作目录等参数
-        var gitVersionSettings = new GitVersionSettings
-        {
-            // 如果你的 Git 仓库不在当前 Cake 脚本的根目录，需要设置工作目录
-            WorkingDirectory = "./"
-        };
-
-        // 运行 GitVersion 并获取结果对象
-        var version = context.GitVersion();
+        // 各包版本完全由自身 csproj 的 <Version> 声明，不再依赖 GitVersion / Git tag 推导。
         var projectFiles = context.GetFiles(BuildParameters.ProjectPath + "**/*.csproj");
 
-        context.Information($"Found {projectFiles.Count} project(s) matching '**/*.csproj':Version {JsonConvert.SerializeObject(version)}");
-        try
-        {
+        context.Information($"Found {projectFiles.Count} project(s) matching '**/*.csproj'");
 
-            foreach (var projectPath in projectFiles)
+        // 不吞异常：任一包打包失败都应让发布流程失败，避免产出残缺的包集合
+        foreach (var projectPath in projectFiles)
+        {
+            context.DotNetPack(projectPath.FullPath, new DotNetPackSettings
             {
-
-                context.DotNetPack(projectPath.FullPath, new DotNetPackSettings
-                {
-                    Configuration = BuildParameters.Configuration,
-                    OutputDirectory = BuildParameters.PackageOutputDirectory,
-                    NoBuild = true, // 已经在 Compile Task 中完成
-                    NoRestore = true,
-                    // 各包版本由自身 csproj 的 <Version> 决定（不再统一）；
-                    // 仅在显式传入 -Version 参数时才覆盖单个项目的版本
-                    ArgumentCustomization = args => context.HasVersion
-                        ? args.Append($"-property:PackageVersion={context.Arguments.GetArgument(BuildParameters.Version)}")
-                        : args
-                });
-            }
+                Configuration = BuildParameters.Configuration,
+                OutputDirectory = BuildParameters.PackageOutputDirectory,
+                NoBuild = true, // 已经在 Compile Task 中完成
+                NoRestore = true,
+                // 默认使用各 csproj 的 <Version>；仅在显式传入 -Version 参数时才统一覆盖
+                ArgumentCustomization = args => context.HasVersion
+                    ? args.Append($"-property:PackageVersion={context.Arguments.GetArgument(BuildParameters.Version)}")
+                    : args
+            });
         }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
-
-
-
     }
 }
 
