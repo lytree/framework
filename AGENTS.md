@@ -56,8 +56,11 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 | `Framework.ZLogging` / `Framework.Logging` | Infrastructure |
 
 ## CI / Release
-- Push tag matching `V*.*.*` triggers `build/Build.cs -t Push` which packs and pushes to NuGet
+- **单包发布（推荐）**：标签 `YLFramework.Repository/v2.0.0-alpha.1` → CI 只打包并推送该包
+- **全量发布**：标签 `V2.0.0-alpha.1` → 打包并推送 `src` 下所有包
+- 单包发布时标签版本必须与 csproj 的 `<Version>` 一致，否则 `Pack` 直接抛错
 - 每个包按自身 csproj 的 `<Version>` 打包；构建不依赖 GitVersion，CI 里也不再安装 GitVersion.Tool
+- 本地等价命令：`dotnet run build/Build.cs -t Pack --Package=YLFramework.Repository`
 
 ## Test Projects
 - `test/Framework.ZLogging.Tests/` — ZLogging 单元测试（TUnit，75 用例）

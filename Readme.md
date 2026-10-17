@@ -38,8 +38,12 @@
 # 编译全部
 dotnet build Framework.slnx
 
-# 打包（输出到 ./nugets）
+# 打包全部包（输出到 ./nugets）
 dotnet run build/Build.cs
+
+# 只打包某一个包（按 PackageId 或项目名精确匹配）
+dotnet run build/Build.cs -t Pack --Package=YLFramework.Repository
+dotnet run build/Build.cs -t Pack --Package=Framework.Repository
 
 # 运行所有测试（TUnit / MTP）
 dotnet test
@@ -48,14 +52,25 @@ dotnet test
 dotnet pack src/Framework.Repository/Framework.Repository.csproj
 ```
 
-默认任务链：`Clean → Restore → Compile → Pack`。命中 `V*.*.*` 标签推送时追加 `Push` 任务并发布到 NuGet。
+默认任务链：`Clean → Restore → Compile → Pack`。指定 `-Package` 时只编译/打包该包，不再全量构建。
+
+## 发版
+
+支持两种标签，推送后由 CI 自动打包并推送 NuGet：
+
+| 标签形式 | 含义 |
+|---|---|
+| `YLFramework.Repository/v2.0.0-alpha.1` | **单包发布**：只发布该包（推荐，配合各包独立版本） |
+| `V2.0.0-alpha.1` | **全量发布**：`src` 下所有包一起发 |
+
+单包发布时，标签里的版本必须与该 csproj 的 `<Version>` 完全一致，否则构建阶段直接报错，防止标签与源码版本漂移。
 
 ## 版本控制
 
 - **依赖版本集中**：`Directory.Packages.props` 启用 **Central Package Management**，所有 NuGet 依赖版本集中在该文件，`.csproj` 中 `<PackageReference>` 不写版本；升级依赖只改这一处
 - **包版本各自独立**：每个包的 `<Version>` 在自己的 `.csproj` 中声明，不再由 `src/Directory.Build.props` 统一管理；`Pack` 默认按各自版本打包
 - 需要临时统一覆盖时：`dotnet run build/Build.cs -Version 1.2.3`
-- **不使用 GitVersion**：版本号完全由各 csproj 的 `<Version>` 决定，构建与发布不依赖任何 Git 版本推算工具；发版只需先改 `<Version>`，再推一个 `V*` 标签触发 CI
+- **不使用 GitVersion**：版本号完全由各 csproj 的 `<Version>` 决定，构建与发布不依赖任何 Git 版本推算工具
 
 ## 命名空间约定
 
