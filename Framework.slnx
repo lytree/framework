@@ -24,8 +24,8 @@
     <File Path="src/Shared/MODULES.md" />
   </Folder>
   <Folder Name="/test/">
-    <Project Path="test\Framework.Modbus.Tests\Framework.Modbus.Tests.csproj" />
-    <Project Path="test\Framework.ZLogging.Tests\Framework.ZLogging.Tests.csproj" />
-    <Project Path="test\Framework.Tests\Framework.Tests.csproj" />
+    <Project Path="test/Framework.Modbus.Tests/Framework.Modbus.Tests.csproj" />
+    <Project Path="test/Framework.ZLogging.Tests/Framework.ZLogging.Tests.csproj" />
+    <Project Path="test/Framework.Tests/Framework.Tests.csproj" />
   </Folder>
 </Solution>
