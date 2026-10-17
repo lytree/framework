@@ -53,4 +53,4 @@ builder.Logging.AddFrameworkNLog();
 
 ## 版本
 
-`1.0.0`，遵循 GitVersion。
+`2.0.0-alpha.1`，版本由本项目 csproj 的 `<Version>` 独立声明。

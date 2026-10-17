@@ -1,0 +1,11 @@
+<Project>
+	<!--
+		Cake 文件式脚本（Build.cs）用 #:package 指令自带版本，与仓库根的
+		中央包管理（Directory.Packages.props，ManagePackageVersionsCentrally=true）冲突，
+		会在 restore 阶段报 NU1008。此处就近放置一个 props 文件关掉 CPM，
+		只影响 build/ 目录，不影响 src/ 与 test/ 下的正式项目。
+	-->
+	<PropertyGroup>
+		<ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+	</PropertyGroup>
+</Project>
