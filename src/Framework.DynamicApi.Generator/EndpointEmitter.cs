@@ -44,9 +44,17 @@ internal static class EndpointEmitter
 			? "(options.DefaultAreaName ?? string.Empty)"
 			: $"\"{Escape(model.Area)}\"";
 
+		// 只有重载方法才需要把参数签名并入端点名：非重载方法保持 <类型全名>.<方法名> 的简洁形式，
+		// 重载则必须区分，否则同名端点会让 ASP.NET Core 在启动阶段抛重复端点名异常。
+		var overloadedNames = model.Methods
+			.GroupBy(method => method.Name, StringComparer.Ordinal)
+			.Where(group => group.Count() > 1)
+			.Select(group => group.Key)
+			.ToHashSet(StringComparer.Ordinal);
+
 		for (var i = 0; i < model.Methods.Count; i++)
 		{
-			RenderMethod(writer, model, model.Methods[i], i, area);
+			RenderMethod(writer, model, model.Methods[i], i, area, overloadedNames.Contains(model.Methods[i].Name));
 		}
 
 		writer.CloseBlock();
@@ -103,7 +111,7 @@ internal static class EndpointEmitter
 		return writer.ToString();
 	}
 
-	private static void RenderMethod(CodeWriter writer, ApiClassModel model, MethodModel method, int index, string area)
+	private static void RenderMethod(CodeWriter writer, ApiClassModel model, MethodModel method, int index, string area, bool overloaded)
 	{
 		writer.Line($"var actionName{index} = {Resolver}.FormatActionName(" +
 					$"\"{method.Name}\", options.RemoveActionPostfixes, options.NamingConvention, options.GetRestFulActionName);");
@@ -127,7 +135,7 @@ internal static class EndpointEmitter
 		writer.CloseBlock("));");
 
 		writer.Line($"endpoint{index}.WithTags(controllerName{RenderTags(model)});");
-		writer.Line($"endpoint{index}.WithName(\"{Escape(model.FullTypeName)}.{Escape(method.Name)}\");");
+		writer.Line($"endpoint{index}.WithName(\"{BuildEndpointName(model, method, overloaded)}\");");
 
 		if (method.PayloadTypeName is not null)
 		{
@@ -308,6 +316,22 @@ internal static class EndpointEmitter
 			"PATCH" => $"app.MapPatch(route{index}, {requestDelegate}",
 			_ => $"app.MapMethods(route{index}, new[] {{ \"{verb}\" }}, {requestDelegate}"
 		};
+	}
+
+	/// <summary>
+	/// 生成端点名：默认 <c>{类型全名}.{方法名}</c>；重载方法附加参数类型签名以保持唯一。
+	/// ASP.NET Core 要求端点名唯一，同名会在启动阶段抛 <see cref="InvalidOperationException"/>。
+	/// </summary>
+	private static string BuildEndpointName(ApiClassModel model, MethodModel method, bool overloaded)
+	{
+		var name = $"{model.FullTypeName}.{method.Name}";
+
+		if (!overloaded || method.Parameters.Count == 0)
+			return Escape(name);
+
+		var signature = string.Join(",", method.Parameters.Select(parameter => parameter.TypeName.Replace("global::", string.Empty)));
+
+		return Escape($"{name}({signature})");
 	}
 
 	private static string RenderTags(ApiClassModel model)

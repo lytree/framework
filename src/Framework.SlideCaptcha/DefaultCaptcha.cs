@@ -13,7 +13,7 @@ namespace Framework.SlideCaptcha
 	/// <remarks>
 	/// 通过 <see cref="ICaptchaImageGenerator"/> 产出图像与缺口位置，
 	/// 将 <see cref="CaptchaValidateData"/>（含位置百分比与容差）写入 <see cref="IStorage"/> 并设置过期时间。
-	/// 验证时从存储取出数据，调用 <see cref="IValidator"/> 比对轨迹；无论成败都会在 finally 中消费掉 <paramref name="captchaId"/>，
+	/// 验证时从存储取出数据，调用 <see cref="IValidator"/> 比对轨迹；无论成败都会在 finally 中消费掉 <c>captchaId</c>，
 	/// 保证验证码一次性使用，避免重放。
 	/// </remarks>
 	public class DefaultCaptcha : ICaptcha

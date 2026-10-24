@@ -13,7 +13,11 @@ namespace Framework.SlideCaptcha.Generator
 		/// <summary>
 		/// 生成一张新的验证码图像数据。
 		/// </summary>
-		/// <returns>包含背景图 Base64、滑块图 Base64、缺口横向百分比位置 <c>Percent</c> 的 <see cref="CaptchaImageData"/>。</returns>
+		/// <returns>
+		/// 包含背景图 / 滑块图 Base64、缺口坐标 <see cref="CaptchaImageData.X"/> / <see cref="CaptchaImageData.Y"/>
+		/// 与百分比 <see cref="CaptchaImageData.Percent"/> 的 <see cref="CaptchaImageData"/>。
+		/// </returns>
+		/// <exception cref="Exceptions.SlideCaptchaException">资源不可用、解码失败，或不满足实现自身的尺寸约束。</exception>
 		CaptchaImageData Generate();
 	}
 }

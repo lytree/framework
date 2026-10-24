@@ -4,6 +4,10 @@ using SkiaSharp;
 
 namespace Framework.SlideCaptcha.Generator;
 
+/// <summary>
+/// 默认的滑动验证码图片生成器：用 SkiaSharp 按缺口模板的 alpha 轮廓裁剪背景，
+/// 合成「带缺口的背景图 + 与背景图同高的滑块长条」，全程不做文字渲染。
+/// </summary>
 public class DefaultCaptchaImageGenerator : ICaptchaImageGenerator
 {
 	private readonly IResourceManager _resourceManager;
@@ -88,6 +92,14 @@ public class DefaultCaptchaImageGenerator : ICaptchaImageGenerator
 		return Convert.ToBase64String(data.ToArray());
 	}
 
+	/// <summary>
+	/// 生成一张滑动验证码图片。
+	/// </summary>
+	/// <returns>背景图 / 滑块图的 PNG Base64 数据，以及缺口在背景图中的坐标与尺寸。</returns>
+	/// <exception cref="SlideCaptchaException">
+	/// 背景图、滑块模板或缺口模板解码失败；或缺口模板连同 5px 边距无法放入背景图
+	/// （随机取位区间为空，例如背景宽 100、模板宽 60 时 X 区间为 [65, 35)）。
+	/// </exception>
 	public CaptchaImageData Generate()
 	{
 		var background = _resourceManager.RandomBackground();
@@ -98,23 +110,26 @@ public class DefaultCaptchaImageGenerator : ICaptchaImageGenerator
 		using var holeTemplateImage = LoadBitmap(hole, "缺口模板");
 
 		// 随机定位需要留出边距，先校验模板相对背景图是否放得下，
-		// 否则 Random.Next(min, max) 会因 min >= max 抛 ArgumentOutOfRangeException。
+		// 否则 Random.Next(min, max) 会因 min > max 抛 ArgumentOutOfRangeException。
+		// 注意：仅校验「模板 + 边距 < 背景尺寸」不足以保证 min <= max，
+		// 例如背景宽 100、模板宽 60 时 min = 65 而 max = 35，因此必须直接比较区间端点。
 		const int MarginX = 5;
 		const int MarginY = 5;
 
+		int minX = holeTemplateImage.Width + MarginX;
 		int maxX = backgroundImage.Width - holeTemplateImage.Width - MarginX;
+		int minY = MarginY;
 		int maxY = backgroundImage.Height - holeTemplateImage.Height - MarginY;
 
-		if (holeTemplateImage.Width + MarginX >= backgroundImage.Width ||
-			holeTemplateImage.Height + MarginY >= backgroundImage.Height)
+		if (minX > maxX || minY > maxY)
 		{
 			throw new SlideCaptchaException(
 				$"模板尺寸({holeTemplateImage.Width}x{holeTemplateImage.Height})过大，无法放入背景图({backgroundImage.Width}x{backgroundImage.Height})");
 		}
 
 		// 凹槽位置
-		int randomX = Random.Shared.Next(holeTemplateImage.Width + MarginX, maxX);
-		int randomY = Random.Shared.Next(MarginY, maxY);
+		int randomX = Random.Shared.Next(minX, maxX);
+		int randomY = Random.Shared.Next(minY, maxY);
 
 		// 根据透明度计算凹槽图轮廓形状(形状由不透明区域形成)
 		using var holeShape = CalcHoleShape(holeTemplateImage);

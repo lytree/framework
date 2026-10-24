@@ -48,6 +48,11 @@ app.Run();
 
 路由模板固定为 `{DefaultApiPrefix}/{Area}/{controller}/{action}`，控制器名剥离 `Service`/`AppService` 等后缀，Action 名剥离 `Async`。
 
+两个边界约定：
+
+- **重载方法**：Action 名只由方法名决定，同名重载会解析出相同路由并触发 `YLDAPI004`；生成器仍按各自签名生成端点，但请求会命中歧义，请改用不同方法名。
+- **继承方法**：只扫描服务类自身声明的公开实例方法，基类中的方法不会生成端点。
+
 ## 运行时配置（`DynamicApiOptions`）
 
 | 选项 | 说明 |
@@ -114,6 +119,8 @@ endpoint0.WithName("Web.UserService.GetUserAsync");
 
 分组只影响 OpenAPI/Swagger 的 tag；同一服务类下的所有端点共享同一组 tag，无法按方法单独分组。
 
+端点名默认是 `{类型全名}.{方法名}`，用于 `WithName` / 链接生成。同一服务类内存在重载方法时，会附加参数类型签名（如 `Web.UserService.GetAsync(long)`）以保证唯一，否则 ASP.NET Core 会因端点名重复在启动阶段抛异常。
+
 ## 跨程序集（类库）
 
 类库中同样引用 `YLFramework.DynamicApi`（生成器随包提供），会生成 `Framework.DynamicApi.Generated.{程序集名净化}.DynamicApiEndpoints`。Web 项目声明模块：
@@ -160,6 +167,7 @@ JIT 下不注册也能工作（回退反射解析）；AOT 下缺少 `JsonTypeIn
 | `YLDAPI004` | Warning | 同程序集内控制器名 + 方法名 + 动词重复，路由可能冲突 |
 | `YLDAPI005` | Warning | `DynamicApiModules` 声明的模块入口不存在 |
 | `YLDAPI006` | Warning | 参数或返回类型不支持生成式绑定，端点已跳过 |
+| `YLDAPI007` | Error | 多个服务类净化后得到同一生成类型名（如 `A.B.Svc` 与 `A_B.Svc`），后者端点被跳过 |
 
 生成器目标框架为 `netstandard2.1`：可在 `dotnet build` / VS Code / Rider 下加载；Visual Studio 2022 与桌面 `msbuild.exe`（.NET Framework 编译器宿主）无法加载该分析器。
 

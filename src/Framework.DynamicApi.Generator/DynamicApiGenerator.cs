@@ -85,6 +85,10 @@ public sealed class DynamicApiGenerator : IIncrementalGenerator
 			new EquatableArray<DiagnosticInfo>(diagnostics.ToArray()));
 	}
 
+	/// <summary>
+	/// 输出各服务类的端点映射源与程序集级入口。
+	/// 生成类型名撞名的服务类只保留第一个，其余报 <c>YLDAPI007</c> 后跳过，避免端点静默丢失。
+	/// </summary>
 	private static void Emit(
 		SourceProductionContext context,
 		ImmutableArray<ApiClassModel> models,
@@ -109,7 +113,16 @@ public sealed class DynamicApiGenerator : IIncrementalGenerator
 				continue;
 
 			if (!seen.Add(model.ClassId))
+			{
+				// ClassId 由完全限定名净化得到，A.B.Svc 与 A_B.Svc 会撞名。
+				// 撞名后不能复用同一个生成类型，只能跳过；必须显式报错，避免端点静默丢失。
+				context.ReportDiagnostic(Diagnostic.Create(
+					DiagnosticDescriptors.DuplicateGeneratedType,
+					model.Methods[0].Location ?? Location.None,
+					$"服务类 '{model.FullTypeName}' 生成的类型名 '{model.ClassId}' 已被同程序集内另一个服务类占用，该服务类的端点已跳过；请重命名类型或其命名空间。"));
+
 				continue;
+			}
 
 			foreach (var method in model.Methods)
 			{

@@ -49,4 +49,14 @@ internal static class DiagnosticDescriptors
 		defaultSeverity: DiagnosticSeverity.Warning,
 		isEnabledByDefault: true,
 		description: "为保持 AOT 兼容，生成代码只支持标量查询/路由绑定、JSON 请求体、[FromServices] 与常用 HttpContext 类型。");
+
+	public static readonly DiagnosticDescriptor DuplicateGeneratedType = new(
+		id: "YLDAPI007",
+		title: "多个服务类生成了相同的类型名",
+		messageFormat: "{0}",
+		category: "Framework.DynamicApi",
+		defaultSeverity: DiagnosticSeverity.Error,
+		isEnabledByDefault: true,
+		description: "生成代码的类型名由服务类的完全限定名替换非字母数字字符得到，例如 A.B.Svc 与 A_B.Svc 会得到同一个名字。"
+			+ "冲突时后出现的服务类端点会被跳过，因此以错误级别提示重命名类型或命名空间。");
 }

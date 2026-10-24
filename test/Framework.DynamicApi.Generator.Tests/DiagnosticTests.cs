@@ -219,4 +219,70 @@ public class DiagnosticTests
 
 		await Assert.That(result.Diagnostics.Any(d => d.Id == "YLDAPI004")).IsTrue();
 	}
+
+	[Test]
+	public async Task OverloadedMethods_GetDistinctEndpointNames()
+	{
+		var result = GeneratorTestHelper.Run("""
+			using System.Threading.Tasks;
+			using Framework.DynamicApi;
+			using Framework.DynamicApi.Attributes;
+
+			namespace Sample;
+
+			[DynamicApi]
+			public class ItemService : IDynamicApi
+			{
+				public Task<int> GetAsync() => Task.FromResult(1);
+
+				public Task<int> GetAsync(long id) => Task.FromResult(1);
+
+				public Task<int> FindAsync(long id) => Task.FromResult(1);
+			}
+			""");
+
+		var generated = GeneratorTestHelper.GetGeneratedText(result, "ItemService");
+
+		// 重载：两个 GetAsync 需靠参数签名区分，否则端点名重复
+		await Assert.That(generated).Contains(".WithName(\"Sample.ItemService.GetAsync\")");
+		await Assert.That(generated).Contains(".WithName(\"Sample.ItemService.GetAsync(long)\")");
+
+		// 非重载：保持简洁形式，不附加签名
+		await Assert.That(generated).Contains(".WithName(\"Sample.ItemService.FindAsync\")");
+		await Assert.That(generated).DoesNotContain(".WithName(\"Sample.ItemService.FindAsync(long)\")");
+	}
+
+	[Test]
+	public async Task SameGeneratedTypeName_ReportsYLDAPI007AndSkipsSecondClass()
+	{
+		// A.B_C 与 A_B.C 净化后得到同一个生成类型名 DynamicApi_A_B_C
+		var result = GeneratorTestHelper.Run("""
+			using System.Threading.Tasks;
+			using Framework.DynamicApi;
+			using Framework.DynamicApi.Attributes;
+
+			namespace A
+			{
+				[DynamicApi]
+				public class B_C : IDynamicApi
+				{
+					public Task<int> GetAsync() => Task.FromResult(1);
+				}
+			}
+
+			namespace A_B
+			{
+				[DynamicApi]
+				public class C : IDynamicApi
+				{
+					public Task<int> GetAsync() => Task.FromResult(1);
+				}
+			}
+			""");
+
+		await Assert.That(result.Diagnostics.Count(d => d.Id == "YLDAPI007")).IsEqualTo(1);
+
+		// 只保留一个服务类源文件（另一个被跳过），程序集入口仍会生成
+		await Assert.That(result.GeneratedSources.Count(s => s.HintName.StartsWith("DynamicApi_", StringComparison.Ordinal))).IsEqualTo(1);
+	}
 }

@@ -9,7 +9,7 @@ namespace Framework.SlideCaptcha.Storage
 {
 	/// <summary>
 	/// 基于 <see cref="IDistributedCache"/> 的 <see cref="IStorage"/> 默认实现：
-	/// 在写入时把对象 <see cref="JsonSerializer.Serialize"/> 为 UTF-8 字节，读取时反序列化；
+	/// 在写入时把对象 <c>JsonSerializer.Serialize</c> 为 UTF-8 字节，读取时反序列化；
 	/// 同时使用 <see cref="CaptchaOptions.StorageKeyPrefix"/> 为所有 key 加上前缀，避免与其他业务缓存键冲突。
 	/// </summary>
 	public class DefaultStorage : IStorage

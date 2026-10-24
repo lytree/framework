@@ -381,7 +381,7 @@ builder.Services
 ### 合成流程
 
 1. 从 `IResourceManager` 随机取一张背景图和一组 `(slider, hole)` 模板；
-2. 在背景图内随机选定缺口位置 `(X, Y)`，四周各留 5px 边距；
+2. 在背景图内随机选定缺口位置 `(X, Y)`，四周各留 5px 边距（X 方向起点还需再加一个模板宽度，见下表区间）；
 3. 按 `hole` 模板的 **alpha 通道**逐行扫描轮廓（不透明像素即形状），生成 `SKPath`；
 4. 用该形状裁剪背景图，得到缺口位置的画面，再叠加 `slider` 模板，形成滑块内容；
 5. 把滑块内容绘制到「背景图同高」的透明条上，得到返回给前端的 `SliderImage`；
@@ -398,7 +398,9 @@ builder.Services
 | `BackgroundImageWidth/Height` | 等于背景图原始像素尺寸 |
 | `SliderImageWidth/Height` | 宽度等于 `slider` 模板宽度，高度等于背景图高度 |
 | 随机位置范围 | `X ∈ [holeWidth + 5, bgWidth - holeWidth - 5)`、`Y ∈ [5, bgHeight - holeHeight - 5)` |
-| 尺寸校验 | `holeWidth + 5 >= bgWidth` 或 `holeHeight + 5 >= bgHeight` 时抛 `SlideCaptchaException` |
+| 尺寸校验 | 上述两个区间为空（`min > max`）时抛 `SlideCaptchaException`，等价于 `2 × holeWidth + 10 > bgWidth` 或 `holeHeight + 10 > bgHeight` |
+
+> 尺寸校验必须比较区间端点本身，而不能只判断「模板 + 5px 边距是否小于背景」：例如背景宽 100、模板宽 60 时 `min = 65`、`max = 35`，仅凭后者无法发现区间为空，`Random.Next` 会抛 `ArgumentOutOfRangeException`。模板解码失败同样抛 `SlideCaptchaException`。
 
 `CaptchaImageData.Check()` 还会校验 `X`、`Y`、各尺寸均大于 0 且 Base64 非空，因此自定义生成器返回的坐标不能为 0。
 
@@ -512,7 +514,8 @@ builder.Services.AddScoped<IStorage, MyStorage>();
 | `SlideCaptchaException: 背景图不能为空` | 未配置 `Backgrounds`，且内置 Provider 不提供背景图 |
 | `SlideCaptchaException: 模板不能为空` | 自定义模板为空且调用了 `DisableDefaultTemplates()` |
 | `SlideCaptchaException: 没有可用的资源提供者!` | `Resource.Type` 不是已注册处理器支持的值（`file` / `embedded`） |
-| `SlideCaptchaException: 模板尺寸(...)过大` | 模板宽高超过背景图可容纳范围 |
+| `SlideCaptchaException: 背景图解码失败` | 资源字节不是 SkiaSharp 可解码的图片（损坏、非图片，或扩展名与实际内容不符） |
+| `SlideCaptchaException: 模板尺寸(...)过大` | 缺口模板连同 5px 边距放不进背景图（`2 × 模板宽 + 10 > 背景宽` 或 `模板高 + 10 > 背景高`），换更大的背景图或更小的模板 |
 | `DllNotFoundException: libSkiaSharp` | 目标平台缺少 SkiaSharp 原生库，按「[原生库与部署](#原生库与部署)」补充对应 `SkiaSharp.NativeAssets.*` |
 | 校验总是返回 `Timeout` | `captchaId` 错误、已过期、已被消费，或生成的实例与校验实例使用不同存储 |
 | 校验总是返回 `ValidateFail` | 前端回传的 `backgroundImageWidth` 与渲染尺寸不一致，或轨迹 `x` 使用了页面绝对坐标 |
@@ -524,6 +527,7 @@ builder.Services.AddScoped<IStorage, MyStorage>();
 - 滑块轨迹（`SlideTrack`）默认不做"机器学习"判定，仅做位置 + 基础时间/位移阈值校验
 - 高安全场景可在 `BasicValidator` 之上扩展：检测加速度突变、Y 轴抖动、轨迹曲率等
 - 校验通过后默认在 `finally` 块中主动 `Remove` 存储条目，避免重复使用
+- 缺口模板无法放入背景图时统一抛 `SlideCaptchaException`（2.0.0-alpha.1 之前会从 `Random.Next` 冒泡 `ArgumentOutOfRangeException`）
 
 ## 版本
 
