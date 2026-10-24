@@ -6,15 +6,33 @@
 		<Nullable>enable</Nullable>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<Version>2.0.0-alpha.1</Version>
+		<Version>3.0.0-alpha.1</Version>
 		<PackageId>YLFramework.DynamicApi</PackageId>
-		<Description>中台动态 WebApi 库（约定式路由 + 统一结果格式化）</Description>
-		<PackageTags>DynamicApi;WebApi;AspNetCore;Mvc;</PackageTags>
+		<Description>编译期生成 Minimal API 端点（零反射 / Native AOT）</Description>
+		<PackageTags>DynamicApi;MinimalApi;AspNetCore;SourceGenerator;AOT</PackageTags>
 		<SignAssembly>False</SignAssembly>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- 开发期以分析器方式引入源生成器；打包时把 DLL 放进 analyzers/dotnet/cs -->
+		<ProjectReference Include="..\Framework.DynamicApi.Generator\Framework.DynamicApi.Generator.csproj"
+						  ReferenceOutputAssembly="false"
+						  OutputItemType="Analyzer" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\Framework.DynamicApi.Generator\bin\$(Configuration)\netstandard2.1\Framework.DynamicApi.Generator.dll"
+			  Pack="true"
+			  PackagePath="analyzers/dotnet/cs"
+			  Visible="false" />
+		<None Include="buildTransitive\YLFramework.DynamicApi.props"
+			  Pack="true"
+			  PackagePath="buildTransitive"
+			  Visible="false" />
 	</ItemGroup>
 
 </Project>

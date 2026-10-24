@@ -1,0 +1,9 @@
+<Project>
+
+  <!-- 将 MSBuild 属性暴露给源生成器：消费者设置 <DynamicApiModules>LibA;LibB</DynamicApiModules>
+       即可把其它程序集生成的 DynamicApiEndpoints 聚合进当前程序集的入口。 -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="DynamicApiModules" />
+  </ItemGroup>
+
+</Project>

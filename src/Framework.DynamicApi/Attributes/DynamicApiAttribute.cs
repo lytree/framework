@@ -1,6 +1,4 @@
-﻿using Framework.DynamicApi.Helpers;
-using System;
-using System.Reflection;
+﻿using System;
 
 namespace Framework.DynamicApi.Attributes;
 
@@ -9,48 +7,12 @@ namespace Framework.DynamicApi.Attributes;
 public class DynamicApiAttribute : Attribute
 {
 	/// <summary>
-	/// Equivalent to AreaName
+	/// 对应 MVC Areas 的区域名称，会作为路由中的 region 段参与拼接。
 	/// </summary>
 	public string Area { get; set; }
 
 	/// <summary>
-	/// 分组名称列表
+	/// 端点分组名称列表，生成代码会写入 <c>WithTags</c>。
 	/// </summary>
 	public string[] GroupNames { get; set; }
-
-	internal static bool IsExplicitlyEnabledFor(Type type)
-	{
-		var remoteServiceAttr = type.GetTypeInfo().GetSingleAttributeOrNull<DynamicApiAttribute>();
-		return remoteServiceAttr != null;
-	}
-
-	internal static bool IsExplicitlyDisabledFor(Type type)
-	{
-		var remoteServiceAttr = type.GetTypeInfo().GetSingleAttributeOrNull<DynamicApiAttribute>();
-		return remoteServiceAttr != null;
-	}
-
-	internal static bool IsMetadataExplicitlyEnabledFor(Type type)
-	{
-		var remoteServiceAttr = type.GetTypeInfo().GetSingleAttributeOrNull<DynamicApiAttribute>();
-		return remoteServiceAttr != null;
-	}
-
-	internal static bool IsMetadataExplicitlyDisabledFor(Type type)
-	{
-		var remoteServiceAttr = type.GetTypeInfo().GetSingleAttributeOrNull<DynamicApiAttribute>();
-		return remoteServiceAttr != null;
-	}
-
-	internal static bool IsMetadataExplicitlyDisabledFor(MethodInfo method)
-	{
-		var remoteServiceAttr = method.GetSingleAttributeOrNull<DynamicApiAttribute>();
-		return remoteServiceAttr != null;
-	}
-
-	internal static bool IsMetadataExplicitlyEnabledFor(MethodInfo method)
-	{
-		var remoteServiceAttr = method.GetSingleAttributeOrNull<DynamicApiAttribute>();
-		return remoteServiceAttr != null;
-	}
 }

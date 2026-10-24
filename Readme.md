@@ -11,9 +11,9 @@
 | [`YLFramework.AspNetCore`](src/Framework.AspNetCore/README.md) | ASP.NET Core 基础集成：连接管道扩展、统一 API 响应、异常中间件 | ASP.NET Core 10 |
 | [`YLFramework.AspNetCore.Middleware`](src/Framework.AspNetCore.Middleware/README.md) | 一组可直接 `Use` 的 Kestrel 连接中间件：流量统计、XOR 混淆、HTTP 代理、TLS 检测、Telnet、回显 | ASP.NET Core 10 |
 | [`YLFramework.Repository`](src/Framework.Repository/README.md) | 基于 linq2db 的仓库模式 + 实体基类、雪花 ID、事务传播、属性注入 | linq2db |
-| [`YLFramework.DynamicApi`](src/Framework.DynamicApi/README.md) | 把任意服务类自动暴露为 Web API（约定路由 + 结果包装） | ASP.NET Core MVC |
+| [`YLFramework.DynamicApi`](src/Framework.DynamicApi/README.md) | 编译期生成 Minimal API 端点（约定路由 + 结果包装，零反射 / Native AOT） | ASP.NET Core Minimal API + Roslyn 源生成器 |
 | [`YLFramework.Mvvm`](src/Framework.Mvvm/README.md) | 基于 `CommunityToolkit.Mvvm` 的窗口状态消息 | CommunityToolkit.Mvvm |
-| [`YLFramework.SlideCaptcha`](src/Framework.SlideCaptcha/README.md) | 滑块验证码：图片生成、轨迹校验、存储、资源管理 | `SkiaSharp`（可选） |
+| [`YLFramework.SlideCaptcha`](src/Framework.SlideCaptcha/README.md) | 滑块验证码：图片生成、轨迹校验、存储、资源管理 | `SkiaSharp` |
 | [`YLFramework.Charts`](src/Framework.Charts/README.md) | ScottPlot 风格的图表生成（折线 / 柱状 / 饼图等） | — |
 | [`YLFramework.ZLogging`](src/Framework.ZLogging/README.md) | 自研 ILoggerProvider 的彩色控制台日志 + 异步文件写入（滚动 / 重连 / 自定义指令） | Spectre.Console |
 | [`YLFramework.Logging`](src/Framework.Logging/README.md) | 基于 NLog 的 ASP.NET Core 通用日志接入 | NLog / `NLog.Web.AspNetCore` |

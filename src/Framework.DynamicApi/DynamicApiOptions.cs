@@ -1,150 +1,62 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
-using Microsoft.AspNetCore.Http;
 using Framework.DynamicApi.Enums;
-using Framework.DynamicApi.Response;
 
 namespace Framework.DynamicApi;
 
+/// <summary>
+/// Minimal API 模式下的运行时配置。
+/// 生成代码在 <c>MapDynamicApis()</c> 时读取这些值计算最终路由与响应包装行为，
+/// HTTP 动词、参数绑定等编译期信息不再受此处配置影响。
+/// </summary>
 public class DynamicApiOptions
 {
 	public DynamicApiOptions()
 	{
-		RemoveControllerPostfixes = new List<string>() { "AppService", "ApplicationService", "ApiController", "Controller", "Services", "Service" };
-		RemoveActionPostfixes = new List<string>() { "Async" };
-		FormBodyBindingIgnoredTypes = new List<Type>() { typeof(IFormFile) };
-		DefaultHttpVerb = "POST";
+		RemoveControllerPostfixes = new List<string> { "AppService", "ApplicationService", "ApiController", "Controller", "Services", "Service" };
+		RemoveActionPostfixes = new List<string> { "Async" };
+		DefaultAreaName = string.Empty;
 		DefaultApiPrefix = "api";
-		AssemblyDynamicApiOptions = new Dictionary<Assembly, AssemblyDynamicApiOptions>();
 	}
 
-
 	/// <summary>
-	/// API HTTP Verb.
-	/// <para></para>
-	/// Default value is "POST".
+	/// 默认区域名称；<c>[DynamicApi]</c> 未指定 <c>Area</c> 时作为路由中的区域段使用。
 	/// </summary>
-	public string DefaultHttpVerb { get; set; }
-
 	public string DefaultAreaName { get; set; }
 
 	/// <summary>
-	/// Routing prefix for all APIs
-	/// <para></para>
-	/// Default value is "api".
+	/// 所有动态 API 的公共路由前缀，默认 <c>api</c>。
 	/// </summary>
 	public string DefaultApiPrefix { get; set; }
 
 	/// <summary>
-	/// Remove the dynamic API class(Controller) name postfix.
-	/// <para></para>
-	/// Default value is {"AppService", "ApplicationService"}.
+	/// 控制器名需要剥离的后缀集合，默认包含 <c>Service</c>、<c>AppService</c> 等。
 	/// </summary>
 	public List<string> RemoveControllerPostfixes { get; set; }
 
 	/// <summary>
-	/// Remove the dynamic API class's method(Action) postfix.
-	/// <para></para>
-	/// Default value is {"Async"}.
+	/// Action 名需要剥离的后缀集合，默认包含 <c>Async</c>。
 	/// </summary>
 	public List<string> RemoveActionPostfixes { get; set; }
 
 	/// <summary>
-	/// Ignore MVC Form Binding types.
-	/// </summary>
-	public List<Type> FormBodyBindingIgnoredTypes { get; set; }
-
-	/// <summary>
-	/// Naming convention
+	/// 控制器名与 Action 名的命名约定，默认 <see cref="NamingConventionEnum.KebabCase"/>。
 	/// </summary>
 	public NamingConventionEnum NamingConvention { get; set; } = NamingConventionEnum.KebabCase;
 
 	/// <summary>
-	/// The method that processing the name of the action.
+	/// 自定义 Action 名格式化委托；仅在 <see cref="NamingConventionEnum.Custom"/> 下生效，返回 <c>null</c> 时回退默认规则。
 	/// </summary>
 	public Func<string, string> GetRestFulActionName { get; set; }
 
 	/// <summary>
-	/// The method that processing the name of the controller.
+	/// 自定义控制器名格式化委托；仅在 <see cref="NamingConventionEnum.Custom"/> 下生效，返回 <c>null</c> 时保留剥离后缀后的名称。
 	/// </summary>
 	public Func<string, string> GetRestFulControllerName { get; set; }
 
 	/// <summary>
-	/// Specifies the dynamic webapi options for the assembly.
+	/// 是否把返回值包装为 <see cref="Response.ResponseResul{T}"/>，默认 <c>true</c>。
+	/// 标记 <c>[NonFormatResult]</c> 的端点始终不包装。
 	/// </summary>
-	public Dictionary<Assembly, AssemblyDynamicApiOptions> AssemblyDynamicApiOptions { get; }
-
-	public ISelectController SelectController { get; set; } = new DefaultSelectController();
-	public IActionRouteFactory ActionRouteFactory { get; set; } = new DefaultActionRouteFactory();
-
 	public bool FormatResult { get; set; } = true;
-
-	public Type FormatResultType { get; set; } = FormatResultContext.FormatResultType;
-
-	/// <summary>
-	/// Verify that all configurations are valid
-	/// </summary>
-	public void Valid()
-	{
-		if (string.IsNullOrEmpty(DefaultHttpVerb))
-		{
-			throw new ArgumentException($"{nameof(DefaultHttpVerb)} can not be empty.");
-		}
-
-		if (string.IsNullOrEmpty(DefaultAreaName))
-		{
-			DefaultAreaName = string.Empty;
-		}
-
-		if (string.IsNullOrEmpty(DefaultApiPrefix))
-		{
-			DefaultApiPrefix = string.Empty;
-		}
-
-		if (FormBodyBindingIgnoredTypes == null)
-		{
-			throw new ArgumentException($"{nameof(FormBodyBindingIgnoredTypes)} can not be null.");
-		}
-
-		if (RemoveControllerPostfixes == null)
-		{
-			throw new ArgumentException($"{nameof(RemoveControllerPostfixes)} can not be null.");
-		}
-	}
-
-	/// <summary>
-	/// Add the dynamic webapi options for the assembly.
-	/// </summary>
-	/// <param name="assembly"></param>
-	/// <param name="apiPreFix"></param>
-	/// <param name="httpVerb"></param>
-	public void AddAssemblyOptions(Assembly assembly, string apiPreFix = null, string httpVerb = null)
-	{
-		if (assembly == null)
-		{
-			throw new ArgumentException($"{nameof(assembly)} can not be null.");
-		}
-
-		AssemblyDynamicApiOptions[assembly] = new AssemblyDynamicApiOptions(apiPreFix, httpVerb);
-	}
-
-	/// <summary>
-	/// Add the dynamic webapi options for the assemblies.
-	/// </summary>
-	/// <param name="assemblies"></param>
-	/// <param name="apiPreFix"></param>
-	/// <param name="httpVerb"></param>
-	public void AddAssemblyOptions(Assembly[] assemblies, string apiPreFix = null, string httpVerb = null)
-	{
-		if (assemblies == null)
-		{
-			throw new ArgumentException($"{nameof(assemblies)} can not be null.");
-		}
-
-		foreach (var assembly in assemblies)
-		{
-			AddAssemblyOptions(assembly, apiPreFix, httpVerb);
-		}
-	}
 }

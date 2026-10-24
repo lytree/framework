@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 源生成器：只能被 .NET Core 系编译器宿主加载（dotnet build / VS Code / Rider），
+       Visual Studio 2022 与 msbuild.exe 使用 .NET Framework 编译器，无法加载 netstandard2.1 分析器。 -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Framework.DynamicApi.Generator</RootNamespace>
+    <!-- RS1041：netstandard2.1 分析器无法在 .NET Framework 编译器宿主加载，这是本项目明确接受的限制；
+         RS1033/RS1036/RS2008：Roslyn 分析器编写规范类提示，不适用于内部生成器。 -->
+    <NoWarn>$(NoWarn);RS1041;RS1033;RS1036;RS2008</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

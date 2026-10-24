@@ -17,6 +17,7 @@
     <Project Path="src/Framework.Charts/Framework.Charts.csproj" />
     <Project Path="src/Framework.Repository/Framework.Repository.csproj" />
     <Project Path="src/Framework.DynamicApi/Framework.DynamicApi.csproj" />
+    <Project Path="src/Framework.DynamicApi.Generator/Framework.DynamicApi.Generator.csproj" />
     <Project Path="src/Framework.SlideCaptcha/Framework.SlideCaptcha.csproj" />
   </Folder>
   <Folder Name="/src/Shared/">
@@ -24,6 +25,8 @@
     <File Path="src/Shared/MODULES.md" />
   </Folder>
   <Folder Name="/test/">
+    <Project Path="test/Framework.DynamicApi.Tests/Framework.DynamicApi.Tests.csproj" />
+    <Project Path="test/Framework.DynamicApi.Generator.Tests/Framework.DynamicApi.Generator.Tests.csproj" />
     <Project Path="test/Framework.Modbus.Tests/Framework.Modbus.Tests.csproj" />
     <Project Path="test/Framework.ZLogging.Tests/Framework.ZLogging.Tests.csproj" />
     <Project Path="test/Framework.Tests/Framework.Tests.csproj" />

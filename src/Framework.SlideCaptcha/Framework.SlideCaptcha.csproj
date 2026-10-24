@@ -9,7 +9,7 @@
 		<Version>2.0.0-alpha.1</Version>
 		<PackageId>YLFramework.SlideCaptcha</PackageId>
 		<Description>滑动验证码库（图片生成、轨迹校验、模板资源管理）</Description>
-		<PackageTags>SlideCaptcha;Captcha;ImageSharp;Validator;</PackageTags>
+		<PackageTags>SlideCaptcha;Captcha;SkiaSharp;Validator;</PackageTags>
 		<SignAssembly>False</SignAssembly>
 	</PropertyGroup>
 
@@ -21,8 +21,9 @@
 		<PackageReference Include="Microsoft.Extensions.Options" />
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
-		<PackageReference Include="SixLabors.ImageSharp" />
-		<PackageReference Include="SixLabors.ImageSharp.Drawing" />
+		<PackageReference Include="SkiaSharp" />
+		<!-- Linux 服务端原生库(不依赖 fontconfig；本包只做位图合成，不需要字体渲染) -->
+		<PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
 	</ItemGroup>
 
 	<ItemGroup>

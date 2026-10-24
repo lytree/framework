@@ -36,7 +36,7 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 - 项目根目录不再保留任何 git 子模块；旧的 `packages` 子模块已移除。
 
 ## Architecture
-- **Monorepo**: 9 src packages under `src/` + `src/Shared/` 共享源码目录, 2 test projects under `test/`
+- **Monorepo**: 10 src packages under `src/` + 1 非打包源生成器项目（`src/Framework.DynamicApi.Generator`）+ `src/Shared/` 共享源码目录, 5 test projects under `test/`
 - **Shared source**: 通用工具代码放在 `src/Shared/`，不再产出独立 `YLFramework` 程序集。需要它的包在 csproj 里用 `<Compile Include="..\Shared\...\*.cs" Link="Shared\...\%(Filename)%(Extension)" />` 直接引入源码编译，包之间**不互相 ProjectReference 核心库**。
 - **Namespace convention**: 各包命名空间保持不变（`Framework.Repository.*`、`Framework.AspNetCore.*`、`Framework.DynamicApi.*`、`Framework.SlideCaptcha.*`、`Framework.ZLogging.*`、`Framework.Charts.*`、`Framework.Mvvm.*`）；**唯一例外是 `src/Shared`——文件不声明 namespace，类型落在全局命名空间，且顶层类型一律 `internal`**（多包内联同一份源码，`public` 会导致下游 `CS0433`），扩展类按文件区分名字（`Extensions` / `ListExtensions` / `StreamExtensions` …）以免合并冲突
 - **Solution file**: `Framework.slnx` (not .sln)
@@ -53,6 +53,7 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 | `Framework.Repository` | linq2db-based repository + Mapster |
 | `Framework.Charts` | Chart generation |
 | `Framework.Modbus` | Modbus 主站（TCP / UDP / RTU / ASCII）+ 全功能码，设计参照 jamod |
+| `Framework.DynamicApi` | 编译期源生成 Minimal API 端点（零反射 / AOT），生成器随包以 `analyzers/dotnet/cs` 分发 |
 | `Framework.ZLogging` / `Framework.Logging` | Infrastructure |
 
 ## CI / Release
@@ -72,6 +73,9 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 ## Test Projects
 - `test/Framework.ZLogging.Tests/` — ZLogging 单元测试（TUnit，75 用例）
 - `test/Framework.Tests/` — Framework 核心工具测试（TUnit，PooledMemoryStream 等）
+- `test/Framework.Modbus.Tests/` — Modbus 协议单元测试
+- `test/Framework.DynamicApi.Tests/` — 路由解析 / 响应包装 / 生成端点的运行时测试
+- `test/Framework.DynamicApi.Generator.Tests/` — 源生成器测试（`GeneratorDriver` 断言生成代码与诊断）
 
 ## Testing Platform (MTP)
 - TUnit tests run via Microsoft.Testing.Platform (MTP). `global.json` opts in via `"test": { "runner": "Microsoft.Testing.Platform" }`.
