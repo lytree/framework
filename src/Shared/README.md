@@ -38,6 +38,7 @@
 | 压缩 / 解压 (Zip/Rar/7z) | `Helpers/Helper.Compressor.cs` + `System.IO/PooledMemoryStream.cs` + `System.Collections.Generic/DisposableDictionary.cs` + `SharpCompress` 包 |
 | SOCKS5 / HTTP 代理 | `Proxy/*` 整目录 |
 | 身份证 / 手机号 / 邮箱校验 | `Helpers/Helper.Validator.cs` |
+| 汉字转拼音 / 拼音首字母 | `Helpers/Helper.Pinyin.cs`（表数据内嵌，零依赖） |
 
 详细依赖见各模块 README。
 

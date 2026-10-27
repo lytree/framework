@@ -1,6 +1,6 @@
 # Helpers — `Helper` 静态类
 
-`static partial class Helper` 由本目录下 19 个分部文件组成。**复制 `Helper` 类必须复制所有分部文件**，否则编译失败。
+`static partial class Helper` 由本目录下 20 个分部文件组成。**复制 `Helper` 类必须复制所有分部文件**，否则编译失败。
 
 ## 文件清单
 
@@ -20,6 +20,7 @@
 | `Helper.Interface.cs`   | `GetInterfacePropertyNames<T>`                       | 无 |
 | `Helper.Json.cs`        | `JsonSerialize` / `JsonDeserialize`                  | 依赖 `System.Text.Json.Serialization/DateTimeJsonConverter.cs` |
 | `Helper.MD5Encrypt.cs`  | `MD5Encrypt16/32/64` / `GetHash(Stream)`             | 无 |
+| `Helper.Pinyin.cs`      | `GetPinyin` / `GetPinyinInitials` / `GetPinyinFirstLetter` / `IsChinese`（汉字拼音，内嵌 2 万字拼音表） | 无 |
 | `Helper.SHAEncrypt.cs`  | `SHA1Hash`                                           | 无 |
 | `Helper.SM4Encrypt.cs`  | `SM4Encrypt` / `SM4Decrypt`（国密 SM4）              | `BouncyCastle.Cryptography` |
 | `Helper.String.cs`      | `GenerateRandom` / `GenerateRandomNumber` / `Format` | 无 |
@@ -50,6 +51,26 @@ Helper.DESEncrypt.cs
 Helper.Hash.cs
 Helper.SM4Encrypt.cs       （可选，引入 BouncyCastle）
 ```
+
+## 汉字拼音（`Helper.Pinyin.cs`）
+
+单文件自包含：拼音表以 Deflate + Base64 内嵌在源码里，**无外部依赖、无资源文件**，首次调用时才解压（约 20 ms 冷启动，之后走静态缓存）。
+
+```csharp
+Helper.GetPinyin("中国2024");                        // "zhōng guó 2024"
+Helper.GetPinyin("中国", PinyinFormat.ToneNumber);   // "zhong1 guo2"
+Helper.GetPinyin("张三", PinyinFormat.Plain, "");    // "zhangsan"（可直接当排序 / 检索键）
+Helper.GetPinyinInitials("中华人民共和国");          // "ZHRMGHG"
+Helper.GetPinyinFirstLetter('中');                   // 'Z'
+Helper.TryGetPinyin('中', out var pinyin);           // true / "zhōng"
+Helper.IsChinese("汉字");                            // true
+```
+
+- 覆盖 **U+4E00–U+9FFF**（CJK 统一汉字基本区）20992 字，其中 20924 字有读音；扩展 A 区等冷僻字返回原字符。
+- 数据来源 [mozillazg/pinyin-data](https://github.com/mozillazg/pinyin-data)（Unihan `kMandarin` 派生，Unicode License）。
+- 每字 1 个 `ushort`：高 9 位音节序号（1 基，0 表示无数据）+ 低 3 位声调（1–4，0 表示轻声）；数组小端序打包 → Deflate → Base64。
+- **只保留主读音**：多音字按最常用读音输出（「重」→ zhòng、「长」→ zhǎng），不做词组消歧，需要时请在调用侧覆盖。
+- 重新生成表数据：`tools/gen-pinyin-table.py`（脚本头注释说明了数据文件与用法）。
 
 ## NuGet 包
 

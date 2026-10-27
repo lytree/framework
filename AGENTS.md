@@ -47,7 +47,7 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 ## Key Packages
 | Package | Notes |
 |---------|-------|
-| `src/Shared` | 共享源码（BCL 扩展、集合、缓冲、IO、加密、压缩、JSON、代理），被各包文件级引入 |
+| `src/Shared` | 共享源码（BCL 扩展、集合、缓冲、IO、加密、压缩、JSON、拼音、代理），被各包文件级引入 |
 | `Framework.AspNetCore` | ASP.NET Core integration |
 | `Framework.Mvvm` | MVVM with CommunityToolkit.Mvvm |
 | `Framework.Repository` | linq2db-based repository + Mapster |
@@ -72,7 +72,7 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 
 ## Test Projects
 - `test/Framework.ZLogging.Tests/` — ZLogging 单元测试（TUnit，75 用例）
-- `test/Framework.Tests/` — Framework 核心工具测试（TUnit，PooledMemoryStream 等）
+- `test/Framework.Tests/` — Framework 核心工具测试（TUnit，PooledMemoryStream、汉字拼音表等）
 - `test/Framework.Modbus.Tests/` — Modbus 协议单元测试
 - `test/Framework.DynamicApi.Tests/` — 路由解析 / 响应包装 / 生成端点的运行时测试
 - `test/Framework.DynamicApi.Generator.Tests/` — 源生成器测试（`GeneratorDriver` 断言生成代码与诊断）

@@ -34,7 +34,7 @@
 
 ## Helper 分部类说明
 
-`static partial class Helper` 由约 18 个 `Helpers/Helper.*.cs` 分部文件构成。
+`static partial class Helper` 由约 20 个 `Helpers/Helper.*.cs` 分部文件构成。
 
 **使用 Helper 类时必须把所有分部文件一起复制**，否则编译失败。各分部文件按职责分类如下：
 
@@ -54,6 +54,7 @@
 | `Helper.Interface.cs`   | 接口反射 | 无 |
 | `Helper.Json.cs`        | JSON 序列化 | 依赖 `System.Text.Json.Serialization/DateTimeJsonConverter.cs` |
 | `Helper.MD5Encrypt.cs`  | MD5 加密 | 无 |
+| `Helper.Pinyin.cs`      | 汉字拼音（拼音 / 首字母 / 声调，内嵌 U+4E00–U+9FFF 表） | 无 |
 | `Helper.SHAEncrypt.cs`  | SHA1 加密 | 无 |
 | `Helper.SM4Encrypt.cs`  | SM4 加密 | `BouncyCastle.Cryptography` |
 | `Helper.String.cs`      | 字符串工具 | 无 |
