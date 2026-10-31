@@ -54,7 +54,7 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 | `Framework.Charts` | Chart generation |
 | `Framework.Modbus` | Modbus 主站（TCP / UDP / RTU / ASCII）+ 全功能码，设计参照 jamod |
 | `Framework.DynamicApi` | 编译期源生成 Minimal API 端点（零反射 / AOT），生成器随包以 `analyzers/dotnet/cs` 分发 |
-| `Framework.ZLogging` / `Framework.Logging` | Infrastructure |
+| `Framework.ZLogging` / `Framework.Logging` | 两条独立日志栈：ZLogging 为自研 ILoggerProvider + Spectre.Console（富终端、纯文本落盘）；Logging 为 Serilog 接入（CLEF 结构化落盘 + `LogProperties` / `LogTemplates` 模板约定） |
 
 ## CI / Release
 - **单包发布（推荐）**：标签 `YLFramework.Repository/v2.0.0-alpha.1` → CI 只打包并推送该包
@@ -72,6 +72,7 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 
 ## Test Projects
 - `test/Framework.ZLogging.Tests/` — ZLogging 单元测试（TUnit，75 用例）
+- `test/Framework.Logging.Tests/` — Serilog 接入测试：模板占位符与 `LogProperties` 一致性（反射）、公共字段注入、CLEF/纯文本落盘
 - `test/Framework.Tests/` — Framework 核心工具测试（TUnit，PooledMemoryStream、汉字拼音表等）
 - `test/Framework.Modbus.Tests/` — Modbus 协议单元测试
 - `test/Framework.DynamicApi.Tests/` — 路由解析 / 响应包装 / 生成端点的运行时测试

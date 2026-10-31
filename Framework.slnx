@@ -27,6 +27,7 @@
   <Folder Name="/test/">
     <Project Path="test/Framework.DynamicApi.Tests/Framework.DynamicApi.Tests.csproj" />
     <Project Path="test/Framework.DynamicApi.Generator.Tests/Framework.DynamicApi.Generator.Tests.csproj" />
+    <Project Path="test/Framework.Logging.Tests/Framework.Logging.Tests.csproj" />
     <Project Path="test/Framework.Modbus.Tests/Framework.Modbus.Tests.csproj" />
     <Project Path="test/Framework.ZLogging.Tests/Framework.ZLogging.Tests.csproj" />
     <Project Path="test/Framework.Tests/Framework.Tests.csproj" />

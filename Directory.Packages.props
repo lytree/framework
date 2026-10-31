@@ -16,6 +16,8 @@ csproj 内仅写 <PackageReference Include="X" /> 不写版本（Central Package
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.13" />
@@ -39,9 +41,14 @@ csproj 内仅写 <PackageReference Include="X" /> 不写版本（Central Package
 
     <!-- ====== 日志 ====== -->
     <PackageVersion Include="ZLogger" Version="2.5.10" />
-    <PackageVersion Include="NLog" Version="6.2.2" />
-    <PackageVersion Include="NLog.Extensions.Logging" Version="6.2.2" />
-    <PackageVersion Include="NLog.Web.AspNetCore" Version="6.2.2" />
+    <!-- Serilog 技术栈：核心 / MEL 桥接 / 配置驱动 / 控制台 / 文件 / 异步包装 / CLEF JSON 格式 -->
+    <PackageVersion Include="Serilog" Version="4.4.0" />
+    <PackageVersion Include="Serilog.Extensions.Logging" Version="10.0.0" />
+    <PackageVersion Include="Serilog.Settings.Configuration" Version="10.0.1" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Async" Version="2.1.0" />
+    <PackageVersion Include="Serilog.Formatting.Compact" Version="3.0.0" />
 
     <!-- ====== 终端 UI / 图形 ====== -->
     <PackageVersion Include="Spectre.Console" Version="0.57.2" />

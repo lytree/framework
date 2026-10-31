@@ -16,7 +16,7 @@
 | [`YLFramework.SlideCaptcha`](src/Framework.SlideCaptcha/README.md) | 滑块验证码：图片生成、轨迹校验、存储、资源管理 | `SkiaSharp` |
 | [`YLFramework.Charts`](src/Framework.Charts/README.md) | ScottPlot 风格的图表生成（折线 / 柱状 / 饼图等） | — |
 | [`YLFramework.ZLogging`](src/Framework.ZLogging/README.md) | 自研 ILoggerProvider 的彩色控制台日志 + 异步文件写入（滚动 / 重连 / 自定义指令） | Spectre.Console |
-| [`YLFramework.Logging`](src/Framework.Logging/README.md) | 基于 NLog 的 ASP.NET Core 通用日志接入 | NLog / `NLog.Web.AspNetCore` |
+| [`YLFramework.Logging`](src/Framework.Logging/README.md) | 基于 Serilog 的日志接入：控制台 / 滚动文件 / CLEF JSON + 结构化日志模板与字段约定 | Serilog |
 
 ## 仓库结构
 
