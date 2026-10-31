@@ -304,6 +304,85 @@ public class SpectreConsoleFileOutputTests(TempDirectory temp)
         await Assert.That(visible).IsTrue();
     }
 
+    [Test]
+    public async Task DateToken_RollsToNewFileAcrossMidnight()
+    {
+        var directory = Path.Combine(temp.Path, "daily");
+        var clock = new MutableTimeProvider();
+        var options = new SpectreLogOptions
+        {
+            FilePath = Path.Combine(directory, "app-{Date}.log"),
+            ConsoleOutput = false,
+            TimeProvider = clock
+        };
+
+        var day1 = Path.Combine(directory, "app-2026-03-01.log");
+        var day2 = Path.Combine(directory, "app-2026-03-02.log");
+
+        await using (var provider = new SpectreConsoleLoggerProvider(options))
+        {
+            var logger = provider.CreateLogger("Daily");
+            logger.LogInformation("day one");
+
+            // 必须等第一条真正落盘再拨时钟，否则两条可能同批消费、都写进新一天的文件。
+            await Assert.That(await WaitForContentAsync(day1, "day one")).IsTrue();
+
+            clock.Advance(TimeSpan.FromDays(1));
+            logger.LogInformation("day two");
+        }
+
+        // 跨零点必须另起一个文件，否则常驻进程的按天归档会失效。
+        await Assert.That(File.Exists(day1)).IsTrue();
+        await Assert.That(File.Exists(day2)).IsTrue();
+
+        var first = await File.ReadAllTextAsync(day1);
+        var second = await File.ReadAllTextAsync(day2);
+        await Assert.That(first).Contains("day one");
+        await Assert.That(first).DoesNotContain("day two");
+        await Assert.That(second).Contains("day two");
+    }
+
+    [Test]
+    public async Task StaticPath_DoesNotSwitchFileAcrossMidnight()
+    {
+        var filePath = Path.Combine(temp.Path, "static.log");
+        var clock = new MutableTimeProvider();
+        var options = LogTestHelper.Options(filePath);
+        options.TimeProvider = clock;
+
+        var content = await LogTestHelper.WriteAndReadAsync(options, logger =>
+        {
+            logger.LogInformation("before midnight");
+            clock.Advance(TimeSpan.FromDays(1));
+            logger.LogInformation("after midnight");
+        });
+
+        // 不含 {Date} 的路径不能被跨天逻辑拆成两个文件。
+        await Assert.That(Directory.GetFiles(temp.Path, "static*.log").Length).IsEqualTo(1);
+        await Assert.That(content).Contains("before midnight");
+        await Assert.That(content).Contains("after midnight");
+    }
+
+    /// <summary>轮询等待文件里出现指定内容；共享读避免与长连接写句柄冲突。</summary>
+    static async Task<bool> WaitForContentAsync(string path, string expected)
+    {
+        for (var attempt = 0; attempt < 100; attempt++)
+        {
+            try
+            {
+                if (File.Exists(path) && ReadShared(path).Contains(expected, StringComparison.Ordinal)) return true;
+            }
+            catch (IOException)
+            {
+                // 正在换文件 / 关闭句柄，稍后重试。
+            }
+
+            await Task.Delay(50);
+        }
+
+        return false;
+    }
+
     /// <summary>以共享读方式读取日志文件，避免与长连接的写入句柄冲突。</summary>
     static string ReadShared(string path)
     {

@@ -12,7 +12,7 @@ namespace Framework.ZLogging;
 public static class SpectreLoggingExtensions
 {
     /// <summary>
-    /// 注册 Spectre.Console 日志提供程序，仅输出到控制台。
+    /// 注册 Spectre.Console 日志提供程序，仅输出到控制台（<see cref="SpectreLogOptions.FilePath"/> 保持 <c>null</c>）。
     /// </summary>
     /// <param name="builder">日志构建器。</param>
     /// <param name="configure">配置委托，可设置时间格式、级别颜色、是否包含作用域等。</param>
@@ -26,21 +26,31 @@ public static class SpectreLoggingExtensions
     }
 
     /// <summary>
-    /// 注册 Spectre.Console 日志提供程序，同时把日志以纯文本写入 <paramref name="filePath"/>。
+    /// 注册 Spectre.Console 日志提供程序，把日志以纯文本写入 <paramref name="filePath"/>。
+    ///
+    /// 默认 <b>只写文件</b>（<see cref="SpectreLogOptions.ConsoleOutput"/> 预置为 <c>false</c>），
+    /// 与 <see cref="AddSpectreConsoleAndFile"/> 区分开；需要同时输出到终端时，
+    /// 在 <paramref name="configure"/> 里把它改回 <c>true</c> 即可（委托在预置之后执行）。
+    /// <paramref name="filePath"/> 为空时不产生任何输出目标。
     /// </summary>
     /// <param name="builder">日志构建器。</param>
-    /// <param name="filePath">日志文件路径；路径中可用 <c>{Date}</c> 占位符按天分文件。为空时仅输出控制台。</param>
+    /// <param name="filePath">日志文件路径；路径中可用 <c>{Date}</c> 占位符按天分文件（跨零点自动切换）。为空时不写文件。</param>
     /// <param name="configure">在默认配置之上做二次覆盖，可设置滚动、编码等。</param>
     /// <returns>同一个 <paramref name="builder"/>，便于链式调用。</returns>
     public static ILoggingBuilder AddSpectreFile(this ILoggingBuilder builder, string? filePath,
         Action<SpectreLogOptions>? configure = null)
     {
-        var options = new SpectreLogOptions { FilePath = filePath };
+        var options = new SpectreLogOptions { FilePath = filePath, ConsoleOutput = false };
         configure?.Invoke(options);
         return builder.AddSpectre(options);
     }
 
-    /// <summary>注册控制台 + 文件双输出的日志提供程序。</summary>
+    /// <summary>
+    /// 注册控制台 + 文件双输出的日志提供程序（<see cref="SpectreLogOptions.ConsoleOutput"/> 保持默认 <c>true</c>）。
+    /// </summary>
+    /// <param name="builder">日志构建器。</param>
+    /// <param name="filePath">日志文件路径；为 <c>null</c> / 空白时退化为仅控制台。</param>
+    /// <param name="configure">在默认配置之上做二次覆盖。</param>
     public static ILoggingBuilder AddSpectreConsoleAndFile(this ILoggingBuilder builder, string? filePath,
         Action<SpectreLogOptions>? configure = null)
     {

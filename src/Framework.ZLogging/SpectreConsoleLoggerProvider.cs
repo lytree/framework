@@ -166,7 +166,20 @@ sealed class SpectreLogProcessor : IAsyncDisposable
     /// <summary>把一条日志同时送往控制台与文件。任一端失败都不影响另一端。</summary>
     async ValueTask DispatchAsync(SpectreLogEntry entry, bool isLastOfBatch)
     {
-        if (console is not null) WriteConsole(entry);
+        if (console is not null)
+        {
+            // 控制台渲染单独兜异常：终端被重定向 / 关闭、宽度取不到等都可能抛，
+            // 不能让它把同一批里后续的文件写入一起带走（否则「双输出」对文件是空的）。
+            try
+            {
+                WriteConsole(entry);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                options.InternalErrorLogger?.Invoke(exception);
+            }
+        }
+
         if (fileWriter is not null)
         {
             // 写盘不用 cts.Token：释放阶段必须保证队列里的日志真正落盘。
@@ -297,7 +310,7 @@ sealed class SpectreLogProcessor : IAsyncDisposable
     }
 
     /// <summary>
-    /// 同步释放：<see cref="ILoggerProvider.Dispose"/> 只给了同步契约，
+    /// 同步释放：<c>ILoggerProvider.Dispose</c> 只给了同步契约，
     /// 但后台消费是异步的。这里显式等待排空并关闭文件句柄，
     /// 否则进程退出时尾部日志会丢，且日志文件仍被独占。
     /// </summary>

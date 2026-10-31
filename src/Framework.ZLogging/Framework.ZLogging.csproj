@@ -19,6 +19,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<InternalsVisibleTo Include="Framework.ZLogging.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Resource Include="README.md">
 			<PackagePath>\</PackagePath>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

@@ -69,6 +69,39 @@ public class SpectreLoggingExtensionsTests
     }
 
     [Test]
+    public async Task AddSpectreFile_DefaultsToFileOnlyAndStillWorksWithoutConfigure()
+    {
+        var filePath = Path.Combine(Path.GetTempPath(), "default-" + Guid.NewGuid().ToString("N") + ".log");
+
+        // 不传 configure：AddSpectreFile 预置 ConsoleOutput=false，源码里已无控制台目标。
+        using (var factory = LoggerFactory.Create(builder => builder.AddSpectreFile(filePath)))
+        {
+            factory.CreateLogger("Test").LogInformation("default file only");
+        }
+
+        var content = await File.ReadAllTextAsync(filePath);
+        await Assert.That(content).Contains("default file only");
+        TryDelete(filePath);
+    }
+
+    [Test]
+    public async Task AddSpectreFile_ConfigureCanReEnableConsole()
+    {
+        var filePath = Path.Combine(Path.GetTempPath(), "reenable-" + Guid.NewGuid().ToString("N") + ".log");
+
+        // 预置在 configure 之前生效，所以显式改回 true 应恢复双输出（此处只验证文件侧仍正常）。
+        using (var factory = LoggerFactory.Create(builder =>
+                   builder.AddSpectreFile(filePath, options => options.ConsoleOutput = true)))
+        {
+            factory.CreateLogger("Test").LogInformation("both again");
+        }
+
+        var content = await File.ReadAllTextAsync(filePath);
+        await Assert.That(content).Contains("both again");
+        TryDelete(filePath);
+    }
+
+    [Test]
     public async Task AddSpectreConsole_ReturnsBuilderForChaining()
     {
         ILoggingBuilder? captured = null;

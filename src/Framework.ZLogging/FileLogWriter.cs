@@ -6,7 +6,7 @@ using System.Text;
 namespace Framework.ZLogging;
 
 /// <summary>
-/// 文件日志写入器：长连接 <see cref="FileStream"/> + 批量写 + 按体积滚动 + 断连重连。
+/// 文件日志写入器：长连接 <see cref="FileStream"/> + 批量写 + 按体积滚动 + 按天换文件 + 断连重连。
 ///
 /// 取舍说明：
 /// <list type="bullet">
@@ -15,6 +15,7 @@ namespace Framework.ZLogging;
 /// <item><see cref="FileShare.ReadWrite"/> 允许日志被 tail / VS 实时读取；
 /// <see cref="FileShare.Delete"/> 允许 logrotate 之类的工具在写入期间轮转文件。</item>
 /// <item>文件被外部删除或移动后句柄会静默失效，因此按固定间隔做一次存在性检查并重连。</item>
+/// <item>路径含 <c>{Date}</c> 时按本地日期分文件，跨零点自动切换，常驻进程无需重启。</item>
 /// </list>
 /// </summary>
 sealed class FileLogWriter : IAsyncDisposable
@@ -27,10 +28,12 @@ sealed class FileLogWriter : IAsyncDisposable
     readonly SpectreLogOptions options;
     readonly SpectreMessageFormatter formatter;
     readonly SpectreObjectPrinter printer;
-    readonly string basePath;
     readonly bool rollingEnabled;
+    readonly bool dateRolling;
     readonly char[] newline;
 
+    string basePath;
+    DateTime currentDate;
     FileStream? stream;
     StreamWriter? writer;
     long pendingBytes;
@@ -48,6 +51,9 @@ sealed class FileLogWriter : IAsyncDisposable
         basePath = resolvedPath;
         currentPath = resolvedPath;
         rollingEnabled = options.FileSizeLimitBytes > 0;
+        // 只有路径里真的带 {Date} 才需要跨天检查，否则整条判断退化为一次 bool 读。
+        dateRolling = options.HasDateToken;
+        currentDate = Today();
         newline = ['\n'];
 
         // 构造期即建目录并打开文件：路径不可写要在启动时就暴露，而不是等到第一条日志才失败。
@@ -72,6 +78,31 @@ sealed class FileLogWriter : IAsyncDisposable
 
     /// <summary>当前正在写入的文件路径；滚动或重连后会变化。</summary>
     public string CurrentFileName => currentPath;
+
+    /// <summary>取本地日期；统一走 <see cref="SpectreLogOptions.Clock"/>，便于测试注入。</summary>
+    DateTime Today() => options.Clock.GetLocalNow().DateTime.Date;
+
+    /// <summary>
+    /// <c>{Date}</c> 占位符跨天换文件。
+    /// 常驻进程夜里跨零点后如果仍写启动当天的文件名，日志会混在昨天的文件里，
+    /// 按天归档直接失效——因此在写每批日志前用一次日期比较兜住。
+    /// </summary>
+    async ValueTask EnsureDateCurrentAsync()
+    {
+        if (!dateRolling || disposed) return;
+
+        var today = Today();
+        if (today == currentDate) return;
+
+        await CloseStreamAsync().ConfigureAwait(false);
+
+        currentDate = today;
+        // 重新解析而非字符串替换：目录部分也可能含 {Date}，且要重新展开环境变量。
+        basePath = options.ResolveFilePath(today);
+        currentPath = basePath;
+        writeCount = 0;
+        EnsureOpen();
+    }
 
     /// <summary>把一条日志渲染为纯文本块（含时间戳、级别、Category 与专用格式的文本化输出）。</summary>
     public string Format(SpectreLogEntry entry)
@@ -108,7 +139,8 @@ sealed class FileLogWriter : IAsyncDisposable
             {
                 rendered = new Text($"<专用格式渲染失败: {exception.Message}>");
             }
-            builder.Append(SpectreObjectPrinter.ExportText(rendered, options.FileRenderWidth));        }
+            builder.Append(SpectreObjectPrinter.ExportText(rendered, options.FileRenderWidth));
+        }
 
         if (entry.Exception is not null)
         {
@@ -157,6 +189,8 @@ sealed class FileLogWriter : IAsyncDisposable
     public async ValueTask WriteAsync(string text, bool isLastOfBatch, CancellationToken cancellationToken)
     {
         if (disposed) return;
+
+        if (dateRolling) await EnsureDateCurrentAsync().ConfigureAwait(false);
 
         if (rollingEnabled && writer is not null
             && stream!.Length + pendingBytes >= options.FileSizeLimitBytes)

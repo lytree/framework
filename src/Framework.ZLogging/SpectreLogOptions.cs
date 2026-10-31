@@ -57,17 +57,21 @@ public sealed class SpectreLogOptions
     BoundedChannelFullMode _queueFullMode = BoundedChannelFullMode.DropWrite;
 
     /// <summary>
-    /// 队列满时的处置策略。默认 <see cref="BoundedChannelFullMode.DropWrite"/>：
-    /// 丢弃新消息并立即返回，绝不阻塞业务线程。若日志不允许丢失，可改为
-    /// <see cref="BoundedChannelFullMode.Wait"/> 让生产者等待。
+    /// 队列满时的处置策略，默认 <see cref="BoundedChannelFullMode.DropWrite"/>，可显式赋回该默认值。
+    ///
+    /// 生产侧统一走 <c>ChannelWriter.TryWrite</c>（绝不阻塞业务线程），因此三者在这里的实际表现是：
+    /// <see cref="BoundedChannelFullMode.DropOldest"/> 挤掉最旧一条、给新消息腾位，日志时间窗连续；
+    /// <see cref="BoundedChannelFullMode.DropWrite"/> 丢弃新消息、保留历史；
+    /// <see cref="BoundedChannelFullMode.Wait"/> 由于 <c>TryWrite</c> 不会等待，等价于「入队失败即丢弃」。
+    /// 日志不允许丢失时，应把 <see cref="QueueCapacity"/> 调大，而不是指望 <c>Wait</c>。
     /// </summary>
     public BoundedChannelFullMode QueueFullMode
     {
         get => _queueFullMode;
         set
         {
-            if (value == BoundedChannelFullMode.DropWrite)
-                ThrowInvalidFullMode();
+            if (!Enum.IsDefined(value))
+                ThrowInvalidFullMode(value);
             _queueFullMode = value;
         }
     }
@@ -94,7 +98,8 @@ public sealed class SpectreLogOptions
 
     /// <summary>
     /// 日志文件路径。为 <c>null</c> / 空白时关闭文件输出。
-    /// 路径中可包含 <c>{Date}</c> 占位符，会替换为 <see cref="DateTime.Now"/> 的 <c>yyyy-MM-dd</c>。
+    /// 路径中可包含 <c>{Date}</c> 占位符，会替换为本地时间的 <c>yyyy-MM-dd</c>；
+    /// 常驻进程跨零点后会自动切换到新一天的文件，无需重启。
     /// </summary>
     public string? FilePath { get; set; }
 
@@ -129,8 +134,11 @@ public sealed class SpectreLogOptions
     int _maxRollingFiles;
 
     /// <summary>
-    /// 滚动保留的最大文件数，超出后按最后写入时间淘汰最旧的文件。
+    /// 滚动保留的最大文件数，超出后按最后写入时间淘汰最旧的滚动文件。
     /// <c>0</c> 表示不限制。<see cref="FileSizeLimitBytes"/> 为 <c>0</c> 时本项无效。
+    ///
+    /// <b>计数包含基文件本身</b>：<c>MaxRollingFiles = 5</c> 意味着「基文件 + 4 个 <c>_N</c> 滚动文件」；
+    /// 基文件是用户配置的主日志，一旦写入就长期保留，只有带序号的滚动文件会被淘汰。
     /// </summary>
     public int MaxRollingFiles
     {
@@ -199,6 +207,13 @@ public sealed class SpectreLogOptions
     #endregion
 
     /// <summary>
+    /// <see cref="FilePath"/> 是否包含 <c>{Date}</c> 占位符。
+    /// 含占位符时写入方需在跨天后重新解析路径并切换文件，否则常驻进程会一直写启动当天的文件名。
+    /// </summary>
+    internal bool HasDateToken
+        => FilePath is { } path && path.Contains("{Date}", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
     /// 解析 <c>{Date}</c> 占位符、展开环境变量，并把相对路径转成基于应用目录的绝对路径。
     /// 相对路径基于 <see cref="AppContext.BaseDirectory"/> 而非当前工作目录，
     /// 避免进程工作目录漂移后日志写到别处。
@@ -228,10 +243,9 @@ public sealed class SpectreLogOptions
             { LogLevel.Critical, "red bold" }
         }.ToFrozenDictionary();
 
-    static void ThrowInvalidFullMode()
-        => throw new ArgumentException(
-            "QueueFullMode 只支持 DropOldest / DropWrite / Wait；DropWrite 已是默认值，如需丢弃最新消息请直接保留该设置。",
-            nameof(QueueFullMode));
+    static void ThrowInvalidFullMode(BoundedChannelFullMode value)
+        => throw new ArgumentOutOfRangeException(nameof(value), value,
+            "QueueFullMode 只支持 DropWrite / DropOldest / Wait。");
 
     /// <summary>最终生效的时间源，避免每条日志重复判空。</summary>
     internal TimeProvider Clock => TimeProvider ?? TimeProvider.System;

@@ -52,6 +52,37 @@ public class SpectreLogOptionsTests
     }
 
     [Test]
+    public async Task QueueFullMode_AllowsExplicitlySettingDefault()
+    {
+        var options = new SpectreLogOptions();
+
+        // DropWrite 是文档写明的默认值，显式赋回它不该被当成错误。
+        options.QueueFullMode = System.Threading.Channels.BoundedChannelFullMode.DropWrite;
+        await Assert.That(options.QueueFullMode).IsEqualTo(System.Threading.Channels.BoundedChannelFullMode.DropWrite);
+
+        options.QueueFullMode = System.Threading.Channels.BoundedChannelFullMode.DropOldest;
+        await Assert.That(options.QueueFullMode).IsEqualTo(System.Threading.Channels.BoundedChannelFullMode.DropOldest);
+    }
+
+    [Test]
+    public async Task QueueFullMode_RejectsUndefinedValue()
+    {
+        var options = new SpectreLogOptions();
+
+        await Assert.That(() => options.QueueFullMode = (System.Threading.Channels.BoundedChannelFullMode)999)
+            .Throws<ArgumentOutOfRangeException>();
+    }
+
+    [Test]
+    public async Task HasDateToken_DetectsPlaceholder()
+    {
+        await Assert.That(new SpectreLogOptions { FilePath = "logs/app-{Date}.log" }.HasDateToken).IsTrue();
+        await Assert.That(new SpectreLogOptions { FilePath = "logs/{date}/app.log" }.HasDateToken).IsTrue();
+        await Assert.That(new SpectreLogOptions { FilePath = "logs/app.log" }.HasDateToken).IsFalse();
+        await Assert.That(new SpectreLogOptions().HasDateToken).IsFalse();
+    }
+
+    [Test]
     public async Task RegisterFormat_RejectsInvalidFormatNames()
     {
         var options = new SpectreLogOptions();

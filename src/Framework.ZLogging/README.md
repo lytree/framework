@@ -18,7 +18,7 @@
 ## 快速上手
 
 ```csharp
-// 1) 仅控制台
+// 1) 仅控制台（不设 FilePath，不产生文件）
 builder.Logging.AddSpectreConsole(options =>
 {
     options.TimeFormat = "HH:mm:ss.fff";
@@ -33,12 +33,18 @@ builder.Logging.AddSpectreConsoleAndFile("logs/app.log", options =>
     options.FileAppend = true;
 });
 
-// 3) 纯文件（CLI / 服务端后台日志）
+// 3) 纯文件（CLI / 服务端后台日志）：该方法默认就关闭控制台
 builder.Logging.AddSpectreFile("logs/app-{Date}.log", options =>
 {
-    options.ConsoleOutput = false;
+    options.FileSizeLimitBytes = 64 * 1024 * 1024;
 });
+
+// 需要「写文件但也要控制台」时，用 AddSpectreFile 并把 ConsoleOutput 改回 true 同样可以
+builder.Logging.AddSpectreFile("logs/app.log", options => options.ConsoleOutput = true);
 ```
+
+三个入口的差异只有两点：是否预置 `FilePath`、是否预置 `ConsoleOutput = false`。
+`configure` 委托在预置之后执行，所以任何预置都可以被覆盖。
 
 ## 文件写入方案
 
@@ -48,7 +54,8 @@ builder.Logging.AddSpectreFile("logs/app-{Date}.log", options =>
 | 共享模式 | `FileShare.ReadWrite \| Delete` | `tail -f` / VS 可实时读取；logrotate 可在写入期间搬走文件 |
 | 刷盘 | 批末或定时器（默认 1s），不用 `AutoFlush` | 每条都 flush 会把吞吐拖垮一个数量级 |
 | 批量 | 单批最多 100 条，一次 `WriteAsync` | 摊薄系统调用次数 |
-| 滚动 | 超过 `FileSizeLimitBytes` 切到 `_1`、`_2`…，序号循环覆盖 | 磁盘占用有上界；基文件永不删除 |
+| 按天分文件 | 路径含 `{Date}` 时按本地日期命名，**跨零点自动切换到新一天的文件** | 常驻进程不重启也能按天归档 |
+| 按体积滚动 | 超过 `FileSizeLimitBytes` 切到 `_1`、`_2`…，序号循环覆盖 | 磁盘占用有上界；基文件永不删除 |
 | 断连 | 每 100 次写入检查文件是否还在，不在则重连 | 外部删除 / 移动后句柄会静默失效 |
 | 瞬时错误 | `IOException` 线性退避重试 3 次 | 抗住 logrotate 搬文件时的短暂冲突 |
 
@@ -89,6 +96,17 @@ logger.LogInformation("应付 {Amount:money}", 1234.5);   // ￥1,234.50
 专用格式在控制台渲染为表格 / 面板，在日志文件中退化为等宽纯文本——信息不丢失，但控制台的
 ANSI 颜色不会写入文件。
 
+## 需要注意的行为约定
+
+| 约定 | 说明 |
+|------|------|
+| 级别过滤不在本包 | `IsEnabled` 只排除 `LogLevel.None`，真正的级别过滤交给 `LoggerFactory` 的 rules（`SetMinimumLevel` / `AddFilter`）；不要期望在 `SpectreLogOptions` 里设级别 |
+| `AddSpectreFile` 默认关闭控制台 | 它预置 `ConsoleOutput = false`；双输出请用 `AddSpectreConsoleAndFile`，或在 `configure` 里改回 `true` |
+| `QueueFullMode` 的实际语义 | 生产侧用 `ChannelWriter.TryWrite`，绝不阻塞业务线程：`DropOldest` 挤掉最旧一条、`DropWrite` 丢弃新消息、`Wait` 因 `TryWrite` 不等待而等价于丢弃。不允许丢日志请调大 `QueueCapacity` |
+| `MaxRollingFiles` 含基文件 | `= 5` 表示「基文件 + 4 个 `_N` 滚动文件」；基文件永不淘汰，只有带序号的滚动文件按最后写入时间淘汰 |
+| 文件内容是纯文本 | 控制台的 ANSI 颜色不会写入文件；专用格式（表格 / 面板）在文件中退化为等宽文本 |
+| 文件写入失败不冒泡 | 统一走 `FileWriteErrorHandler` / `InternalErrorLogger`，文件不可写时静默降级，控制台链路不受影响 |
+
 ## 性能设计
 
 - **调用线程只做快照**：结构化参数在 `ILogger.Log` 内同步物化为不可变条目，
@@ -109,11 +127,11 @@ ANSI 颜色不会写入文件。
 | | `TimeProvider` | `TimeProvider.System` |
 | | `InternalErrorLogger` | `null` |
 | 队列 | `QueueCapacity` | `12000` |
-| | `QueueFullMode` | `DropWrite` |
+| | `QueueFullMode` | `DropWrite`（`DropOldest` / `Wait` 亦可显式设置，语义见上表） |
 | | `BatchSize` | `100` |
-| 控制台 | `ConsoleOutput` | `true` |
+| 控制台 | `ConsoleOutput` | `true`（`AddSpectreFile` 会预置为 `false`） |
 | | `ConsoleRenderWidth` | `0`（跟随终端） |
-| 文件 | `FilePath` | `null`（支持 `{Date}` 占位） |
+| 文件 | `FilePath` | `null`（支持 `{Date}` 占位并按天自动切换） |
 | | `FileAppend` | `true` |
 | | `FileEncoding` | 无 BOM 的 UTF-8 |
 | | `FileSizeLimitBytes` | `0`（不滚动） |
