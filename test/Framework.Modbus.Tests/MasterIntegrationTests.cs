@@ -228,6 +228,41 @@ public sealed class MasterIntegrationTests
         await Assert.That(rtuMaster.Transport).IsTypeOf<Framework.Modbus.IO.ModbusRtuTransport>();
     }
 
+    [Test]
+    public async Task Send_ConcurrentCallers_AreSerializedOnOneConnection()
+    {
+        using var slave = new LoopbackModbusSlave();
+        slave.HoldingRegisters[0] = 42;
+        using var master = CreateMaster(slave);
+
+        const int workers = 8;
+        const int iterations = 10;
+        var errors = new System.Collections.Concurrent.ConcurrentQueue<Exception>();
+
+        var tasks = Enumerable.Range(0, workers)
+            .Select(_ => Task.Run(() =>
+            {
+                for (int i = 0; i < iterations; i++)
+                {
+                    try
+                    {
+                        master.ReadMultipleRegisters(0, 1);
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Enqueue(ex);
+                    }
+                }
+            }))
+            .ToArray();
+
+        await Task.WhenAll(tasks);
+
+        // 无锁时请求与响应会在同一 socket 上交错，表现为事务标识不匹配或读超时
+        await Assert.That(errors.Count).IsEqualTo(0);
+        await Assert.That(slave.WaitForRequests(workers * iterations)).IsTrue();
+    }
+
     private static ModbusTcpMaster CreateMaster(LoopbackModbusSlave slave, int timeout = ModbusConstants.DefaultTimeout)
     {
         var master = ModbusMasterFactory.CreateTcpMaster("127.0.0.1", slave.Port, reconnect: true, timeout: timeout);

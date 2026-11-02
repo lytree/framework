@@ -12,6 +12,7 @@ public abstract class ModbusTransport : IModbusTransport
 {
     private int _timeout = ModbusConstants.DefaultTimeout;
     private int _transactionId = ModbusConstants.DefaultTransactionId;
+    private readonly object _sendLock = new();
     private PooledByteBuf? _sendBuffer;
     private PooledByteBuf? _receiveBuffer;
 
@@ -87,40 +88,48 @@ public abstract class ModbusTransport : IModbusTransport
         ArgumentNullException.ThrowIfNull(request);
         EnsureConnected();
 
-        request.UnitId = UnitId;
-        request.TransactionId = _transactionId;
-
-        int attempts = Math.Max(Retries, 1);
-        ModbusException? lastError = null;
-
-        for (int attempt = 1; attempt <= attempts; attempt++)
+        // 单连接上的"写请求 + 读响应"必须是一个不可分割的临界区：
+        // 否则多线程并发调用时，A 的响应会被 B 读走，两条帧的字节也会在流上交错。
+        lock (_sendLock)
         {
-            try
-            {
-                WriteMessage(request);
-                var response = ReadResponse(request);
-                return response;
-            }
-            catch (ModbusException ex) when (attempt < attempts)
-            {
-                lastError = ex;
-                Connection.DiscardBuffers();
+            request.UnitId = UnitId;
+            request.TransactionId = _transactionId;
 
-                if (AutoReconnect && !Connection.IsConnected)
+            int attempts = Math.Max(Retries, 1);
+            ModbusException? lastError = null;
+
+            for (int attempt = 1; attempt <= attempts; attempt++)
+            {
+                try
                 {
-                    TryReconnect();
+                    WriteMessage(request);
+                    var response = ReadResponse(request);
+                    return response;
+                }
+                catch (ModbusException ex) when (attempt < attempts)
+                {
+                    lastError = ex;
+                    Connection.DiscardBuffers();
+
+                    if (AutoReconnect && !Connection.IsConnected)
+                    {
+                        TryReconnect();
+                    }
                 }
             }
-        }
 
-        throw lastError ?? new ModbusIOException("请求失败：未获得有效响应。");
+            throw lastError ?? new ModbusIOException("请求失败：未获得有效响应。");
+        }
     }
 
     /// <inheritdoc />
     public int GetNextTransactionId()
     {
-        _transactionId = (_transactionId + 1) & 0xFFFF;
-        return _transactionId;
+        lock (_sendLock)
+        {
+            _transactionId = (_transactionId + 1) & 0xFFFF;
+            return _transactionId;
+        }
     }
 
     /// <inheritdoc />
