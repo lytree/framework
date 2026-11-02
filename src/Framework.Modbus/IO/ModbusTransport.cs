@@ -12,6 +12,8 @@ public abstract class ModbusTransport : IModbusTransport
 {
     private int _timeout = ModbusConstants.DefaultTimeout;
     private int _transactionId = ModbusConstants.DefaultTransactionId;
+    private PooledByteBuf? _sendBuffer;
+    private PooledByteBuf? _receiveBuffer;
 
     /// <summary>以底层连接构造传输层。</summary>
     protected ModbusTransport(ITransportConnection connection)
@@ -125,8 +127,29 @@ public abstract class ModbusTransport : IModbusTransport
     public virtual void Dispose()
     {
         GC.SuppressFinalize(this);
+        _sendBuffer?.Dispose();
+        _receiveBuffer?.Dispose();
+        _sendBuffer = null;
+        _receiveBuffer = null;
         Connection.Dispose();
     }
+
+    /// <summary>是否有 <see cref="MessageSent"/> 订阅者；无订阅者时可跳过物化线序字节。</summary>
+    protected bool HasMessageSentSubscribers => MessageSent is not null;
+
+    /// <summary>是否有 <see cref="MessageReceived"/> 订阅者；无订阅者时可跳过物化线序字节。</summary>
+    protected bool HasMessageReceivedSubscribers => MessageReceived is not null;
+
+    /// <summary>
+    /// 发送缓冲：按传输层实例复用，避免每帧 <c>new byte[]</c>。
+    /// 仅在真正用到时才向内存池租借。
+    /// </summary>
+    private protected PooledByteBuf SendBuffer =>
+        _sendBuffer ??= new PooledByteBuf(ModbusConstants.MbapHeaderSize + ModbusConstants.MaxPduSize);
+
+    /// <summary>接收缓冲：语义同 <see cref="SendBuffer"/>。</summary>
+    private protected PooledByteBuf ReceiveBuffer =>
+        _receiveBuffer ??= new PooledByteBuf(ModbusConstants.MbapHeaderSize + ModbusConstants.MaxPduSize);
 
     /// <summary>触发 <see cref="MessageSent"/>。</summary>
     protected void OnMessageSent(ModbusMessage message, byte[] data) =>
@@ -187,6 +210,49 @@ public abstract class ModbusTransport : IModbusTransport
     /// <summary>读取恰好 <paramref name="count"/> 个字节，超时抛异常。</summary>
     protected byte[] ReadFullyOrThrow(int count, string what) =>
         ReadFully(count) ?? throw new ModbusIOException($"读取{what}超时（{_timeout} ms）。");
+
+    /// <summary>
+    /// 读取恰好 <paramref name="count"/> 个字节并追加到 <paramref name="buffer"/>，
+    /// 超时抛 <see cref="ModbusIOException"/>。全程不分配新数组。
+    /// </summary>
+    /// <remarks>
+    /// 超时语义与 <see cref="ReadFully"/> 一致：每读到一段就重置截止时间，
+    /// 因此半帧数据持续到达时不会误判超时。
+    /// </remarks>
+    private protected void ReadInto(PooledByteBuf buffer, int count, string what)
+    {
+        ArgumentNullException.ThrowIfNull(buffer);
+        if (count <= 0)
+        {
+            return;
+        }
+
+        int total = 0;
+        long deadline = Environment.TickCount64 + Math.Max(_timeout, 1);
+
+        while (total < count)
+        {
+            // 必须把可读窗口限制在本段剩余字节内：否则底层流会一次读进下一帧的数据，
+            // 后续按帧长补齐时就再也等不到字节（表现为"读取 PDU 超时"）。
+            int remaining = count - total;
+            int read = Connection.Read(buffer.GetSpan(remaining)[..remaining]);
+            if (read > 0)
+            {
+                buffer.Advance(read);
+                total += read;
+                deadline = Environment.TickCount64 + Math.Max(_timeout, 1);
+                continue;
+            }
+
+            if (Environment.TickCount64 >= deadline)
+            {
+                throw new ModbusIOException(
+                    total == 0
+                        ? $"读取{what}超时（{_timeout} ms）。"
+                        : $"读取{what}超时：期望 {count} 字节，实际只收到 {total} 字节。");
+            }
+        }
+    }
 
     private void TryReconnect()
     {

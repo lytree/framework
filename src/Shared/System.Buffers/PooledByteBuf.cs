@@ -4,7 +4,7 @@ using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-internal partial class PooledByteBuf : IDisposable
+internal partial class PooledByteBuf : IDisposable, IBufferWriter<byte>
 {
     private byte[] _buffer;
     private int _readerIndex;
@@ -12,6 +12,9 @@ internal partial class PooledByteBuf : IDisposable
     private int _markedReaderIndex;
     private int _markedWriterIndex;
     private bool _isDisposed;
+
+    /// <summary>底层内存池；所有租借与归还必须走同一个池，否则归还时报错或内存泄漏</summary>
+    private readonly ArrayPool<byte> _pool;
 
     /// <summary>最大容量上限（默认 int.MaxValue）</summary>
     public int MaxCapacity { get; init; } = int.MaxValue;
@@ -36,9 +39,25 @@ internal partial class PooledByteBuf : IDisposable
     /// <summary>是否还能写入</summary>
     public bool IsWritable => WritableBytes > 0;
 
+    /// <summary>使用共享内存池创建缓冲区</summary>
     public PooledByteBuf(int initialCapacity = 256)
+        : this(ArrayPool<byte>.Shared, initialCapacity)
     {
-        _buffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
+    }
+
+    /// <summary>
+    /// 使用指定内存池创建缓冲区。
+    /// 归还时会回到同一个池，因此需要与租借时保持一致。
+    /// </summary>
+    /// <param name="pool">内存池；传入自定义池可接入 <c>ArrayPool&lt;byte&gt;.Create()</c> 或池化实现</param>
+    /// <param name="initialCapacity">初始容量</param>
+    public PooledByteBuf(ArrayPool<byte> pool, int initialCapacity = 256)
+    {
+        ArgumentNullException.ThrowIfNull(pool);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(initialCapacity);
+
+        _pool = pool;
+        _buffer = pool.Rent(initialCapacity);
     }
 
     /// <summary>判断是否有指定长度的可读数据</summary>
@@ -80,19 +99,15 @@ internal partial class PooledByteBuf : IDisposable
 
     // --- Mark/Reset 模式（支持回退到标记位置，常用于协议解析）---
     /// <summary>标记当前读取位置</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public PooledByteBuf MarkReaderIndex() { _markedReaderIndex = _readerIndex; return this; }
+    public PooledByteBuf MarkReaderIndex() { ObjectDisposedThrowIfDisposed(); _markedReaderIndex = _readerIndex; return this; }
 
     /// <summary>回退读取位置到标记处</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public PooledByteBuf ResetReaderIndex() { SetReaderIndex(_markedReaderIndex); return this; }
 
     /// <summary>标记当前写入位置</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public PooledByteBuf MarkWriterIndex() { _markedWriterIndex = _writerIndex; return this; }
+    public PooledByteBuf MarkWriterIndex() { ObjectDisposedThrowIfDisposed(); _markedWriterIndex = _writerIndex; return this; }
 
     /// <summary>回退写入位置到标记处</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public PooledByteBuf ResetWriterIndex() { SetWriterIndex(_markedWriterIndex); return this; }
 
     // --- 内部检查与扩容 ---
@@ -104,9 +119,9 @@ internal partial class PooledByteBuf : IDisposable
         if (newSize > MaxCapacity) newSize = MaxCapacity;
         if (_writerIndex + count > MaxCapacity)
             throw new InvalidOperationException($"超过最大容量限制: 需要 {_writerIndex + count}, 最大 {MaxCapacity}");
-        byte[] newBuffer = ArrayPool<byte>.Shared.Rent(newSize);
+        byte[] newBuffer = _pool.Rent(newSize);
         _buffer.AsSpan(0, _writerIndex).CopyTo(newBuffer);
-        ArrayPool<byte>.Shared.Return(_buffer);
+        _pool.Return(_buffer);
         _buffer = newBuffer;
     }
 
@@ -133,9 +148,9 @@ internal partial class PooledByteBuf : IDisposable
         }
         int newCapacity = CalculateNewCapacity(_writerIndex + minWritableBytes, MaxCapacity);
         int oldSize = _buffer.Length;
-        byte[] newBuffer = ArrayPool<byte>.Shared.Rent(newCapacity);
+        byte[] newBuffer = _pool.Rent(newCapacity);
         _buffer.AsSpan(0, _writerIndex).CopyTo(newBuffer);
-        ArrayPool<byte>.Shared.Return(_buffer);
+        _pool.Return(_buffer);
         _buffer = newBuffer;
         return oldSize == _buffer.Length ? 0 : 2;
     }
@@ -668,6 +683,7 @@ internal partial class PooledByteBuf : IDisposable
     /// </summary>
     public PooledByteBuf DiscardSomeReadBytes()
     {
+        ObjectDisposedThrowIfDisposed();
         if (_readerIndex >= _buffer.Length >> 1)
         {
             return DiscardReadBytes();
@@ -686,6 +702,7 @@ internal partial class PooledByteBuf : IDisposable
     /// </summary>
     public PooledByteBuf Clear()
     {
+        ObjectDisposedThrowIfDisposed();
         _readerIndex = 0;
         _writerIndex = 0;
         _markedReaderIndex = 0;
@@ -697,6 +714,7 @@ internal partial class PooledByteBuf : IDisposable
     /// </summary>
     public byte[] ToArray()
     {
+        ObjectDisposedThrowIfDisposed();
         int length = ReadableBytes;
         if (length == 0) return [];
 
@@ -710,6 +728,7 @@ internal partial class PooledByteBuf : IDisposable
     /// </summary>
     public byte[] ToFullArray()
     {
+        ObjectDisposedThrowIfDisposed();
         if (_writerIndex == 0) return [];
 
         byte[] result = new byte[_writerIndex];
@@ -724,6 +743,7 @@ internal partial class PooledByteBuf : IDisposable
     /// </summary>
     public Span<byte> ReadSpan()
     {
+        ObjectDisposedThrowIfDisposed();
         return _buffer.AsSpan(_readerIndex, ReadableBytes);
     }
 
@@ -732,15 +752,80 @@ internal partial class PooledByteBuf : IDisposable
     /// </summary>
     public Span<byte> WrittenSpan()
     {
+        ObjectDisposedThrowIfDisposed();
         return _buffer.AsSpan(0, _writerIndex);
     }
+
+    // --- IBufferWriter<byte>：可直接作为编码器/管道的写入目标 ---
+
+    /// <inheritdoc />
+    public void Advance(int count)
+    {
+        ObjectDisposedThrowIfDisposed();
+        if ((uint)count > (uint)(_buffer.Length - _writerIndex))
+        {
+            throw new ArgumentOutOfRangeException(nameof(count), count, "推进长度超出可写空间。");
+        }
+
+        _writerIndex += count;
+    }
+
+    /// <inheritdoc />
+    public Memory<byte> GetMemory(int sizeHint = 0)
+    {
+        EnsureWritable(NormalizeSizeHint(sizeHint));
+        return _buffer.AsMemory(_writerIndex);
+    }
+
+    /// <inheritdoc />
+    public Span<byte> GetSpan(int sizeHint = 0)
+    {
+        EnsureWritable(NormalizeSizeHint(sizeHint));
+        return _buffer.AsSpan(_writerIndex);
+    }
+
+    /// <summary>
+    /// <see cref="IBufferWriter{T}"/> 约定 sizeHint 为 0 时至少要能写 1 字节；
+    /// 直接透传 0 会在缓冲区已满时返回零长度内存，导致调用方死循环。
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int NormalizeSizeHint(int sizeHint)
+    {
+        if (sizeHint < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sizeHint), sizeHint, "sizeHint 不能为负数。");
+        }
+
+        return sizeHint == 0 ? 1 : sizeHint;
+    }
+    /// <summary>
+    /// 归还底层数组到内存池。
+    /// </summary>
+    /// <remarks>
+    /// 归还后立即把 <c>_buffer</c> 置空：否则后续 <see cref="ReadSpan"/> / <see cref="WrittenSpan"/>
+    /// 仍会拿到已归还的数组，读到被其他调用方复用的脏数据（use-after-return）。
+    /// </remarks>
     public void Dispose()
     {
-        if (!_isDisposed)
+        if (_isDisposed)
         {
-            ArrayPool<byte>.Shared.Return(_buffer);
-            GC.SuppressFinalize(this);
-            _isDisposed = true;
+            return;
         }
+
+        _isDisposed = true;
+
+        var buffer = _buffer;
+        _buffer = [];
+        _readerIndex = 0;
+        _writerIndex = 0;
+        _markedReaderIndex = 0;
+        _markedWriterIndex = 0;
+
+        if (buffer.Length > 0)
+        {
+            _pool.Return(buffer);
+        }
+
+        GC.SuppressFinalize(this);
     }
 }

@@ -11,7 +11,7 @@
 | `IWrittenBufferWriter.cs`    | `IWrittenBufferWriter<T>`（IBufferWriter<T> + 已写入数据访问） |
 | `ArrayPoolBufferWriter.cs`   | `ArrayPoolBufferWriter<T>` 实现 |
 | `BufferReader.cs`            | `BufferReader<T>` 读端 |
-| `PooledByteBuf.cs`           | `PooledByteBuf`（Reentrant 锁缓冲） |
+| `PooledByteBuf.cs`           | `PooledByteBuf`（读写双指针 + 池化 + `IBufferWriter<byte>`，调用方需 `using` 释放） |
 | `System.ArrayPool.cs`        | `ArrayPool<T>.RentArrayOwner<T>(int length)` 扩展 |
 | `System.BufferWriter.cs`     | `IBufferWriter<T>` 扩展方法 |
 

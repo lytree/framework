@@ -1,3 +1,4 @@
+using System.Buffers;
 using Framework.Modbus.Messages;
 using Framework.Modbus.Net;
 
@@ -22,19 +23,47 @@ public class ModbusIpTransport : ModbusTransport
     public override void WriteMessage(ModbusMessage message)
     {
         ArgumentNullException.ThrowIfNull(message);
-        var frame = BuildFrame(message);
-        Connection.Write(frame, 0, frame.Length);
+
+        var buffer = SendBuffer;
+        buffer.Clear();
+        WriteFrame(message, buffer);
+
+        // 直接写入底层流的 Span 重载，不再为每帧分配数组
+        Connection.Write(buffer.WrittenSpan());
         Connection.Flush();
-        OnMessageSent(message, frame);
+
+        // 无订阅者时不物化线序字节
+        if (HasMessageSentSubscribers)
+        {
+            OnMessageSent(message, buffer.ToFullArray());
+        }
     }
 
     /// <inheritdoc />
     public override ModbusResponse ReadResponse(ModbusRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var header = ReadFullyOrThrow(ModbusConstants.MbapHeaderSize, "MBAP 报文头");
-        var response = ParseFrame(header, request, out var frame);
-        OnMessageReceived(response, frame);
+
+        var buffer = ReceiveBuffer;
+        buffer.Clear();
+        ReadInto(buffer, ModbusConstants.MbapHeaderSize, "MBAP 报文头");
+
+        // 头部已就位，按长度字段补齐剩余部分（长度字段 = 单元标识 1 字节 + PDU）
+        int length = (buffer.WrittenSpan()[4] << 8) | buffer.WrittenSpan()[5];
+        if (length < 2 || length > ModbusConstants.MaxPduSize + 1)
+        {
+            throw new ModbusIOException($"MBAP 长度字段非法：{length}。");
+        }
+
+        ReadInto(buffer, length - 1, "PDU");
+
+        var response = ParseFrame(buffer.WrittenSpan(), request);
+
+        if (HasMessageReceivedSubscribers)
+        {
+            OnMessageReceived(response, buffer.ToFullArray());
+        }
+
         return response;
     }
 
@@ -42,46 +71,42 @@ public class ModbusIpTransport : ModbusTransport
     public static byte[] BuildFrame(ModbusMessage message)
     {
         ArgumentNullException.ThrowIfNull(message);
-        var pdu = message.ToPdu();
-        var frame = new byte[ModbusConstants.MbapHeaderSize + pdu.Length];
-
-        frame[0] = (byte)((message.TransactionId >> 8) & 0xFF);
-        frame[1] = (byte)(message.TransactionId & 0xFF);
-        frame[2] = (byte)((ModbusConstants.TcpProtocolId >> 8) & 0xFF);
-        frame[3] = (byte)(ModbusConstants.TcpProtocolId & 0xFF);
-
-        int length = pdu.Length + 1;
-        frame[4] = (byte)((length >> 8) & 0xFF);
-        frame[5] = (byte)(length & 0xFF);
-        frame[6] = (byte)message.UnitId;
-
-        Array.Copy(pdu, 0, frame, ModbusConstants.MbapHeaderSize, pdu.Length);
-        return frame;
+        using var buffer = new PooledByteBuf(ModbusConstants.MbapHeaderSize + ModbusConstants.MaxPduSize);
+        WriteFrame(message, buffer);
+        return buffer.ToFullArray();
     }
 
-    private ModbusResponse ParseFrame(byte[] header, ModbusRequest request, out byte[] frame)
+    /// <summary>把报文按 MBAP 帧格式写入 <paramref name="writer"/>，不产生中间数组以外的分配。</summary>
+    private static void WriteFrame(ModbusMessage message, IBufferWriter<byte> writer)
     {
-        int transactionId = (header[0] << 8) | header[1];
-        int protocolId = (header[2] << 8) | header[3];
-        int length = (header[4] << 8) | header[5];
-        int unitId = header[6];
+        var pdu = message.ToPdu();
+        int length = pdu.Length + 1;
+        int total = ModbusConstants.MbapHeaderSize + pdu.Length;
+
+        var span = writer.GetSpan(total);
+
+        span[0] = (byte)((message.TransactionId >> 8) & 0xFF);
+        span[1] = (byte)(message.TransactionId & 0xFF);
+        span[2] = (byte)((ModbusConstants.TcpProtocolId >> 8) & 0xFF);
+        span[3] = (byte)(ModbusConstants.TcpProtocolId & 0xFF);
+        span[4] = (byte)((length >> 8) & 0xFF);
+        span[5] = (byte)(length & 0xFF);
+        span[6] = (byte)message.UnitId;
+
+        pdu.CopyTo(span[ModbusConstants.MbapHeaderSize..]);
+        writer.Advance(total);
+    }
+
+    private static ModbusResponse ParseFrame(ReadOnlySpan<byte> frame, ModbusRequest request)
+    {
+        int transactionId = (frame[0] << 8) | frame[1];
+        int protocolId = (frame[2] << 8) | frame[3];
+        int unitId = frame[6];
 
         if (protocolId != ModbusConstants.TcpProtocolId)
         {
             throw new ModbusIOException($"协议标识非法：期望 0，实际 {protocolId}。");
         }
-
-        if (length < 2 || length > ModbusConstants.MaxPduSize + 1)
-        {
-            throw new ModbusIOException($"MBAP 长度字段非法：{length}。");
-        }
-
-        int pduLength = length - 1;
-        var pdu = ReadFullyOrThrow(pduLength, "PDU");
-
-        frame = new byte[header.Length + pdu.Length];
-        header.CopyTo(frame, 0);
-        pdu.CopyTo(frame, header.Length);
 
         if (request.TransactionId != transactionId)
         {
@@ -89,7 +114,7 @@ public class ModbusIpTransport : ModbusTransport
                 $"事务标识不匹配：期望 {request.TransactionId}，实际 {transactionId}。");
         }
 
-        var response = ModbusResponseFactory.FromPdu(pdu);
+        var response = ModbusResponseFactory.FromPdu(frame[ModbusConstants.MbapHeaderSize..].ToArray());
         response.TransactionId = transactionId;
         response.UnitId = unitId;
         return response;

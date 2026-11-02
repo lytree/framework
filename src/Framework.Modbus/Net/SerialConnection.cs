@@ -151,6 +151,56 @@ public sealed class SerialConnection : ITransportConnection
     }
 
     /// <inheritdoc />
+    public int Read(Span<byte> buffer)
+    {
+        if (buffer.IsEmpty)
+        {
+            return 0;
+        }
+
+        var port = _port ?? throw new ConnectionException("串口尚未打开。");
+        port.ReadTimeout = Math.Max(ReadTimeout, 1);
+
+        try
+        {
+            return port.BaseStream.Read(buffer);
+        }
+        catch (TimeoutException)
+        {
+            return 0;
+        }
+        catch (InvalidOperationException)
+        {
+            return 0;
+        }
+    }
+
+    /// <inheritdoc />
+    public void Write(ReadOnlySpan<byte> buffer)
+    {
+        if (buffer.IsEmpty)
+        {
+            return;
+        }
+
+        var port = _port ?? throw new ConnectionException("串口尚未打开。");
+        port.WriteTimeout = Math.Max(WriteTimeout, 1);
+
+        try
+        {
+            port.BaseStream.Write(buffer);
+        }
+        catch (TimeoutException ex)
+        {
+            throw new ModbusIOException($"串口写入超时（{WriteTimeout} ms）。", ex);
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new ModbusIOException($"串口写入失败：{ex.Message}", ex);
+        }
+    }
+
+    /// <inheritdoc />
     public void Flush()
     {
         try

@@ -43,7 +43,7 @@ public sealed class GetCommEventCounterResponse : ModbusResponse
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Status);
         writer.WriteUInt16(EventCount);
@@ -111,7 +111,7 @@ public sealed class GetCommEventLogResponse : ModbusResponse
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteByte(Events.Length + 6);
         writer.WriteUInt16(Status);

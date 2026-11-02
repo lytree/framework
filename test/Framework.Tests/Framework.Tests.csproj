@@ -18,6 +18,7 @@
     <Compile Include="..\..\src\Shared\System.Buffers\ArrayOwner.cs" Link="Shared\System.Buffers\ArrayOwner.cs" />
     <Compile Include="..\..\src\Shared\System.Buffers\IArrayOwner.cs" Link="Shared\System.Buffers\IArrayOwner.cs" />
     <Compile Include="..\..\src\Shared\System.Buffers\System.ArrayPool.cs" Link="Shared\System.Buffers\System.ArrayPool.cs" />
+    <Compile Include="..\..\src\Shared\System.Buffers\PooledByteBuf.cs" Link="Shared\System.Buffers\PooledByteBuf.cs" />
     <Compile Include="..\..\src\Shared\System.IO\PooledMemoryStream.cs" Link="Shared\System.IO\PooledMemoryStream.cs" />
     <Compile Include="..\..\src\Shared\Helpers\Helper.Pinyin.cs" Link="Shared\Helpers\Helper.Pinyin.cs" />
   </ItemGroup>

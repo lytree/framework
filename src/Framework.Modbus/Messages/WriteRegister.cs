@@ -42,7 +42,7 @@ public class WriteRegisterRequest : ModbusRequest
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(Register.Value);
@@ -83,7 +83,7 @@ public sealed class WriteRegisterResponse : ModbusResponse
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(Value);

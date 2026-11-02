@@ -1,3 +1,4 @@
+using System.Buffers;
 using Framework.Modbus.Util;
 
 namespace Framework.Modbus.Messages;
@@ -143,27 +144,25 @@ public static class ModbusResponseFactory
 /// PDU 写入器：大端（网络序）字节缓冲。
 /// 对应 jamod 的 <c>DataOutput</c> 写入路径。
 /// </summary>
-public sealed class ModbusPduWriter
+/// <remarks>
+/// 底层缓冲来自 <see cref="PooledByteBuf"/>，因此需要 <c>using</c> 释放以归还内存池；
+/// 同时实现 <see cref="IBufferWriter{T}"/>，可被编码器直接写入。
+/// </remarks>
+public sealed class ModbusPduWriter : IBufferWriter<byte>, IDisposable
 {
-    private byte[] _buffer = new byte[ModbusConstants.MaxPduSize];
-    private int _length;
+    private readonly PooledByteBuf _buffer = new(ModbusConstants.MaxPduSize);
 
     /// <summary>已写入的长度。</summary>
-    public int Length => _length;
+    public int Length => _buffer.WriterIndex;
 
     /// <summary>写入 1 字节。</summary>
-    public void WriteByte(int value)
-    {
-        Ensure(1);
-        _buffer[_length++] = (byte)value;
-    }
+    public void WriteByte(int value) => _buffer.WriteByte((byte)value);
 
     /// <summary>写入 16 位大端整数。</summary>
     public void WriteUInt16(int value)
     {
-        Ensure(2);
-        _buffer[_length++] = (byte)((value >> 8) & 0xFF);
-        _buffer[_length++] = (byte)(value & 0xFF);
+        _buffer.WriteByte((byte)((value >> 8) & 0xFF));
+        _buffer.WriteByte((byte)(value & 0xFF));
     }
 
     /// <summary>写入 32 位大端整数。</summary>
@@ -189,22 +188,23 @@ public sealed class ModbusPduWriter
             throw new ArgumentOutOfRangeException(nameof(count), count, "偏移或长度超出缓冲区范围。");
         }
 
-        Ensure(count);
-        data.AsSpan(offset, count).CopyTo(_buffer.AsSpan(_length));
-        _length += count;
+        _buffer.WriteBytes(data.AsSpan(offset, count));
     }
 
     /// <summary>导出已写入的内容。</summary>
-    public byte[] ToArray() => _buffer.AsSpan(0, _length).ToArray();
+    public byte[] ToArray() => _buffer.ToFullArray();
 
-    private void Ensure(int extra)
-    {
-        if (_length + extra > _buffer.Length)
-        {
-            int newSize = Math.Max(_buffer.Length * 2, _length + extra);
-            Array.Resize(ref _buffer, newSize);
-        }
-    }
+    /// <inheritdoc />
+    public void Advance(int count) => _buffer.Advance(count);
+
+    /// <inheritdoc />
+    public Memory<byte> GetMemory(int sizeHint = 0) => _buffer.GetMemory(sizeHint);
+
+    /// <inheritdoc />
+    public Span<byte> GetSpan(int sizeHint = 0) => _buffer.GetSpan(sizeHint);
+
+    /// <summary>归还底层数组到内存池。</summary>
+    public void Dispose() => _buffer.Dispose();
 }
 
 /// <summary>

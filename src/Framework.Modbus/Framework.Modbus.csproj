@@ -18,6 +18,11 @@
 		<PackageReference Include="System.IO.Ports" />
 	</ItemGroup>
 
+	<!-- 共享源码：直接引入 src/Shared 中需要的文件编译，不再引用独立 Framework 程序集 -->
+	<ItemGroup>
+		<Compile Include="..\Shared\System.Buffers\PooledByteBuf.cs" Link="Shared\System.Buffers\PooledByteBuf.cs" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<Resource Include="README.md">
 			<PackagePath>\</PackagePath>

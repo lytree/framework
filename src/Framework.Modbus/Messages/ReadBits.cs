@@ -36,7 +36,7 @@ public abstract class ReadBitsRequest : ModbusRequest
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(BitCount);
@@ -60,7 +60,7 @@ public abstract class ReadBitsResponse : ModbusResponse
     public override byte[] ToPdu()
     {
         var data = Bits.ToByteArray();
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteByte(data.Length);
         writer.WriteBytes(data);

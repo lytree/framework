@@ -26,7 +26,7 @@ public class ReadFifoQueueRequest : ModbusRequest
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         return writer.ToArray();
@@ -62,7 +62,7 @@ public sealed class ReadFifoQueueResponse : ModbusResponse
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16((Values.Length * 2) + 2);
         writer.WriteUInt16(Values.Length);

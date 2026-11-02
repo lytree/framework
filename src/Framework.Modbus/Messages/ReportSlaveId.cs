@@ -48,7 +48,7 @@ public sealed class ReportSlaveIdResponse : ModbusResponse
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteByte(SlaveData.Length);
         writer.WriteBytes(SlaveData);

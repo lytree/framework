@@ -150,6 +150,64 @@ public sealed class UdpConnection : ITransportConnection
     }
 
     /// <inheritdoc />
+    public int Read(Span<byte> buffer)
+    {
+        if (buffer.IsEmpty)
+        {
+            return 0;
+        }
+
+        var client = _client ?? throw new ConnectionException("UDP 通道尚未建立。");
+        ApplyTimeouts();
+
+        if (_pendingCount <= 0)
+        {
+            try
+            {
+                var endpoint = _remote!;
+                _pending = client.Receive(ref endpoint);
+                _pendingOffset = 0;
+                _pendingCount = _pending.Length;
+            }
+            catch (SocketException ex) when (ex.SocketErrorCode is SocketError.TimedOut or SocketError.WouldBlock)
+            {
+                return 0;
+            }
+            catch (ObjectDisposedException)
+            {
+                return 0;
+            }
+        }
+
+        int toCopy = Math.Min(buffer.Length, _pendingCount);
+        _pending.AsSpan(_pendingOffset, toCopy).CopyTo(buffer);
+        _pendingOffset += toCopy;
+        _pendingCount -= toCopy;
+        return toCopy;
+    }
+
+    /// <inheritdoc />
+    public void Write(ReadOnlySpan<byte> buffer)
+    {
+        if (buffer.IsEmpty)
+        {
+            return;
+        }
+
+        var client = _client ?? throw new ConnectionException("UDP 通道尚未建立。");
+        ApplyTimeouts();
+
+        try
+        {
+            client.Client.Send(buffer, SocketFlags.None);
+        }
+        catch (SocketException ex)
+        {
+            throw new ModbusIOException($"发送 UDP 数据失败：{ex.Message}", ex);
+        }
+    }
+
+    /// <inheritdoc />
     public void Flush()
     {
         // UDP 无发送缓冲需要刷新。

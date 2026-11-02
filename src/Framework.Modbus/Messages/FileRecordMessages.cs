@@ -35,7 +35,7 @@ public class ReadFileRecordRequest : ModbusRequest
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteByte(Records.Count * 7);
         foreach (var record in Records)
@@ -92,7 +92,7 @@ public sealed class ReadFileRecordResponse : ModbusResponse
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteByte(FileRecords.Sum(fr => 2 + (fr.Count * 2)));
         foreach (var fileRecord in FileRecords)
@@ -174,7 +174,7 @@ public class WriteFileRecordRequest : ModbusRequest
 
     internal static byte[] BuildPdu(byte functionCode, FileRecord[] fileRecords)
     {
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(functionCode);
         int byteCount = fileRecords.Sum(fr => 7 + (fr.Count * 2));
         writer.WriteByte(byteCount);

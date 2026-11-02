@@ -43,7 +43,7 @@ public class WriteMultipleCoilsRequest : ModbusRequest
     public override byte[] ToPdu()
     {
         var data = Coils.GetBytes((BitCount + 7) / 8);
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(BitCount);
@@ -85,7 +85,7 @@ public sealed class WriteMultipleCoilsResponse : ModbusResponse
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(BitCount);
@@ -158,7 +158,7 @@ public class WriteMultipleRegistersRequest : ModbusRequest
             data[(i * 2) + 1] = bytes[1];
         }
 
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(WordCount);
@@ -213,7 +213,7 @@ public sealed class WriteMultipleRegistersResponse : ModbusResponse
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(WordCount);

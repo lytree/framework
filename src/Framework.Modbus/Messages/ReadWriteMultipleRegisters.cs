@@ -79,7 +79,7 @@ public class ReadWriteMultipleRegistersRequest : ModbusRequest
             data[(i * 2) + 1] = bytes[1];
         }
 
-        var writer = new ModbusPduWriter();
+        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(ReadReference);
         writer.WriteUInt16(ReadWordCount);

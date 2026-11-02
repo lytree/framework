@@ -192,6 +192,72 @@ public sealed class TcpConnection : ITransportConnection
     }
 
     /// <inheritdoc />
+    public int Read(Span<byte> buffer)
+    {
+        if (buffer.IsEmpty)
+        {
+            return 0;
+        }
+
+        var stream = _stream ?? throw new ConnectionException("TCP 连接尚未建立。");
+        stream.ReadTimeout = ReadTimeout;
+
+        try
+        {
+            int read = stream.Read(buffer);
+            if (read == 0)
+            {
+                // 对端已关闭连接。
+                _connected = false;
+            }
+
+            return read;
+        }
+        catch (IOException ex) when (IsTimeout(ex))
+        {
+            // 读超时不代表链路断开。
+            return 0;
+        }
+        catch (IOException)
+        {
+            _connected = false;
+            return 0;
+        }
+        catch (ObjectDisposedException)
+        {
+            _connected = false;
+            return 0;
+        }
+    }
+
+    /// <inheritdoc />
+    public void Write(ReadOnlySpan<byte> buffer)
+    {
+        if (buffer.IsEmpty)
+        {
+            return;
+        }
+
+        var stream = _stream ?? throw new ConnectionException("TCP 连接尚未建立。");
+        stream.WriteTimeout = WriteTimeout;
+
+        try
+        {
+            stream.Write(buffer);
+        }
+        catch (IOException ex)
+        {
+            _connected = false;
+            throw new ModbusIOException($"发送数据失败：{ex.Message}", ex);
+        }
+        catch (ObjectDisposedException ex)
+        {
+            _connected = false;
+            throw new ModbusIOException("发送数据失败：连接已关闭。", ex);
+        }
+    }
+
+    /// <inheritdoc />
     public void Flush()
     {
         try
