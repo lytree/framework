@@ -1,3 +1,4 @@
+using System.Buffers;
 using Framework.Modbus.Util;
 
 namespace Framework.Modbus.Messages;
@@ -37,10 +38,16 @@ public abstract class ReadBitsRequest : ModbusRequest
     public override byte[] ToPdu()
     {
         using var writer = new ModbusPduWriter();
+        WritePdu(writer);
+        return writer.ToArray();
+    }
+
+    /// <inheritdoc />
+    public override void WritePdu(IBufferWriter<byte> writer)
+    {
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(BitCount);
-        return writer.ToArray();
     }
 }
 
@@ -59,12 +66,18 @@ public abstract class ReadBitsResponse : ModbusResponse
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var data = Bits.ToByteArray();
         using var writer = new ModbusPduWriter();
+        WritePdu(writer);
+        return writer.ToArray();
+    }
+
+    /// <inheritdoc />
+    public override void WritePdu(IBufferWriter<byte> writer)
+    {
+        var data = Bits.ToByteArray();
         writer.WriteByte(FunctionCode);
         writer.WriteByte(data.Length);
         writer.WriteBytes(data);
-        return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析位数据。</summary>

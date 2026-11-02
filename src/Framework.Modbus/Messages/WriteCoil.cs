@@ -1,3 +1,4 @@
+using System.Buffers;
 using Framework.Modbus.Util;
 
 namespace Framework.Modbus.Messages;
@@ -38,10 +39,16 @@ public class WriteCoilRequest : ModbusRequest
     public override byte[] ToPdu()
     {
         using var writer = new ModbusPduWriter();
+        WritePdu(writer);
+        return writer.ToArray();
+    }
+
+    /// <inheritdoc />
+    public override void WritePdu(IBufferWriter<byte> writer)
+    {
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(CoilValue);
-        return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析请求。</summary>
@@ -79,10 +86,16 @@ public sealed class WriteCoilResponse : ModbusResponse
     public override byte[] ToPdu()
     {
         using var writer = new ModbusPduWriter();
+        WritePdu(writer);
+        return writer.ToArray();
+    }
+
+    /// <inheritdoc />
+    public override void WritePdu(IBufferWriter<byte> writer)
+    {
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(CoilValue);
-        return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析响应。</summary>

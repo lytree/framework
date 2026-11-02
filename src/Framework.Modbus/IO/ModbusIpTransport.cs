@@ -76,25 +76,31 @@ public class ModbusIpTransport : ModbusTransport
         return buffer.ToFullArray();
     }
 
-    /// <summary>把报文按 MBAP 帧格式写入 <paramref name="writer"/>，不产生中间数组以外的分配。</summary>
-    private static void WriteFrame(ModbusMessage message, IBufferWriter<byte> writer)
+    /// <summary>把报文按 MBAP 帧格式写入 <paramref name="buffer"/>，全程不分配新数组。</summary>
+    /// <remarks>
+    /// MBAP 的长度字段位于帧头、却要等 PDU 写完后才知道，因此先占位再回填，
+    /// 避免"先编码 PDU 成数组 → 再拷进帧缓冲"的中间分配。
+    /// </remarks>
+    private static void WriteFrame(ModbusMessage message, PooledByteBuf buffer)
     {
-        var pdu = message.ToPdu();
-        int length = pdu.Length + 1;
-        int total = ModbusConstants.MbapHeaderSize + pdu.Length;
+        int start = buffer.WriterIndex;
 
-        var span = writer.GetSpan(total);
+        // 占位 MBAP 头，确保后续 Advance 不会越界
+        buffer.GetSpan(ModbusConstants.MbapHeaderSize);
+        buffer.Advance(ModbusConstants.MbapHeaderSize);
 
-        span[0] = (byte)((message.TransactionId >> 8) & 0xFF);
-        span[1] = (byte)(message.TransactionId & 0xFF);
-        span[2] = (byte)((ModbusConstants.TcpProtocolId >> 8) & 0xFF);
-        span[3] = (byte)(ModbusConstants.TcpProtocolId & 0xFF);
-        span[4] = (byte)((length >> 8) & 0xFF);
-        span[5] = (byte)(length & 0xFF);
-        span[6] = (byte)message.UnitId;
+        message.WritePdu(buffer);
 
-        pdu.CopyTo(span[ModbusConstants.MbapHeaderSize..]);
-        writer.Advance(total);
+        int pduLength = buffer.WriterIndex - start - ModbusConstants.MbapHeaderSize;
+        int length = pduLength + 1;
+
+        buffer.SetByte(start, (byte)((message.TransactionId >> 8) & 0xFF));
+        buffer.SetByte(start + 1, (byte)(message.TransactionId & 0xFF));
+        buffer.SetByte(start + 2, (byte)((ModbusConstants.TcpProtocolId >> 8) & 0xFF));
+        buffer.SetByte(start + 3, (byte)(ModbusConstants.TcpProtocolId & 0xFF));
+        buffer.SetByte(start + 4, (byte)((length >> 8) & 0xFF));
+        buffer.SetByte(start + 5, (byte)(length & 0xFF));
+        buffer.SetByte(start + 6, (byte)message.UnitId);
     }
 
     private static ModbusResponse ParseFrame(ReadOnlySpan<byte> frame, ModbusRequest request)

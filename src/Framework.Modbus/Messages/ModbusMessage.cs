@@ -24,6 +24,19 @@ public abstract class ModbusMessage
     /// <summary>把报文序列化为 PDU（功能码 + 数据）。</summary>
     public abstract byte[] ToPdu();
 
+    /// <summary>
+    /// 把 PDU 直接写入目标缓冲。
+    /// </summary>
+    /// <remarks>
+    /// 默认实现委托给 <see cref="ToPdu"/>（会产生一次中间数组）；热点报文会覆写本方法，
+    /// 使组帧时 PDU 直接落进复用缓冲，不再分配数组。
+    /// </remarks>
+    public virtual void WritePdu(IBufferWriter<byte> writer)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+        writer.WriteBytes(ToPdu());
+    }
+
     /// <summary>PDU 长度（功能码 + 数据）。</summary>
     public int PduLength => ToPdu().Length;
 

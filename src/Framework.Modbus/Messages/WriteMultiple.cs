@@ -1,3 +1,4 @@
+using System.Buffers;
 using Framework.Modbus.ProcessImage;
 using Framework.Modbus.Util;
 
@@ -42,14 +43,20 @@ public class WriteMultipleCoilsRequest : ModbusRequest
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var data = Coils.GetBytes((BitCount + 7) / 8);
         using var writer = new ModbusPduWriter();
+        WritePdu(writer);
+        return writer.ToArray();
+    }
+
+    /// <inheritdoc />
+    public override void WritePdu(IBufferWriter<byte> writer)
+    {
+        var data = Coils.GetBytes((BitCount + 7) / 8);
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(BitCount);
         writer.WriteByte(data.Length);
         writer.WriteBytes(data);
-        return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析请求。</summary>
@@ -86,10 +93,16 @@ public sealed class WriteMultipleCoilsResponse : ModbusResponse
     public override byte[] ToPdu()
     {
         using var writer = new ModbusPduWriter();
+        WritePdu(writer);
+        return writer.ToArray();
+    }
+
+    /// <inheritdoc />
+    public override void WritePdu(IBufferWriter<byte> writer)
+    {
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(BitCount);
-        return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析响应。</summary>
@@ -150,6 +163,14 @@ public class WriteMultipleRegistersRequest : ModbusRequest
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
+        using var writer = new ModbusPduWriter();
+        WritePdu(writer);
+        return writer.ToArray();
+    }
+
+    /// <inheritdoc />
+    public override void WritePdu(IBufferWriter<byte> writer)
+    {
         var data = new byte[Registers.Length * 2];
         for (int i = 0; i < Registers.Length; i++)
         {
@@ -158,13 +179,11 @@ public class WriteMultipleRegistersRequest : ModbusRequest
             data[(i * 2) + 1] = bytes[1];
         }
 
-        using var writer = new ModbusPduWriter();
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(WordCount);
         writer.WriteByte(data.Length);
         writer.WriteBytes(data);
-        return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析请求。</summary>
@@ -214,10 +233,16 @@ public sealed class WriteMultipleRegistersResponse : ModbusResponse
     public override byte[] ToPdu()
     {
         using var writer = new ModbusPduWriter();
+        WritePdu(writer);
+        return writer.ToArray();
+    }
+
+    /// <inheritdoc />
+    public override void WritePdu(IBufferWriter<byte> writer)
+    {
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(WordCount);
-        return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析响应。</summary>

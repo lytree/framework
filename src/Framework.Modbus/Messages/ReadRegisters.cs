@@ -1,3 +1,4 @@
+using System.Buffers;
 using Framework.Modbus.ProcessImage;
 using Framework.Modbus.Util;
 
@@ -38,10 +39,16 @@ public abstract class ReadRegistersRequest : ModbusRequest
     public override byte[] ToPdu()
     {
         using var writer = new ModbusPduWriter();
+        WritePdu(writer);
+        return writer.ToArray();
+    }
+
+    /// <inheritdoc />
+    public override void WritePdu(IBufferWriter<byte> writer)
+    {
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(WordCount);
-        return writer.ToArray();
     }
 }
 
@@ -68,12 +75,18 @@ public abstract class ReadRegistersResponse : ModbusResponse
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var data = ModbusUtil.RegistersToBytes(Values);
         using var writer = new ModbusPduWriter();
+        WritePdu(writer);
+        return writer.ToArray();
+    }
+
+    /// <inheritdoc />
+    public override void WritePdu(IBufferWriter<byte> writer)
+    {
+        var data = ModbusUtil.RegistersToBytes(Values);
         writer.WriteByte(FunctionCode);
         writer.WriteByte(data.Length);
         writer.WriteBytes(data);
-        return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析寄存器数据。</summary>

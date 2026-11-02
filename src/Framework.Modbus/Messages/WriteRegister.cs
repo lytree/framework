@@ -1,3 +1,4 @@
+using System.Buffers;
 using Framework.Modbus.ProcessImage;
 using Framework.Modbus.Util;
 
@@ -43,10 +44,16 @@ public class WriteRegisterRequest : ModbusRequest
     public override byte[] ToPdu()
     {
         using var writer = new ModbusPduWriter();
+        WritePdu(writer);
+        return writer.ToArray();
+    }
+
+    /// <inheritdoc />
+    public override void WritePdu(IBufferWriter<byte> writer)
+    {
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(Register.Value);
-        return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析请求。</summary>
@@ -84,10 +91,16 @@ public sealed class WriteRegisterResponse : ModbusResponse
     public override byte[] ToPdu()
     {
         using var writer = new ModbusPduWriter();
+        WritePdu(writer);
+        return writer.ToArray();
+    }
+
+    /// <inheritdoc />
+    public override void WritePdu(IBufferWriter<byte> writer)
+    {
         writer.WriteByte(FunctionCode);
         writer.WriteUInt16(Reference);
         writer.WriteUInt16(Value);
-        return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析响应。</summary>
