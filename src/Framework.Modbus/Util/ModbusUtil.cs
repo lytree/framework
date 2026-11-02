@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Globalization;
 using System.Text;
 
@@ -128,6 +129,24 @@ public static class ModbusUtil
     /// <summary>计算整个缓冲区的 Modbus CRC16。</summary>
     public static int CalculateCrc16(byte[] data) => CalculateCrc16(data, 0, data.Length);
 
+    /// <summary>计算 Modbus CRC16（无分配重载，可直接作用在已写入的缓冲区间上）。</summary>
+    public static int CalculateCrc16(ReadOnlySpan<byte> data)
+    {
+        int crc = Crc16Preset;
+        foreach (byte b in data)
+        {
+            crc ^= b;
+            for (int bit = 0; bit < 8; bit++)
+            {
+                crc = (crc & 0x0001) != 0
+                    ? (crc >> 1) ^ Crc16Polynomial
+                    : crc >> 1;
+            }
+        }
+
+        return crc & 0xFFFF;
+    }
+
     /// <summary>把 CRC16 追加到缓冲区末尾（低字节在前，符合 Modbus RTU 线序）。</summary>
     public static void AppendCrc16(byte[] frame, int offset, int count)
     {
@@ -147,6 +166,20 @@ public static class ModbusUtil
 
         int expected = CalculateCrc16(frame, offset, count - 2);
         int actual = (frame[offset + count - 2] & 0xFF) | ((frame[offset + count - 1] & 0xFF) << 8);
+        return expected == actual;
+    }
+
+    /// <summary>校验整帧末尾两字节的 CRC16（无分配重载）。</summary>
+    /// <param name="frame">包含 CRC 的完整帧</param>
+    public static bool ValidateCrc16(ReadOnlySpan<byte> frame)
+    {
+        if (frame.Length < 3)
+        {
+            return false;
+        }
+
+        int expected = CalculateCrc16(frame[..^2]);
+        int actual = frame[^2] | (frame[^1] << 8);
         return expected == actual;
     }
 
@@ -170,6 +203,53 @@ public static class ModbusUtil
 
     /// <summary>计算整个缓冲区的 LRC。</summary>
     public static byte CalculateLrc(byte[] data) => CalculateLrc(data, 0, data.Length);
+
+    /// <summary>计算 LRC（无分配重载）。</summary>
+    public static byte CalculateLrc(ReadOnlySpan<byte> data)
+    {
+        int sum = 0;
+        foreach (byte b in data)
+        {
+            sum += b;
+        }
+
+        return (byte)((-sum) & 0xFF);
+    }
+
+    /// <summary>把单个字节写成两个大写十六进制字符。</summary>
+    public static void WriteHex(IBufferWriter<byte> writer, byte value)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+
+        var span = writer.GetSpan(2);
+        span[0] = HexChar(value >> 4);
+        span[1] = HexChar(value & 0x0F);
+        writer.Advance(2);
+    }
+
+    /// <summary>把字节序列写成大写十六进制字符（不产生字符串与中间数组）。</summary>
+    public static void WriteHex(IBufferWriter<byte> writer, ReadOnlySpan<byte> data)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+        if (data.IsEmpty)
+        {
+            return;
+        }
+
+        var span = writer.GetSpan(data.Length * 2);
+        int pos = 0;
+        foreach (byte b in data)
+        {
+            span[pos++] = HexChar(b >> 4);
+            span[pos++] = HexChar(b & 0x0F);
+        }
+
+        writer.Advance(pos);
+    }
+
+    /// <summary>取一个大写十六进制字符；输入取低 4 位。</summary>
+    private static byte HexChar(int nibble) =>
+        (byte)(nibble < 10 ? '0' + nibble : 'A' + (nibble - 10));
 
     /// <summary>字节数组 → 十六进制字符串。</summary>
     public static string BytesToHex(byte[] data, int offset, int count, bool upperCase = true, string separator = "")

@@ -25,19 +25,27 @@ public sealed class ModbusRtuTransport : ModbusSerialTransport
     public override void WriteMessage(ModbusMessage message)
     {
         ArgumentNullException.ThrowIfNull(message);
-        var pdu = message.ToPdu();
-        var frame = new byte[pdu.Length + 3];
 
-        frame[0] = (byte)message.UnitId;
-        Array.Copy(pdu, 0, frame, 1, pdu.Length);
-        ModbusUtil.AppendCrc16(frame, 0, frame.Length - 2);
+        var buffer = SendBuffer;
+        buffer.Clear();
+        buffer.WriteByte((byte)message.UnitId);
+        message.WritePdu(buffer);
+
+        // CRC 直接对"已写入的字节"计算并追加，不再单独生成 PDU / 帧数组
+        int crc = ModbusUtil.CalculateCrc16(buffer.WrittenSpan());
+        buffer.WriteByte((byte)(crc & 0xFF));
+        buffer.WriteByte((byte)((crc >> 8) & 0xFF));
 
         PrepareToSend();
-        Connection.Write(frame, 0, frame.Length);
+        Connection.Write(buffer.WrittenSpan());
         Connection.Flush();
 
-        RecordSentFrame(frame.Length);
-        OnMessageSent(message, frame);
+        RecordSentFrame(buffer.WriterIndex);
+
+        if (HasMessageSentSubscribers)
+        {
+            OnMessageSent(message, buffer.ToFullArray());
+        }
     }
 
     /// <inheritdoc />
@@ -45,20 +53,26 @@ public sealed class ModbusRtuTransport : ModbusSerialTransport
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        int unitId = ReadByteOrThrow("单元标识");
-        int functionCode = ReadByteOrThrow("功能码");
+        var buffer = ReceiveBuffer;
+        buffer.Clear();
+        ReadInto(buffer, 2, "单元标识与功能码");
 
         if (Parameters.Echo)
         {
+            // 半双工回显：先丢弃上一帧剩余字节，再重新读取真正的帧头
             int discard = LastSentFrameLength - 2;
             if (discard > 0)
             {
                 ReadFullyOrThrow(discard, "回显数据");
             }
 
-            unitId = ReadByteOrThrow("单元标识");
-            functionCode = ReadByteOrThrow("功能码");
+            buffer.Clear();
+            ReadInto(buffer, 2, "单元标识与功能码");
         }
+
+        var head = buffer.WrittenSpan();
+        int unitId = head[0];
+        int functionCode = head[1];
 
         if (functionCode != request.FunctionCode
             && functionCode != (request.FunctionCode | ModbusFunctionCode.ExceptionMask))
@@ -67,56 +81,44 @@ public sealed class ModbusRtuTransport : ModbusSerialTransport
                 $"响应功能码 0x{functionCode:X2} 与请求功能码 0x{request.FunctionCode:X2} 不匹配。");
         }
 
-        var (prefix, remaining) = ResolveTail(request, functionCode);
+        ReadResponseTail(buffer, request, functionCode);
+        ReadInto(buffer, 2, "CRC");
 
-        var pdu = new byte[1 + prefix.Length + remaining];
-        pdu[0] = (byte)functionCode;
-        if (prefix.Length > 0)
+        var frame = buffer.WrittenSpan();
+        if (!ModbusUtil.ValidateCrc16(frame))
         {
-            Array.Copy(prefix, 0, pdu, 1, prefix.Length);
+            throw new ModbusIOException($"RTU 帧 CRC 校验失败：{ModbusUtil.Dump(buffer.ToFullArray())}。");
         }
 
-        if (remaining > 0)
-        {
-            var rest = ReadFullyOrThrow(remaining, "响应数据");
-            Array.Copy(rest, 0, pdu, 1 + prefix.Length, remaining);
-        }
-
-        var crcBytes = ReadFullyOrThrow(2, "CRC");
-
-        var frame = new byte[1 + pdu.Length + 2];
-        frame[0] = (byte)unitId;
-        Array.Copy(pdu, 0, frame, 1, pdu.Length);
-        crcBytes.CopyTo(frame, 1 + pdu.Length);
-
-        if (!ModbusUtil.ValidateCrc16(frame, 0, frame.Length))
-        {
-            throw new ModbusIOException($"RTU 帧 CRC 校验失败：{ModbusUtil.Dump(frame)}。");
-        }
-
-        var response = ModbusResponseFactory.FromPdu(pdu);
+        var response = ModbusResponseFactory.FromPdu(frame[1..^2].ToArray());
         response.UnitId = unitId;
-        OnMessageReceived(response, frame);
+
+        if (HasMessageReceivedSubscribers)
+        {
+            OnMessageReceived(response, buffer.ToFullArray());
+        }
+
         return response;
     }
 
     /// <summary>
-    /// 计算功能码之后的尾部内容。
-    /// 优先采用请求声明的期望长度；变长响应则先读出长度前缀（字节计数），
-    /// 把它作为 PDU 前缀返回，再读取其声明的数据长度。
+    /// 读完功能码之后的尾部内容，直接追加进响应缓冲。
+    /// 优先采用请求声明的期望长度；变长响应则先读长度前缀（字节计数），再按其声明的长度读取数据。
     /// </summary>
-    /// <returns>已读出的长度前缀，以及其后仍需读取的数据字节数。</returns>
-    private (byte[] Prefix, int Remaining) ResolveTail(ModbusRequest request, int functionCode)
+    private void ReadResponseTail(PooledByteBuf buffer, ModbusRequest request, int functionCode)
     {
         if ((functionCode & ModbusFunctionCode.ExceptionMask) != 0)
         {
-            return (Array.Empty<byte>(), 1);
+            ReadInto(buffer, 1, "异常码");
+            return;
         }
 
         int expected = request.ExpectedResponsePduLength;
         if (expected > 0)
         {
-            return (Array.Empty<byte>(), expected - 1);
+            // expected 含功能码本身，功能码已在帧头读入
+            ReadInto(buffer, expected - 1, "响应数据");
+            return;
         }
 
         switch ((byte)functionCode)
@@ -126,15 +128,19 @@ public sealed class ModbusRtuTransport : ModbusSerialTransport
             case ModbusFunctionCode.ReadFileRecord:
             case ModbusFunctionCode.WriteFileRecord:
             {
-                int byteCount = ReadByteOrThrow("字节计数");
-                return (new[] { (byte)byteCount }, byteCount);
+                ReadInto(buffer, 1, "字节计数");
+                int byteCount = buffer.WrittenSpan()[^1];
+                ReadInto(buffer, byteCount, "响应数据");
+                return;
             }
 
             case ModbusFunctionCode.ReadFifoQueue:
             {
-                int hi = ReadByteOrThrow("字节计数");
-                int lo = ReadByteOrThrow("字节计数");
-                return (new[] { (byte)hi, (byte)lo }, (hi << 8) | lo);
+                ReadInto(buffer, 2, "字节计数");
+                var counts = buffer.WrittenSpan();
+                int count = (counts[^2] << 8) | counts[^1];
+                ReadInto(buffer, count, "响应数据");
+                return;
             }
 
             default:
