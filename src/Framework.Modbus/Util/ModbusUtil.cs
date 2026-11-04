@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Globalization;
 using System.Text;
+using Abstractions = Framework.Modbus.Abstractions;
 
 namespace Framework.Modbus.Util;
 
@@ -10,12 +11,6 @@ namespace Framework.Modbus.Util;
 /// </summary>
 public static class ModbusUtil
 {
-    /// <summary>Modbus CRC16 多项式（反转形式）。</summary>
-    private const int Crc16Polynomial = 0xA001;
-
-    /// <summary>CRC16 初值。</summary>
-    private const int Crc16Preset = 0xFFFF;
-
     /// <summary>把 16 位整数按大端（高字节在前）转成 2 字节。</summary>
     public static byte[] ToBytes(int value)
     {
@@ -105,47 +100,14 @@ public static class ModbusUtil
             throw new ArgumentOutOfRangeException(nameof(count), count, "偏移或长度超出缓冲区范围。");
         }
 
-        int crc = Crc16Preset;
-        for (int i = offset; i < offset + count; i++)
-        {
-            crc ^= data[i];
-            for (int bit = 0; bit < 8; bit++)
-            {
-                if ((crc & 0x0001) != 0)
-                {
-                    crc >>= 1;
-                    crc ^= Crc16Polynomial;
-                }
-                else
-                {
-                    crc >>= 1;
-                }
-            }
-        }
-
-        return crc & 0xFFFF;
+        return Abstractions.ModbusCrc16.Compute(data.AsSpan(offset, count));
     }
 
     /// <summary>计算整个缓冲区的 Modbus CRC16。</summary>
     public static int CalculateCrc16(byte[] data) => CalculateCrc16(data, 0, data.Length);
 
     /// <summary>计算 Modbus CRC16（无分配重载，可直接作用在已写入的缓冲区间上）。</summary>
-    public static int CalculateCrc16(ReadOnlySpan<byte> data)
-    {
-        int crc = Crc16Preset;
-        foreach (byte b in data)
-        {
-            crc ^= b;
-            for (int bit = 0; bit < 8; bit++)
-            {
-                crc = (crc & 0x0001) != 0
-                    ? (crc >> 1) ^ Crc16Polynomial
-                    : crc >> 1;
-            }
-        }
-
-        return crc & 0xFFFF;
-    }
+    public static int CalculateCrc16(ReadOnlySpan<byte> data) => Abstractions.ModbusCrc16.Compute(data);
 
     /// <summary>把 CRC16 追加到缓冲区末尾（低字节在前，符合 Modbus RTU 线序）。</summary>
     public static void AppendCrc16(byte[] frame, int offset, int count)
@@ -192,29 +154,14 @@ public static class ModbusUtil
             throw new ArgumentOutOfRangeException(nameof(count), count, "偏移或长度超出缓冲区范围。");
         }
 
-        int sum = 0;
-        for (int i = offset; i < offset + count; i++)
-        {
-            sum += data[i];
-        }
-
-        return (byte)((-sum) & 0xFF);
+        return Abstractions.ModbusLrc.Compute(data.AsSpan(offset, count));
     }
 
     /// <summary>计算整个缓冲区的 LRC。</summary>
     public static byte CalculateLrc(byte[] data) => CalculateLrc(data, 0, data.Length);
 
     /// <summary>计算 LRC（无分配重载）。</summary>
-    public static byte CalculateLrc(ReadOnlySpan<byte> data)
-    {
-        int sum = 0;
-        foreach (byte b in data)
-        {
-            sum += b;
-        }
-
-        return (byte)((-sum) & 0xFF);
-    }
+    public static byte CalculateLrc(ReadOnlySpan<byte> data) => Abstractions.ModbusLrc.Compute(data);
 
     /// <summary>把单个字节写成两个大写十六进制字符。</summary>
     public static void WriteHex(IBufferWriter<byte> writer, byte value)

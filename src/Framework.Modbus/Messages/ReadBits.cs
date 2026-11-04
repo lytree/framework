@@ -1,5 +1,6 @@
 using System.Buffers;
 using Framework.Modbus.Util;
+using Abstractions = Framework.Modbus.Abstractions;
 
 namespace Framework.Modbus.Messages;
 
@@ -45,9 +46,10 @@ public abstract class ReadBitsRequest : ModbusRequest
     /// <inheritdoc />
     public override void WritePdu(IBufferWriter<byte> writer)
     {
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(Reference);
-        writer.WriteUInt16(BitCount);
+        Abstractions.ModbusRequest pdu = FunctionCode == ModbusFunctionCode.ReadCoils
+            ? new Abstractions.ReadCoilsRequest((ushort)Reference, (ushort)BitCount)
+            : new Abstractions.ReadDiscreteInputsRequest((ushort)Reference, (ushort)BitCount);
+        PduBridge.Write(writer, pdu);
     }
 }
 
@@ -74,35 +76,17 @@ public abstract class ReadBitsResponse : ModbusResponse
     /// <inheritdoc />
     public override void WritePdu(IBufferWriter<byte> writer)
     {
-        var data = Bits.ToByteArray();
-        writer.WriteByte(FunctionCode);
-        writer.WriteByte(data.Length);
-        writer.WriteBytes(data);
+        PduBridge.Write(writer, new Abstractions.ReadBitsResponse(FunctionCode, Bits.ToByteArray()));
     }
 
     /// <summary>从 PDU 解析位数据。</summary>
     protected static BitVector ReadBitsFromPdu(byte[] pdu, byte expectedFunctionCode)
     {
         ArgumentNullException.ThrowIfNull(pdu);
-        if (pdu.Length < 2)
-        {
-            throw new ModbusIOException("位读取响应 PDU 长度不足。");
-        }
-
-        if (pdu[0] != expectedFunctionCode)
-        {
-            throw new ModbusIOException(
-                $"响应功能码不匹配：期望 0x{expectedFunctionCode:X2}，实际 0x{pdu[0]:X2}。");
-        }
-
-        int byteCount = pdu[1];
-        if (pdu.Length < 2 + byteCount)
-        {
-            throw new ModbusIOException(
-                $"位读取响应声明 {byteCount} 字节数据，但实际只有 {pdu.Length - 2} 字节。");
-        }
-
-        return new BitVector(pdu.AsSpan(2, byteCount).ToArray());
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.ReadBitsResponse.Decode(expectedFunctionCode, pdu),
+            "位读取响应");
+        return new BitVector(decoded.Data.ToArray());
     }
 }
 
@@ -120,8 +104,11 @@ public class ReadCoilsRequest : ReadBitsRequest
     /// <summary>从 PDU 解析请求。</summary>
     public static ReadCoilsRequest FromPdu(byte[] pdu)
     {
-        var reader = new ModbusPduReader(pdu, 1);
-        return new ReadCoilsRequest(reader.ReadUInt16(), reader.ReadUInt16());
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.ReadCoilsRequest.Decode(pdu.AsSpan(1)),
+            "读线圈请求");
+        return new ReadCoilsRequest(decoded.Address, decoded.Count);
     }
 }
 
@@ -158,8 +145,11 @@ public class ReadInputDiscretesRequest : ReadBitsRequest
     /// <summary>从 PDU 解析请求。</summary>
     public static ReadInputDiscretesRequest FromPdu(byte[] pdu)
     {
-        var reader = new ModbusPduReader(pdu, 1);
-        return new ReadInputDiscretesRequest(reader.ReadUInt16(), reader.ReadUInt16());
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.ReadDiscreteInputsRequest.Decode(pdu.AsSpan(1)),
+            "读离散输入请求");
+        return new ReadInputDiscretesRequest(decoded.Address, decoded.Count);
     }
 }
 

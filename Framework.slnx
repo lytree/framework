@@ -14,6 +14,7 @@
     <Project Path="src/Framework.Logging/Framework.Logging.csproj" />
     <Project Path="src/Framework.Mvvm/Framework.Mvvm.csproj" />
     <Project Path="src/Framework.Modbus/Framework.Modbus.csproj" />
+    <Project Path="src/Framework.Modbus.Abstractions/Framework.Modbus.Abstractions.csproj" />
     <Project Path="src/Framework.Charts/Framework.Charts.csproj" />
     <Project Path="src/Framework.Repository/Framework.Repository.csproj" />
     <Project Path="src/Framework.DynamicApi/Framework.DynamicApi.csproj" />

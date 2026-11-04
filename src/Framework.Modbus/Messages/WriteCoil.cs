@@ -1,5 +1,6 @@
 using System.Buffers;
 using Framework.Modbus.Util;
+using Abstractions = Framework.Modbus.Abstractions;
 
 namespace Framework.Modbus.Messages;
 
@@ -46,17 +47,17 @@ public class WriteCoilRequest : ModbusRequest
     /// <inheritdoc />
     public override void WritePdu(IBufferWriter<byte> writer)
     {
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(Reference);
-        writer.WriteUInt16(CoilValue);
+        PduBridge.Write(writer, new Abstractions.WriteSingleCoilRequest((ushort)Reference, CoilState));
     }
 
     /// <summary>从 PDU 解析请求。</summary>
     public static WriteCoilRequest FromPdu(byte[] pdu)
     {
-        var reader = new ModbusPduReader(pdu, 1);
-        int reference = reader.ReadUInt16();
-        return new WriteCoilRequest(reference, reader.ReadUInt16() == 0xFF00);
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.WriteSingleCoilRequest.Decode(pdu.AsSpan(1)),
+            "写单个线圈请求");
+        return new WriteCoilRequest(decoded.Address, decoded.Value);
     }
 }
 
@@ -93,21 +94,18 @@ public sealed class WriteCoilResponse : ModbusResponse
     /// <inheritdoc />
     public override void WritePdu(IBufferWriter<byte> writer)
     {
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(Reference);
-        writer.WriteUInt16(CoilValue);
+        PduBridge.Write(
+            writer,
+            new Abstractions.WriteSingleResponse(FunctionCode, (ushort)Reference, (ushort)CoilValue));
     }
 
     /// <summary>从 PDU 解析响应。</summary>
     public static WriteCoilResponse FromPdu(byte[] pdu)
     {
-        if (pdu.Length < 5)
-        {
-            throw new ModbusIOException("写线圈响应 PDU 长度不足（需要 5 字节）。");
-        }
-
-        var reader = new ModbusPduReader(pdu, 1);
-        int reference = reader.ReadUInt16();
-        return new WriteCoilResponse(reference, reader.ReadUInt16() == 0xFF00);
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.WriteSingleResponse.Decode(ModbusFunctionCode.WriteCoil, pdu),
+            "写单个线圈响应");
+        return new WriteCoilResponse(decoded.Address, decoded.Value == Abstractions.WriteSingleCoilRequest.CoilOn);
     }
 }

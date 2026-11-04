@@ -1,6 +1,7 @@
 using System.Buffers;
 using Framework.Modbus.ProcessImage;
 using Framework.Modbus.Util;
+using Abstractions = Framework.Modbus.Abstractions;
 
 namespace Framework.Modbus.Messages;
 
@@ -46,9 +47,10 @@ public abstract class ReadRegistersRequest : ModbusRequest
     /// <inheritdoc />
     public override void WritePdu(IBufferWriter<byte> writer)
     {
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(Reference);
-        writer.WriteUInt16(WordCount);
+        Abstractions.ModbusRequest pdu = FunctionCode == ModbusFunctionCode.ReadMultipleRegisters
+            ? new Abstractions.ReadHoldingRegistersRequest((ushort)Reference, (ushort)WordCount)
+            : new Abstractions.ReadInputRegistersRequest((ushort)Reference, (ushort)WordCount);
+        PduBridge.Write(writer, pdu);
     }
 }
 
@@ -83,40 +85,30 @@ public abstract class ReadRegistersResponse : ModbusResponse
     /// <inheritdoc />
     public override void WritePdu(IBufferWriter<byte> writer)
     {
-        var data = ModbusUtil.RegistersToBytes(Values);
-        writer.WriteByte(FunctionCode);
-        writer.WriteByte(data.Length);
-        writer.WriteBytes(data);
+        var registers = new ushort[Values.Length];
+        for (int i = 0; i < Values.Length; i++)
+        {
+            registers[i] = (ushort)Values[i];
+        }
+
+        PduBridge.Write(writer, new Abstractions.ReadRegistersResponse(FunctionCode, registers));
     }
 
     /// <summary>从 PDU 解析寄存器数据。</summary>
     protected static int[] ReadRegistersFromPdu(byte[] pdu, byte expectedFunctionCode)
     {
         ArgumentNullException.ThrowIfNull(pdu);
-        if (pdu.Length < 2)
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.ReadRegistersResponse.Decode(expectedFunctionCode, pdu),
+            "寄存器读取响应");
+
+        var values = new int[decoded.Registers.Length];
+        for (int i = 0; i < values.Length; i++)
         {
-            throw new ModbusIOException("寄存器读取响应 PDU 长度不足。");
+            values[i] = decoded.Registers[i];
         }
 
-        if (pdu[0] != expectedFunctionCode)
-        {
-            throw new ModbusIOException(
-                $"响应功能码不匹配：期望 0x{expectedFunctionCode:X2}，实际 0x{pdu[0]:X2}。");
-        }
-
-        int byteCount = pdu[1];
-        if (byteCount % 2 != 0)
-        {
-            throw new ModbusIOException($"寄存器读取响应的字节计数 {byteCount} 不是偶数。");
-        }
-
-        if (pdu.Length < 2 + byteCount)
-        {
-            throw new ModbusIOException(
-                $"寄存器读取响应声明 {byteCount} 字节数据，但实际只有 {pdu.Length - 2} 字节。");
-        }
-
-        return ModbusUtil.BytesToRegisters(pdu, 2, byteCount / 2);
+        return values;
     }
 }
 
@@ -134,8 +126,11 @@ public class ReadMultipleRegistersRequest : ReadRegistersRequest
     /// <summary>从 PDU 解析请求。</summary>
     public static ReadMultipleRegistersRequest FromPdu(byte[] pdu)
     {
-        var reader = new ModbusPduReader(pdu, 1);
-        return new ReadMultipleRegistersRequest(reader.ReadUInt16(), reader.ReadUInt16());
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.ReadHoldingRegistersRequest.Decode(pdu.AsSpan(1)),
+            "读保持寄存器请求");
+        return new ReadMultipleRegistersRequest(decoded.Address, decoded.Count);
     }
 }
 
@@ -169,8 +164,11 @@ public class ReadInputRegistersRequest : ReadRegistersRequest
     /// <summary>从 PDU 解析请求。</summary>
     public static ReadInputRegistersRequest FromPdu(byte[] pdu)
     {
-        var reader = new ModbusPduReader(pdu, 1);
-        return new ReadInputRegistersRequest(reader.ReadUInt16(), reader.ReadUInt16());
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.ReadInputRegistersRequest.Decode(pdu.AsSpan(1)),
+            "读输入寄存器请求");
+        return new ReadInputRegistersRequest(decoded.Address, decoded.Count);
     }
 }
 

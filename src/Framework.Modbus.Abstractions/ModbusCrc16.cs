@@ -1,22 +1,22 @@
 using System;
 
-namespace Middleware.Modbus
+namespace Framework.Modbus.Abstractions
 {
 	/// <summary>
-	/// Modbus RTU 帧使用的 CRC-16 实现（多项式 0xA001，初值 0xFFFF）
+	/// Modbus RTU 帧使用的 CRC-16 实现（多项式 0xA001，初值 0xFFFF）。
 	/// </summary>
 	public static class ModbusCrc16
 	{
 		/// <summary>
-		/// CRC 校验字段的字节长度
+		/// CRC 校验字段的字节长度。
 		/// </summary>
 		public const int Length = 2;
 
 		/// <summary>
-		/// 计算 CRC16 校验值
+		/// 计算 CRC16 校验值。
 		/// </summary>
-		/// <param name="data">参与计算的数据（从站地址 + PDU）</param>
-		/// <returns>CRC 值；写入帧时应使用小端（低字节在前）</returns>
+		/// <param name="data">参与计算的数据（从站地址 + PDU）。</param>
+		/// <returns>CRC 值；写入帧时应使用小端（低字节在前）。</returns>
 		public static ushort Compute(ReadOnlySpan<byte> data)
 		{
 			ushort crc = 0xFFFF;

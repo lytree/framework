@@ -2,25 +2,25 @@ using System;
 using System.Buffers;
 using System.Buffers.Binary;
 
-namespace Middleware.Modbus
+namespace Framework.Modbus.Abstractions
 {
 	/// <summary>
-	/// Modbus/TCP 帧编解码器：7 字节 MBAP 头 + PDU
+	/// Modbus/TCP 帧编解码器：7 字节 MBAP 头 + PDU。
 	/// </summary>
 	/// <remarks>
-	/// MBAP 头结构：事务标识(2) + 协议标识(2，恒为 0) + 长度(2，其后字节数) + 单元标识(1)
+	/// MBAP 头结构：事务标识(2) + 协议标识(2，恒为 0) + 长度(2，其后字节数) + 单元标识(1)。
 	/// </remarks>
 	public sealed class MbapFrameCodec : IModbusFrameCodec
 	{
 		/// <summary>
-		/// MBAP 头长度
+		/// MBAP 头长度。
 		/// </summary>
-		public const int HeaderLength = 7;
+		public const int HeaderLength = ModbusConstants.MbapHeaderSize;
 
 		/// <summary>
-		/// PDU 最大长度（Modbus 规范上限 253 字节）
+		/// PDU 最大长度（Modbus 规范上限 253 字节）。
 		/// </summary>
-		public const int MaxPduLength = 253;
+		public const int MaxPduLength = ModbusConstants.MaxPduSize;
 
 		/// <inheritdoc/>
 		public string Name => "Modbus/TCP";

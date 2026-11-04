@@ -1,6 +1,7 @@
 using System.Buffers;
 using Framework.Modbus.ProcessImage;
 using Framework.Modbus.Util;
+using Abstractions = Framework.Modbus.Abstractions;
 
 namespace Framework.Modbus.Messages;
 
@@ -51,17 +52,19 @@ public class WriteRegisterRequest : ModbusRequest
     /// <inheritdoc />
     public override void WritePdu(IBufferWriter<byte> writer)
     {
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(Reference);
-        writer.WriteUInt16(Register.Value);
+        PduBridge.Write(
+            writer,
+            new Abstractions.WriteSingleRegisterRequest((ushort)Reference, (ushort)Register.Value));
     }
 
     /// <summary>从 PDU 解析请求。</summary>
     public static WriteRegisterRequest FromPdu(byte[] pdu)
     {
-        var reader = new ModbusPduReader(pdu, 1);
-        int reference = reader.ReadUInt16();
-        return new WriteRegisterRequest(reference, reader.ReadUInt16());
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.WriteSingleRegisterRequest.Decode(pdu.AsSpan(1)),
+            "写单个寄存器请求");
+        return new WriteRegisterRequest(decoded.Address, decoded.Value);
     }
 }
 
@@ -98,21 +101,18 @@ public sealed class WriteRegisterResponse : ModbusResponse
     /// <inheritdoc />
     public override void WritePdu(IBufferWriter<byte> writer)
     {
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(Reference);
-        writer.WriteUInt16(Value);
+        PduBridge.Write(
+            writer,
+            new Abstractions.WriteSingleResponse(FunctionCode, (ushort)Reference, (ushort)Value));
     }
 
     /// <summary>从 PDU 解析响应。</summary>
     public static WriteRegisterResponse FromPdu(byte[] pdu)
     {
-        if (pdu.Length < 5)
-        {
-            throw new ModbusIOException("写寄存器响应 PDU 长度不足（需要 5 字节）。");
-        }
-
-        var reader = new ModbusPduReader(pdu, 1);
-        int reference = reader.ReadUInt16();
-        return new WriteRegisterResponse(reference, reader.ReadUInt16());
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.WriteSingleResponse.Decode(ModbusFunctionCode.WriteSingleRegister, pdu),
+            "写单个寄存器响应");
+        return new WriteRegisterResponse(decoded.Address, decoded.Value);
     }
 }

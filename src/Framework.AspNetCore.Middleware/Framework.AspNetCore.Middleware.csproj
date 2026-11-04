@@ -20,6 +20,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Framework.AspNetCore\Framework.AspNetCore.csproj" />
+		<ProjectReference Include="..\Framework.Modbus.Abstractions\Framework.Modbus.Abstractions.csproj" />
 	</ItemGroup>
 
 	<!-- 共享源码：直接引入 src/Shared 中需要的文件编译，不再引用独立 Framework 程序集 -->

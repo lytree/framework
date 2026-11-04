@@ -1,3 +1,4 @@
+using Framework.Modbus.Abstractions;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Logging;
 using System;

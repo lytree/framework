@@ -1,18 +1,18 @@
 using System;
 using System.Buffers.Binary;
 
-namespace Middleware.Modbus
+namespace Framework.Modbus.Abstractions
 {
 	/// <summary>
-	/// 读请求基类，数据域为「起始地址 + 数量」
+	/// 读请求基类，数据域为「起始地址 + 数量」。
 	/// </summary>
 	public abstract class ReadRequest : ModbusRequest
 	{
 		/// <summary>
-		/// 读请求
+		/// 读请求。
 		/// </summary>
-		/// <param name="address">起始地址</param>
-		/// <param name="count">数量</param>
+		/// <param name="address">起始地址。</param>
+		/// <param name="count">数量。</param>
 		protected ReadRequest(ushort address, ushort count)
 		{
 			this.Address = address;
@@ -20,12 +20,12 @@ namespace Middleware.Modbus
 		}
 
 		/// <summary>
-		/// 获取起始地址
+		/// 获取起始地址。
 		/// </summary>
 		public ushort Address { get; }
 
 		/// <summary>
-		/// 获取数量
+		/// 获取数量。
 		/// </summary>
 		public ushort Count { get; }
 
@@ -42,20 +42,20 @@ namespace Middleware.Modbus
 	}
 
 	/// <summary>
-	/// 读线圈请求（FC01），对应可读写的数字量输出
+	/// 读线圈请求（FC01），对应可读写的数字量输出。
 	/// </summary>
 	public sealed class ReadCoilsRequest : ReadRequest
 	{
 		/// <summary>
-		/// 一次请求可读取的最大线圈数
+		/// 一次请求可读取的最大线圈数。
 		/// </summary>
-		public const int MaxCount = 2000;
+		public const int MaxCount = ModbusConstants.MaxReadCoils;
 
 		/// <summary>
-		/// 读线圈请求
+		/// 读线圈请求。
 		/// </summary>
-		/// <param name="address">起始地址</param>
-		/// <param name="count">线圈数量</param>
+		/// <param name="address">起始地址。</param>
+		/// <param name="count">线圈数量。</param>
 		public ReadCoilsRequest(ushort address, ushort count)
 			: base(address, count)
 		{
@@ -65,10 +65,10 @@ namespace Middleware.Modbus
 		public override byte FunctionCode => ModbusFunctionCode.ReadCoils;
 
 		/// <summary>
-		/// 解析请求
+		/// 解析请求。
 		/// </summary>
-		/// <param name="data">数据域（不含功能码）</param>
-		/// <returns></returns>
+		/// <param name="data">数据域（不含功能码）。</param>
+		/// <returns>解析出的请求。</returns>
 		public static ReadCoilsRequest Decode(ReadOnlySpan<byte> data)
 		{
 			var (address, count) = DecodeAddressAndCount(ModbusFunctionCode.ReadCoils, data, MaxCount);
@@ -77,20 +77,20 @@ namespace Middleware.Modbus
 	}
 
 	/// <summary>
-	/// 读离散输入请求（FC02），对应只读的数字量输入
+	/// 读离散输入请求（FC02），对应只读的数字量输入。
 	/// </summary>
 	public sealed class ReadDiscreteInputsRequest : ReadRequest
 	{
 		/// <summary>
-		/// 一次请求可读取的最大离散输入数
+		/// 一次请求可读取的最大离散输入数。
 		/// </summary>
-		public const int MaxCount = 2000;
+		public const int MaxCount = ModbusConstants.MaxReadDiscretes;
 
 		/// <summary>
-		/// 读离散输入请求
+		/// 读离散输入请求。
 		/// </summary>
-		/// <param name="address">起始地址</param>
-		/// <param name="count">离散输入数量</param>
+		/// <param name="address">起始地址。</param>
+		/// <param name="count">离散输入数量。</param>
 		public ReadDiscreteInputsRequest(ushort address, ushort count)
 			: base(address, count)
 		{
@@ -100,10 +100,10 @@ namespace Middleware.Modbus
 		public override byte FunctionCode => ModbusFunctionCode.ReadDiscreteInputs;
 
 		/// <summary>
-		/// 解析请求
+		/// 解析请求。
 		/// </summary>
-		/// <param name="data">数据域（不含功能码）</param>
-		/// <returns></returns>
+		/// <param name="data">数据域（不含功能码）。</param>
+		/// <returns>解析出的请求。</returns>
 		public static ReadDiscreteInputsRequest Decode(ReadOnlySpan<byte> data)
 		{
 			var (address, count) = DecodeAddressAndCount(ModbusFunctionCode.ReadDiscreteInputs, data, MaxCount);
@@ -112,20 +112,20 @@ namespace Middleware.Modbus
 	}
 
 	/// <summary>
-	/// 读保持寄存器请求（FC03），对应可读写的寄存器
+	/// 读保持寄存器请求（FC03），对应可读写的寄存器。
 	/// </summary>
 	public sealed class ReadHoldingRegistersRequest : ReadRequest
 	{
 		/// <summary>
-		/// 一次请求可读取的最大寄存器数
+		/// 一次请求可读取的最大寄存器数。
 		/// </summary>
-		public const int MaxCount = 125;
+		public const int MaxCount = ModbusConstants.MaxReadRegisters;
 
 		/// <summary>
-		/// 读保持寄存器请求
+		/// 读保持寄存器请求。
 		/// </summary>
-		/// <param name="address">起始地址</param>
-		/// <param name="count">寄存器数量</param>
+		/// <param name="address">起始地址。</param>
+		/// <param name="count">寄存器数量。</param>
 		public ReadHoldingRegistersRequest(ushort address, ushort count)
 			: base(address, count)
 		{
@@ -135,10 +135,10 @@ namespace Middleware.Modbus
 		public override byte FunctionCode => ModbusFunctionCode.ReadHoldingRegisters;
 
 		/// <summary>
-		/// 解析请求
+		/// 解析请求。
 		/// </summary>
-		/// <param name="data">数据域（不含功能码）</param>
-		/// <returns></returns>
+		/// <param name="data">数据域（不含功能码）。</param>
+		/// <returns>解析出的请求。</returns>
 		public static ReadHoldingRegistersRequest Decode(ReadOnlySpan<byte> data)
 		{
 			var (address, count) = DecodeAddressAndCount(ModbusFunctionCode.ReadHoldingRegisters, data, MaxCount);
@@ -147,20 +147,20 @@ namespace Middleware.Modbus
 	}
 
 	/// <summary>
-	/// 读输入寄存器请求（FC04），对应只读的寄存器
+	/// 读输入寄存器请求（FC04），对应只读的寄存器。
 	/// </summary>
 	public sealed class ReadInputRegistersRequest : ReadRequest
 	{
 		/// <summary>
-		/// 一次请求可读取的最大寄存器数
+		/// 一次请求可读取的最大寄存器数。
 		/// </summary>
-		public const int MaxCount = 125;
+		public const int MaxCount = ModbusConstants.MaxReadRegisters;
 
 		/// <summary>
-		/// 读输入寄存器请求
+		/// 读输入寄存器请求。
 		/// </summary>
-		/// <param name="address">起始地址</param>
-		/// <param name="count">寄存器数量</param>
+		/// <param name="address">起始地址。</param>
+		/// <param name="count">寄存器数量。</param>
 		public ReadInputRegistersRequest(ushort address, ushort count)
 			: base(address, count)
 		{
@@ -170,10 +170,10 @@ namespace Middleware.Modbus
 		public override byte FunctionCode => ModbusFunctionCode.ReadInputRegisters;
 
 		/// <summary>
-		/// 解析请求
+		/// 解析请求。
 		/// </summary>
-		/// <param name="data">数据域（不含功能码）</param>
-		/// <returns></returns>
+		/// <param name="data">数据域（不含功能码）。</param>
+		/// <returns>解析出的请求。</returns>
 		public static ReadInputRegistersRequest Decode(ReadOnlySpan<byte> data)
 		{
 			var (address, count) = DecodeAddressAndCount(ModbusFunctionCode.ReadInputRegisters, data, MaxCount);

@@ -1,3 +1,4 @@
+using Framework.Modbus.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace Middleware.Modbus

@@ -1,3 +1,4 @@
+using Framework.Modbus.Abstractions;
 using Microsoft.Extensions.Logging;
 using System;
 
@@ -73,7 +74,7 @@ namespace Middleware.Modbus
 			catch (Exception ex)
 			{
 				this.logger.LogError(ex, "处理功能码 0x{FunctionCode:X2} 时发生内部错误", functionCode);
-				response = new ModbusExceptionResponse(functionCode, ModbusExceptionCode.SlaveDeviceFailure);
+				response = new ModbusExceptionResponse(functionCode, Framework.Modbus.Abstractions.ModbusExceptionCode.SlaveDeviceFailure);
 			}
 
 			if (isBroadcast && this.options.SuppressBroadcastResponse)

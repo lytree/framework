@@ -15,39 +15,43 @@
 
 ## 目录结构
 
+协议契约（功能码 / 异常码 / CRC / PDU / ADU 帧编解码）已抽到独立包 `YLFramework.Modbus.Abstractions`
+（命名空间 `Framework.Modbus.Abstractions`），与主站包 `YLFramework.Modbus` 共用同一份定义。
+本目录只保留从站服务与 Kestrel 宿主：
+
 ```
 Modbus/
-├── ModbusFunctionCode.cs      功能码常量（FC01~FC16）
-├── ModbusExceptionCode.cs     异常码常量
-├── ModbusCrc16.cs             RTU 用的 CRC-16（多项式 0xA001）
-├── ModbusSlaveException.cs    协议异常，携带异常码
-├── ModbusFrameException.cs    ADU 帧结构错误（CRC 错误 / MBAP 头非法）
+├── ModbusLegacyAliases.cs     旧版功能码 / 异常码 / CRC16 的 Obsolete 兼容层
 ├── ModbusSlaveOptions.cs      从站地址、广播抑制
 ├── ModbusSlave.cs             从站核心：请求 PDU → 进程映像 → 响应 PDU
 ├── ModbusSlave.DirectAccess.cs 进程内直通读写（不经总线）+ 值变更事件
 ├── ModbusDataArea.cs          数据区枚举 / 写入来源枚举
 ├── ModbusValue.cs             位或寄存器的值（结构体，无装箱）
 ├── ModbusValueChangedEventArgs.cs 值变更事件参数
-├── Pdu/                       与传输无关的协议数据单元
-│   ├── ModbusPdu.cs           PDU 抽象（功能码 / 长度 / 编码）
-│   ├── ModbusRequest.cs       按功能码分派的工厂 + 解析辅助
-│   ├── ModbusResponse.cs      响应抽象
-│   ├── ReadRequests.cs        FC01/02/03/04 读请求
-│   ├── WriteRequests.cs       FC05/06/15/16 写请求
-│   └── Responses.cs           读/写响应 + 异常响应
 ├── ProcessImage/              进程映像（从站内部数据模型）
 │   ├── IProcessImage.cs       四类数据区接口
 │   └── SimpleProcessImage.cs  定长数组实现，线程安全
-├── Transport/                 ADU 帧编解码
-│   ├── IModbusFrameCodec.cs   帧编解码接口
-│   ├── MbapFrameCodec.cs      Modbus/TCP
-│   └── RtuFrameCodec.cs       RTU over TCP
 ├── ModbusConnectionHandler.cs 连接处理器基类（读帧-处理-写帧）
 ├── ModbusTcpConnectionHandler.cs
 ├── ModbusRtuOverTcpConnectionHandler.cs
 ├── ListenOptionsExtensions.cs     UseModbusTcp / UseModbusRtuOverTcp
 └── ServiceCollectionExtensions.cs AddModbusSlave
 ```
+
+`Framework.Modbus.Abstractions` 中的对应类型：
+
+```
+Pdu/           ModbusPdu / ModbusRequest / ModbusResponse / 读请求 / 写请求 / 响应
+Transport/     IModbusFrameCodec / MbapFrameCodec / RtuFrameCodec
+根目录          ModbusConstants / ModbusFunctionCode / ModbusExceptionCode
+               ModbusCrc16 / ModbusLrc / ModbusSlaveException / ModbusFrameException
+```
+
+> 迁移提示：`Middleware.Modbus` 下的 `ModbusFunctionCode` / `ModbusExceptionCode` / `ModbusCrc16`
+> 仍可使用，但已标记 `[Obsolete]` 并转发到契约层。PDU 与帧编解码类型（`ModbusPdu`、
+> `ModbusRequest`、`ModbusResponse`、`IModbusFrameCodec`、`MbapFrameCodec`、`RtuFrameCodec`、
+> `ModbusSlaveException`、`ModbusFrameException`）已改为 `Framework.Modbus.Abstractions` 命名空间，
+> 需要补 `using Framework.Modbus.Abstractions;`。
 
 ## 用法
 
@@ -148,10 +152,9 @@ UDP 与串口（RTU / ASCII）尚未实现，但协议核心已经完全复用�
 
 ## 已知限制
 
-- 仅实现从站侧；主站（请求构造、事务重试、连接池）未实现，但请求类型均已实现
-  `Encode`，可直接用于主站发送。
+- 本目录仅实现从站侧；主站（请求构造、事务重试、连接池）在 `YLFramework.Modbus` 包中，
+  两者通过 `YLFramework.Modbus.Abstractions` 共用协议契约。
 - `RtuFrameCodec` 遇到未知功能码时按最短帧（5 字节 PDU）处理，客户端需要自行重新同步。
 - MBAP 头非法或 RTU CRC 校验失败时，该帧会被消费并记录警告，不再应答（符合规范）。
-- 备注：`src/Framework/Proxy/Crc16.cs` 与 `Lrc.cs` 为 `internal` 且当前无任何引用，
-  其 `HashCore` 循环上界写成 `i < count`（应为 `i < offset + count`），偏移非 0 时会算错。
-  本目录因此自带了一份正确的 `ModbusCrc16`，未依赖上述实现。
+- CRC-16 与 LRC 统一使用 `Framework.Modbus.Abstractions` 的实现，本目录不再自带副本；
+  历史上 `src/Framework/Proxy/Crc16.cs` / `Lrc.cs` 的偏移问题不再影响本模块。

@@ -1,6 +1,7 @@
 using System.Buffers;
 using Framework.Modbus.ProcessImage;
 using Framework.Modbus.Util;
+using Abstractions = Framework.Modbus.Abstractions;
 
 namespace Framework.Modbus.Messages;
 
@@ -51,22 +52,32 @@ public class WriteMultipleCoilsRequest : ModbusRequest
     /// <inheritdoc />
     public override void WritePdu(IBufferWriter<byte> writer)
     {
-        var data = Coils.GetBytes((BitCount + 7) / 8);
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(Reference);
-        writer.WriteUInt16(BitCount);
-        writer.WriteByte(data.Length);
-        writer.WriteBytes(data);
+        var values = new bool[BitCount];
+        for (int i = 0; i < values.Length; i++)
+        {
+            values[i] = Coils[i];
+        }
+
+        PduBridge.Write(
+            writer,
+            new Abstractions.WriteMultipleCoilsRequest((ushort)Reference, (ushort)BitCount, values));
     }
 
     /// <summary>从 PDU 解析请求。</summary>
     public static WriteMultipleCoilsRequest FromPdu(byte[] pdu)
     {
-        var reader = new ModbusPduReader(pdu, 1);
-        int reference = reader.ReadUInt16();
-        int bitCount = reader.ReadUInt16();
-        int byteCount = reader.ReadByte();
-        return new WriteMultipleCoilsRequest(reference, new BitVector(reader.ReadBytes(byteCount), bitCount));
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.WriteMultipleCoilsRequest.Decode(pdu.AsSpan(1)),
+            "写多个线圈请求");
+
+        var coils = new BitVector(decoded.Count);
+        for (int i = 0; i < decoded.Count; i++)
+        {
+            coils.SetBit(i, decoded.Values[i]);
+        }
+
+        return new WriteMultipleCoilsRequest(decoded.Address, coils);
     }
 }
 
@@ -100,21 +111,19 @@ public sealed class WriteMultipleCoilsResponse : ModbusResponse
     /// <inheritdoc />
     public override void WritePdu(IBufferWriter<byte> writer)
     {
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(Reference);
-        writer.WriteUInt16(BitCount);
+        PduBridge.Write(
+            writer,
+            new Abstractions.WriteMultipleResponse(FunctionCode, (ushort)Reference, (ushort)BitCount));
     }
 
     /// <summary>从 PDU 解析响应。</summary>
     public static WriteMultipleCoilsResponse FromPdu(byte[] pdu)
     {
-        if (pdu.Length < 5)
-        {
-            throw new ModbusIOException("写多个线圈响应 PDU 长度不足（需要 5 字节）。");
-        }
-
-        var reader = new ModbusPduReader(pdu, 1);
-        return new WriteMultipleCoilsResponse(reader.ReadUInt16(), reader.ReadUInt16());
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.WriteMultipleResponse.Decode(ModbusFunctionCode.WriteMultipleCoils, pdu),
+            "写多个线圈响应");
+        return new WriteMultipleCoilsResponse(decoded.Address, decoded.Count);
     }
 }
 
@@ -171,36 +180,32 @@ public class WriteMultipleRegistersRequest : ModbusRequest
     /// <inheritdoc />
     public override void WritePdu(IBufferWriter<byte> writer)
     {
-        var data = new byte[Registers.Length * 2];
+        var values = new ushort[Registers.Length];
         for (int i = 0; i < Registers.Length; i++)
         {
-            var bytes = Registers[i].ToBytes();
-            data[i * 2] = bytes[0];
-            data[(i * 2) + 1] = bytes[1];
+            values[i] = (ushort)Registers[i].Value;
         }
 
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(Reference);
-        writer.WriteUInt16(WordCount);
-        writer.WriteByte(data.Length);
-        writer.WriteBytes(data);
+        PduBridge.Write(
+            writer,
+            new Abstractions.WriteMultipleRegistersRequest((ushort)Reference, (ushort)WordCount, values));
     }
 
     /// <summary>从 PDU 解析请求。</summary>
     public static WriteMultipleRegistersRequest FromPdu(byte[] pdu)
     {
-        var reader = new ModbusPduReader(pdu, 1);
-        int reference = reader.ReadUInt16();
-        int wordCount = reader.ReadUInt16();
-        int byteCount = reader.ReadByte();
-        var data = reader.ReadBytes(byteCount);
-        var registers = new Register[wordCount];
-        for (int i = 0; i < wordCount; i++)
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.WriteMultipleRegistersRequest.Decode(pdu.AsSpan(1)),
+            "写多个寄存器请求");
+
+        var registers = new Register[decoded.Values.Length];
+        for (int i = 0; i < registers.Length; i++)
         {
-            registers[i] = new SimpleRegister(data[i * 2], data[(i * 2) + 1]);
+            registers[i] = new SimpleRegister(decoded.Values[i]);
         }
 
-        return new WriteMultipleRegistersRequest(reference, registers);
+        return new WriteMultipleRegistersRequest(decoded.Address, registers);
     }
 
     private static Register[] ToRegisters(IEnumerable<int> values)
@@ -240,20 +245,18 @@ public sealed class WriteMultipleRegistersResponse : ModbusResponse
     /// <inheritdoc />
     public override void WritePdu(IBufferWriter<byte> writer)
     {
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(Reference);
-        writer.WriteUInt16(WordCount);
+        PduBridge.Write(
+            writer,
+            new Abstractions.WriteMultipleResponse(FunctionCode, (ushort)Reference, (ushort)WordCount));
     }
 
     /// <summary>从 PDU 解析响应。</summary>
     public static WriteMultipleRegistersResponse FromPdu(byte[] pdu)
     {
-        if (pdu.Length < 5)
-        {
-            throw new ModbusIOException("写多个寄存器响应 PDU 长度不足（需要 5 字节）。");
-        }
-
-        var reader = new ModbusPduReader(pdu, 1);
-        return new WriteMultipleRegistersResponse(reader.ReadUInt16(), reader.ReadUInt16());
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.WriteMultipleResponse.Decode(ModbusFunctionCode.WriteMultipleRegisters, pdu),
+            "写多个寄存器响应");
+        return new WriteMultipleRegistersResponse(decoded.Address, decoded.Count);
     }
 }

@@ -1,5 +1,6 @@
 using System.Buffers;
 using Framework.Modbus.Util;
+using Abstractions = Framework.Modbus.Abstractions;
 
 namespace Framework.Modbus.Messages;
 
@@ -106,7 +107,8 @@ public sealed class ExceptionResponse : ModbusResponse
     }
 
     /// <inheritdoc />
-    public override byte[] ToPdu() => new[] { FunctionCode, ExceptionCode };
+    public override byte[] ToPdu() =>
+        new Abstractions.ModbusExceptionResponse(OriginalFunctionCode, ExceptionCode).ToByteArray();
 }
 
 /// <summary>按功能码把响应 PDU 解析为具体的响应对象。</summary>

@@ -2,10 +2,10 @@ using System;
 using System.Buffers;
 using System.Buffers.Binary;
 
-namespace Middleware.Modbus
+namespace Framework.Modbus.Abstractions
 {
 	/// <summary>
-	/// Modbus RTU 帧编解码器：从站地址(1) + PDU + CRC16(2，低字节在前)
+	/// Modbus RTU 帧编解码器：从站地址(1) + PDU + CRC16(2，低字节在前)。
 	/// </summary>
 	/// <remarks>
 	/// RTU 原本依靠 3.5 个字符时间的静默间隔划分帧；在 TCP 上承载（RTU over TCP，
@@ -16,7 +16,7 @@ namespace Middleware.Modbus
 	public sealed class RtuFrameCodec : IModbusFrameCodec
 	{
 		/// <summary>
-		/// 读、写单个量请求的 PDU 长度（功能码 1 + 地址 2 + 数量/数值 2）
+		/// 读、写单个量请求的 PDU 长度（功能码 1 + 地址 2 + 数量/数值 2）。
 		/// </summary>
 		private const int FixedPduLength = 5;
 
@@ -88,11 +88,11 @@ namespace Middleware.Modbus
 		}
 
 		/// <summary>
-		/// 按功能码推断 PDU 长度
+		/// 按功能码推断 PDU 长度。
 		/// </summary>
-		/// <param name="reader">已消费「从站地址 + 功能码」的读取器副本</param>
-		/// <param name="functionCode">功能码</param>
-		/// <returns>PDU 长度；负数表示数据不足，需要等待更多字节</returns>
+		/// <param name="reader">已消费「从站地址 + 功能码」的读取器副本。</param>
+		/// <param name="functionCode">功能码。</param>
+		/// <returns>PDU 长度；负数表示数据不足，需要等待更多字节。</returns>
 		private static int GetPduLength(in SequenceReader<byte> reader, byte functionCode)
 		{
 			switch (functionCode)
