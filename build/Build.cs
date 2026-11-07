@@ -86,6 +86,20 @@ public class BuildContext : FrostingContext
         return matched;
     }
 
+    /// <summary>
+    /// 解析单包发布时用于匹配 nupkg 文件名的包标识：优先使用 csproj 声明的 PackageId，
+    /// 未声明时退回项目名。这样 <c>--Package=Framework.Charts</c> 与
+    /// <c>--Package=YLFramework.Plot</c> 都能定位到同一个包的产物。
+    /// </summary>
+    public string ResolvePackageId()
+    {
+        var project = this.ResolveProjects()[0];
+        var packageId = ReadPackageId(project);
+        return string.IsNullOrWhiteSpace(packageId)
+            ? project.GetFilenameWithoutExtension().ToString()
+            : packageId;
+    }
+
     private bool MatchesPackage(FilePath projectPath)
     {
         var projectName = projectPath.GetFilenameWithoutExtension().ToString();
@@ -219,22 +233,26 @@ public class PushTask : FrostingTask<BuildContext>
         // 使用 NuGet.org 作为示例
 
         var nugetSource = context.NugetSource;
-        // 2. 检查 API Key
+        // 2. 检查 API Key：缺少 Key 属于配置错误，必须让流程失败而不是静默跳过
+        //    CI 中该值由 NuGet/login(OIDC) 提供的临时 Key 注入；本地只想打包请只执行 -t Pack
         if (string.IsNullOrWhiteSpace(context.NuGetApiKey))
         {
-            context.Log.Error("NuGet API Key is missing. Skipping package publish.");
-            // 如果缺少 Key，可以选择直接退出任务
-            return;
+            throw new CakeException(
+                $"缺少环境变量 {BuildParameters.NuGetApiKey}，无法推送到 {nugetSource}。" +
+                "CI 中该值由 NuGet/login(OIDC) 换取；本地只打包请执行 -t Pack，不要执行 -t Push。");
         }
 
         // 3. 查找所有 .nupkg 文件
         var packages = context.GetFiles(BuildParameters.PackageOutputDirectory + "/*.nupkg").ToList();
 
-        // 单包发布时只推送目标包，避免误推同目录下的其它产物
+        // 单包发布时只推送目标包，避免误推同目录下的其它产物。
+        // 过滤前缀必须用 csproj 的真实 PackageId（而非用户传入的 --Package），
+        // 否则项目名与 PackageId 不一致（如 Framework.Charts → YLFramework.Plot）会推不上去。
         if (context.HasPackage)
         {
+            var packageId = context.ResolvePackageId();
             packages = packages
-                .Where(p => p.GetFilenameWithoutExtension().ToString().StartsWith(context.Package + ".", StringComparison.OrdinalIgnoreCase))
+                .Where(p => p.GetFilenameWithoutExtension().ToString().StartsWith(packageId + ".", StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
 
