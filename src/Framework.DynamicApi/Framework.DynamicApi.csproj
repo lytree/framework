@@ -18,21 +18,40 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<!-- 开发期以分析器方式引入源生成器；打包时把 DLL 放进 analyzers/dotnet/cs -->
+		<!-- 开发期以分析器方式引入源生成器：不参与引用程序集，仅供编译期加载 -->
 		<ProjectReference Include="..\Framework.DynamicApi.Generator\Framework.DynamicApi.Generator.csproj"
 						  ReferenceOutputAssembly="false"
 						  OutputItemType="Analyzer" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Include="..\Framework.DynamicApi.Generator\bin\$(Configuration)\netstandard2.1\Framework.DynamicApi.Generator.dll"
-			  Pack="true"
-			  PackagePath="analyzers/dotnet/cs"
-			  Visible="false" />
 		<None Include="buildTransitive\YLFramework.DynamicApi.props"
 			  Pack="true"
 			  PackagePath="buildTransitive"
 			  Visible="false" />
 	</ItemGroup>
+
+	<PropertyGroup>
+		<!-- 打包时按 TFM 追加自定义内容：生成器 dll 需要落在 analyzers/dotnet/cs 下 -->
+		<TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_PackDynamicApiGenerator</TargetsForTfmSpecificContentInPackage>
+	</PropertyGroup>
+
+	<!--
+		通过 MSBuild 任务解析生成器工程的实际输出路径（GetTargetPath），
+		不再硬编码 bin/$(Configuration)/netstandard2.1：路径随生成器自身的
+		Configuration / 目标框架 / 输出布局变化自动跟随，也避免 RID、并行构建带来的路径差异。
+		仅打包生成器自身的 dll，Microsoft.CodeAnalysis 由 Roslyn 编译器宿主提供，不随包分发。
+	-->
+	<Target Name="_PackDynamicApiGenerator">
+		<!-- RemoveProperties：嵌套调用会继承外层 TFM 全局属性，必须清掉，
+		     否则生成器会被按 net10.0 求值而解析到不存在的 bin/<Config>/net10.0 路径 -->
+		<MSBuild Projects="$(MSBuildThisFileDirectory)..\Framework.DynamicApi.Generator\Framework.DynamicApi.Generator.csproj"
+				 Targets="GetTargetPath"
+				 Properties="Configuration=$(Configuration)"
+				 RemoveProperties="TargetFramework;RuntimeIdentifier;TargetPlatformIdentifier">
+			<Output TaskParameter="TargetOutputs" ItemName="_DynamicApiGeneratorTargetPath" />
+		</MSBuild>
+		<ItemGroup>
+			<TfmSpecificPackageFile Include="@(_DynamicApiGeneratorTargetPath)"
+								   PackagePath="analyzers/dotnet/cs" />
+		</ItemGroup>
+	</Target>
 
 </Project>
