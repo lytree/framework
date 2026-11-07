@@ -21,6 +21,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
 			services.TryAddSingleton(options);
 			services.TryAddSingleton<IProcessImage>(_ => new SimpleProcessImage());
+			AddModbusSlaveHosts(services);
 			services.TryAddSingleton<ModbusSlave>();
 			return services;
 		}
@@ -39,8 +40,24 @@ namespace Microsoft.Extensions.DependencyInjection
 
 			services.TryAddSingleton(options);
 			services.TryAddSingleton(processImage);
+			AddModbusSlaveHosts(services);
 			services.TryAddSingleton<ModbusSlave>();
 			return services;
+		}
+
+		/// <summary>
+		/// 注册扩展功能码宿主捆绑：通过 DI 中已注册的可选宿主装配，未注册的宿主使用安全兜底实现
+		/// </summary>
+		/// <param name="services"></param>
+		private static void AddModbusSlaveHosts(IServiceCollection services)
+		{
+			services.TryAddSingleton(sp => new ModbusSlaveHosts(
+				sp.GetService<IModbusSlaveExceptionStatusHost>(),
+				sp.GetService<IModbusSlaveDiagnosticsHost>(),
+				sp.GetService<IModbusSlaveCommunicationEventHost>(),
+				sp.GetService<IModbusSlaveIdentityHost>(),
+				sp.GetService<IModbusFileRecordStore>(),
+				sp.GetService<IModbusFifoQueueStore>()));
 		}
 	}
 }

@@ -15,5 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Framework.Modbus\Framework.Modbus.csproj" />
+    <ProjectReference Include="..\..\src\Framework.AspNetCore.Middleware\Framework.AspNetCore.Middleware.csproj" />
   </ItemGroup>
 </Project>

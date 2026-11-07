@@ -1,4 +1,4 @@
-using Framework.Modbus.Util;
+using Abstractions = Framework.Modbus.Abstractions;
 
 namespace Framework.Modbus.Messages;
 
@@ -17,7 +17,12 @@ public class ReportSlaveIdRequest : ModbusRequest
     public override int ExpectedResponsePduLength => -1;
 
     /// <inheritdoc />
-    public override byte[] ToPdu() => new[] { FunctionCode };
+    public override byte[] ToPdu()
+    {
+        using var writer = new ModbusPduWriter();
+        PduBridge.Write(writer, new Abstractions.ReportSlaveIdRequest());
+        return writer.ToArray();
+    }
 }
 
 /// <summary>FC11 报告从站标识响应。</summary>
@@ -49,26 +54,17 @@ public sealed class ReportSlaveIdResponse : ModbusResponse
     public override byte[] ToPdu()
     {
         using var writer = new ModbusPduWriter();
-        writer.WriteByte(FunctionCode);
-        writer.WriteByte(SlaveData.Length);
-        writer.WriteBytes(SlaveData);
+        PduBridge.Write(writer, new Abstractions.ReportSlaveIdResponse(SlaveData));
         return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析响应。</summary>
     public static ReportSlaveIdResponse FromPdu(byte[] pdu)
     {
-        if (pdu.Length < 2)
-        {
-            throw new ModbusIOException("报告从站标识响应 PDU 长度不足。");
-        }
-
-        int byteCount = pdu[1];
-        if (pdu.Length < 2 + byteCount)
-        {
-            throw new ModbusIOException($"报告从站标识响应声明 {byteCount} 字节，但实际只有 {pdu.Length - 2} 字节。");
-        }
-
-        return new ReportSlaveIdResponse(pdu.AsSpan(2, byteCount).ToArray());
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.ReportSlaveIdResponse.Decode(ModbusFunctionCode.ReportSlaveId, pdu),
+            "报告从站标识响应");
+        return new ReportSlaveIdResponse(decoded.Data.ToArray());
     }
 }

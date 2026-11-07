@@ -15,6 +15,7 @@ namespace Middleware.Modbus
 		private readonly ModbusSlaveOptions options;
 		private readonly IProcessImage processImage;
 		private readonly ILogger<ModbusSlave> logger;
+		private readonly ModbusSlaveHosts hosts;
 
 		/// <summary>
 		/// Modbus 从站
@@ -23,10 +24,23 @@ namespace Middleware.Modbus
 		/// <param name="processImage">进程映像</param>
 		/// <param name="logger">日志</param>
 		public ModbusSlave(ModbusSlaveOptions options, IProcessImage processImage, ILogger<ModbusSlave> logger)
+			: this(options, processImage, logger, ModbusSlaveHosts.Default)
+		{
+		}
+
+		/// <summary>
+		/// Modbus 从站（带扩展功能码宿主）
+		/// </summary>
+		/// <param name="options">从站选项</param>
+		/// <param name="processImage">进程映像</param>
+		/// <param name="logger">日志</param>
+		/// <param name="hosts">扩展功能码宿主捆绑；未提供的宿主使用安全兜底实现</param>
+		public ModbusSlave(ModbusSlaveOptions options, IProcessImage processImage, ILogger<ModbusSlave> logger, ModbusSlaveHosts hosts)
 		{
 			this.options = options;
 			this.processImage = processImage;
 			this.logger = logger;
+			this.hosts = hosts;
 		}
 
 		/// <summary>
@@ -98,6 +112,16 @@ namespace Middleware.Modbus
 				WriteSingleRegisterRequest r => this.WriteSingleRegister(r),
 				WriteMultipleCoilsRequest r => this.WriteMultipleCoils(r),
 				WriteMultipleRegistersRequest r => this.WriteMultipleRegisters(r),
+				ReadExceptionStatusRequest r => this.ReadExceptionStatus(r),
+				DiagnosticsRequest r => this.Diagnostics(r),
+				GetCommEventCounterRequest r => this.GetCommEventCounter(r),
+				GetCommEventLogRequest r => this.GetCommEventLog(r),
+				ReportSlaveIdRequest r => this.ReportSlaveId(r),
+				ReadFileRecordRequest r => this.ReadFileRecord(r),
+				WriteFileRecordRequest r => this.WriteFileRecord(r),
+				MaskWriteRegisterRequest r => this.MaskWriteRegister(r),
+				ReadWriteMultipleRegistersRequest r => this.ReadWriteMultipleRegisters(r),
+				ReadFifoQueueRequest r => this.ReadFifoQueue(r),
 				_ => throw ModbusSlaveException.IllegalFunction(request.FunctionCode),
 			};
 		}

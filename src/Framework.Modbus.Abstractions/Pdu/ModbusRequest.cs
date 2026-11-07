@@ -38,6 +38,16 @@ namespace Framework.Modbus.Abstractions
 				ModbusFunctionCode.WriteSingleRegister => WriteSingleRegisterRequest.Decode(data),
 				ModbusFunctionCode.WriteMultipleCoils => WriteMultipleCoilsRequest.Decode(data),
 				ModbusFunctionCode.WriteMultipleRegisters => WriteMultipleRegistersRequest.Decode(data),
+				ModbusFunctionCode.ReadExceptionStatus => ReadExceptionStatusRequest.Decode(data),
+				ModbusFunctionCode.Diagnostics => DiagnosticsRequest.Decode(data),
+				ModbusFunctionCode.GetCommEventCounter => GetCommEventCounterRequest.Decode(data),
+				ModbusFunctionCode.GetCommEventLog => GetCommEventLogRequest.Decode(data),
+				ModbusFunctionCode.ReportSlaveId => ReportSlaveIdRequest.Decode(data),
+				ModbusFunctionCode.ReadFileRecord => ReadFileRecordRequest.Decode(data),
+				ModbusFunctionCode.WriteFileRecord => WriteFileRecordRequest.Decode(data),
+				ModbusFunctionCode.MaskWriteRegister => MaskWriteRegisterRequest.Decode(data),
+				ModbusFunctionCode.ReadWriteMultipleRegisters => ReadWriteMultipleRegistersRequest.Decode(data),
+				ModbusFunctionCode.ReadFifoQueue => ReadFifoQueueRequest.Decode(data),
 				_ => throw ModbusSlaveException.IllegalFunction(functionCode),
 			};
 		}

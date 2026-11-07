@@ -1,3 +1,5 @@
+using Abstractions = Framework.Modbus.Abstractions;
+
 namespace Framework.Modbus.Messages;
 
 /// <summary>FC07 读异常状态请求。对应 jamod 的 <c>ReadExceptionStatusRequest</c>。</summary>
@@ -15,7 +17,12 @@ public class ReadExceptionStatusRequest : ModbusRequest
     public override int ExpectedResponsePduLength => 2;
 
     /// <inheritdoc />
-    public override byte[] ToPdu() => new[] { FunctionCode };
+    public override byte[] ToPdu()
+    {
+        using var writer = new ModbusPduWriter();
+        PduBridge.Write(writer, new Abstractions.ReadExceptionStatusRequest());
+        return writer.ToArray();
+    }
 }
 
 /// <summary>FC07 读异常状态响应。</summary>
@@ -42,17 +49,21 @@ public sealed class ReadExceptionStatusResponse : ModbusResponse
     public override byte FunctionCode => ModbusFunctionCode.ReadExceptionStatus;
 
     /// <inheritdoc />
-    public override byte[] ToPdu() => new[] { FunctionCode, ExceptionStatus };
+    public override byte[] ToPdu()
+    {
+        using var writer = new ModbusPduWriter();
+        PduBridge.Write(writer, new Abstractions.ReadExceptionStatusResponse(ExceptionStatus));
+        return writer.ToArray();
+    }
 
     /// <summary>从 PDU 解析响应。</summary>
     public static ReadExceptionStatusResponse FromPdu(byte[] pdu)
     {
-        if (pdu.Length < 2)
-        {
-            throw new ModbusIOException("读异常状态响应 PDU 长度不足（需要 2 字节）。");
-        }
-
-        return new ReadExceptionStatusResponse(pdu[1]);
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.ReadExceptionStatusResponse.Decode(ModbusFunctionCode.ReadExceptionStatus, pdu),
+            "读异常状态响应");
+        return new ReadExceptionStatusResponse(decoded.Status);
     }
 }
 
@@ -98,18 +109,23 @@ public class DiagnosticsRequest : ModbusRequest
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
+        Span<byte> data = stackalloc byte[2];
+        data[0] = (byte)((Data >> 8) & 0xFF);
+        data[1] = (byte)(Data & 0xFF);
+
         using var writer = new ModbusPduWriter();
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(SubFunction);
-        writer.WriteUInt16(Data);
+        PduBridge.Write(writer, new Abstractions.DiagnosticsRequest((ushort)SubFunction, data));
         return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析请求。</summary>
     public static DiagnosticsRequest FromPdu(byte[] pdu)
     {
-        var reader = new ModbusPduReader(pdu, 1);
-        return new DiagnosticsRequest(reader.ReadUInt16(), reader.ReadUInt16());
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.DiagnosticsRequest.Decode(pdu.AsSpan(1)),
+            "诊断请求");
+        return new DiagnosticsRequest(decoded.SubFunction, decoded.DataWord);
     }
 }
 
@@ -135,22 +151,22 @@ public sealed class DiagnosticsResponse : ModbusResponse
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
+        Span<byte> data = stackalloc byte[2];
+        data[0] = (byte)((Data >> 8) & 0xFF);
+        data[1] = (byte)(Data & 0xFF);
+
         using var writer = new ModbusPduWriter();
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(SubFunction);
-        writer.WriteUInt16(Data);
+        PduBridge.Write(writer, new Abstractions.DiagnosticsResponse((ushort)SubFunction, data));
         return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析响应。</summary>
     public static DiagnosticsResponse FromPdu(byte[] pdu)
     {
-        if (pdu.Length < 5)
-        {
-            throw new ModbusIOException("诊断响应 PDU 长度不足（需要 5 字节）。");
-        }
-
-        var reader = new ModbusPduReader(pdu, 1);
-        return new DiagnosticsResponse(reader.ReadUInt16(), reader.ReadUInt16());
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.DiagnosticsResponse.Decode(ModbusFunctionCode.Diagnostics, pdu),
+            "诊断响应");
+        return new DiagnosticsResponse(decoded.SubFunction, decoded.DataWord);
     }
 }

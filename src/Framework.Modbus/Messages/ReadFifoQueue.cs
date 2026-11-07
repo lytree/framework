@@ -1,3 +1,5 @@
+using Abstractions = Framework.Modbus.Abstractions;
+
 namespace Framework.Modbus.Messages;
 
 /// <summary>FC18 读 FIFO 队列请求。对应 jamod 的 <c>ReadFIFOQueueRequest</c>。</summary>
@@ -27,16 +29,18 @@ public class ReadFifoQueueRequest : ModbusRequest
     public override byte[] ToPdu()
     {
         using var writer = new ModbusPduWriter();
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(Reference);
+        PduBridge.Write(writer, new Abstractions.ReadFifoQueueRequest((ushort)Reference));
         return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析请求。</summary>
     public static ReadFifoQueueRequest FromPdu(byte[] pdu)
     {
-        var reader = new ModbusPduReader(pdu, 1);
-        return new ReadFifoQueueRequest(reader.ReadUInt16());
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.ReadFifoQueueRequest.Decode(pdu.AsSpan(1)),
+            "读 FIFO 队列请求");
+        return new ReadFifoQueueRequest(decoded.Address);
     }
 }
 
@@ -62,38 +66,29 @@ public sealed class ReadFifoQueueResponse : ModbusResponse
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        using var writer = new ModbusPduWriter();
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16((Values.Length * 2) + 2);
-        writer.WriteUInt16(Values.Length);
-        foreach (var value in Values)
+        var values = new ushort[Values.Length];
+        for (int i = 0; i < values.Length; i++)
         {
-            writer.WriteUInt16(value);
+            values[i] = (ushort)Values[i];
         }
 
+        using var writer = new ModbusPduWriter();
+        PduBridge.Write(writer, new Abstractions.ReadFifoQueueResponse(values));
         return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析响应。</summary>
     public static ReadFifoQueueResponse FromPdu(byte[] pdu)
     {
-        if (pdu.Length < 5)
-        {
-            throw new ModbusIOException("读 FIFO 队列响应 PDU 长度不足（至少需要 5 字节）。");
-        }
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.ReadFifoQueueResponse.Decode(ModbusFunctionCode.ReadFifoQueue, pdu),
+            "读 FIFO 队列响应");
 
-        int byteCount = ((pdu[1] & 0xFF) << 8) | (pdu[2] & 0xFF);
-        if (pdu.Length < 3 + byteCount)
+        var values = new int[decoded.Values.Length];
+        for (int i = 0; i < values.Length; i++)
         {
-            throw new ModbusIOException($"读 FIFO 队列响应声明 {byteCount} 字节，但实际只有 {pdu.Length - 3} 字节。");
-        }
-
-        var reader = new ModbusPduReader(pdu, 3, byteCount);
-        int fifoCount = reader.ReadUInt16();
-        var values = new int[fifoCount];
-        for (int i = 0; i < fifoCount; i++)
-        {
-            values[i] = reader.ReadUInt16();
+            values[i] = decoded.Values[i];
         }
 
         return new ReadFifoQueueResponse(values);

@@ -1,5 +1,5 @@
 using Framework.Modbus.ProcessImage;
-using Framework.Modbus.Util;
+using Abstractions = Framework.Modbus.Abstractions;
 
 namespace Framework.Modbus.Messages;
 
@@ -35,38 +35,35 @@ public class ReadFileRecordRequest : ModbusRequest
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        using var writer = new ModbusPduWriter();
-        writer.WriteByte(FunctionCode);
-        writer.WriteByte(Records.Count * 7);
-        foreach (var record in Records)
+        var references = new Abstractions.FileRecordReference[Records.Count];
+        for (int i = 0; i < references.Length; i++)
         {
-            writer.WriteByte(RecordReferenceType);
-            writer.WriteUInt16(record.FileNumber);
-            writer.WriteUInt16(record.RecordNumber);
-            writer.WriteUInt16(record.RecordLength);
+            var record = Records[i];
+            references[i] = new Abstractions.FileRecordReference(
+                (ushort)record.FileNumber,
+                (ushort)record.RecordNumber,
+                (ushort)record.RecordLength);
         }
 
+        using var writer = new ModbusPduWriter();
+        PduBridge.Write(writer, new Abstractions.ReadFileRecordRequest(references));
         return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析请求。</summary>
     public static ReadFileRecordRequest FromPdu(byte[] pdu)
     {
-        if (pdu.Length < 2)
-        {
-            throw new ModbusIOException("读文件记录请求 PDU 长度不足。");
-        }
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.ReadFileRecordRequest.Decode(pdu.AsSpan(1)),
+            "读文件记录请求");
 
-        int byteCount = pdu[1];
-        var reader = new ModbusPduReader(pdu, 2, byteCount);
-        var records = new List<FileRecordReference>();
-        while (reader.Remaining >= 7)
+        var references = decoded.Records;
+        var records = new FileRecordReference[references.Length];
+        for (int i = 0; i < records.Length; i++)
         {
-            reader.Skip(1);
-            int fileNumber = reader.ReadUInt16();
-            int recordNumber = reader.ReadUInt16();
-            int recordLength = reader.ReadUInt16();
-            records.Add(new FileRecordReference(fileNumber, recordNumber, recordLength));
+            var record = references[i];
+            records[i] = new FileRecordReference(record.FileNumber, record.RecordNumber, record.RecordLength);
         }
 
         return new ReadFileRecordRequest(records);
@@ -92,19 +89,21 @@ public sealed class ReadFileRecordResponse : ModbusResponse
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        using var writer = new ModbusPduWriter();
-        writer.WriteByte(FunctionCode);
-        writer.WriteByte(FileRecords.Sum(fr => 2 + (fr.Count * 2)));
-        foreach (var fileRecord in FileRecords)
+        var records = new ushort[FileRecords.Length][];
+        for (int i = 0; i < records.Length; i++)
         {
-            writer.WriteByte((fileRecord.Count * 2) + 1);
-            writer.WriteByte(ReadFileRecordRequest.RecordReferenceType);
-            foreach (var record in fileRecord.Records)
+            var fileRecord = FileRecords[i];
+            var values = new ushort[fileRecord.Count];
+            for (int j = 0; j < values.Length; j++)
             {
-                writer.WriteUInt16(record.Value);
+                values[j] = (ushort)fileRecord[j].Value;
             }
+
+            records[i] = values;
         }
 
+        using var writer = new ModbusPduWriter();
+        PduBridge.Write(writer, new Abstractions.ReadFileRecordResponse(records));
         return writer.ToArray();
     }
 
@@ -112,31 +111,23 @@ public sealed class ReadFileRecordResponse : ModbusResponse
     /// <remarks>响应中不携带起始记录号，因此解析出的记录号从 0 开始顺序编号。</remarks>
     public static ReadFileRecordResponse FromPdu(byte[] pdu)
     {
-        if (pdu.Length < 2)
-        {
-            throw new ModbusIOException("读文件记录响应 PDU 长度不足。");
-        }
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.ReadFileRecordResponse.Decode(ModbusFunctionCode.ReadFileRecord, pdu),
+            "读文件记录响应");
 
-        int byteCount = pdu[1];
-        if (pdu.Length < 2 + byteCount)
+        var records = decoded.Records;
+        var fileRecords = new FileRecord[records.Length];
+        for (int i = 0; i < fileRecords.Length; i++)
         {
-            throw new ModbusIOException($"读文件记录响应声明 {byteCount} 字节，但实际只有 {pdu.Length - 2} 字节。");
-        }
-
-        var reader = new ModbusPduReader(pdu, 2, byteCount);
-        var fileRecords = new List<FileRecord>();
-        while (reader.Remaining >= 2)
-        {
-            int subLength = reader.ReadByte();
-            reader.Skip(1);
-            int recordCount = (subLength - 1) / 2;
-            var records = new Record[recordCount];
-            for (int i = 0; i < recordCount; i++)
+            var values = records[i];
+            var items = new Record[values.Length];
+            for (int j = 0; j < items.Length; j++)
             {
-                records[i] = new Record(i, reader.ReadUInt16());
+                items[j] = new Record(j, values[j]);
             }
 
-            fileRecords.Add(new FileRecord(fileRecords.Count, records));
+            fileRecords[i] = new FileRecord(i, items);
         }
 
         return new ReadFileRecordResponse(fileRecords);
@@ -174,53 +165,45 @@ public class WriteFileRecordRequest : ModbusRequest
 
     internal static byte[] BuildPdu(byte functionCode, FileRecord[] fileRecords)
     {
-        using var writer = new ModbusPduWriter();
-        writer.WriteByte(functionCode);
-        int byteCount = fileRecords.Sum(fr => 7 + (fr.Count * 2));
-        writer.WriteByte(byteCount);
-        foreach (var fileRecord in fileRecords)
+        var records = new Abstractions.FileRecordWrite[fileRecords.Length];
+        for (int i = 0; i < records.Length; i++)
         {
-            writer.WriteByte(ReadFileRecordRequest.RecordReferenceType);
-            writer.WriteUInt16(fileRecord.FileNumber);
-            writer.WriteUInt16(fileRecord.StartReference);
-            writer.WriteUInt16(fileRecord.Count);
-            foreach (var record in fileRecord.Records)
+            var fileRecord = fileRecords[i];
+            var values = new ushort[fileRecord.Count];
+            for (int j = 0; j < values.Length; j++)
             {
-                writer.WriteUInt16(record.Value);
+                values[j] = (ushort)fileRecord[j].Value;
             }
+
+            records[i] = new Abstractions.FileRecordWrite(
+                (ushort)fileRecord.FileNumber,
+                (ushort)fileRecord.StartReference,
+                values);
         }
 
-        return writer.ToArray();
+        var pdu = new Abstractions.WriteFileRecordRequest(records).ToByteArray();
+        pdu[0] = functionCode;
+        return pdu;
     }
 
     internal static List<FileRecord> ParseFileRecords(byte[] pdu, string what)
     {
-        if (pdu.Length < 2)
-        {
-            throw new ModbusIOException($"{what}的 PDU 长度不足。");
-        }
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.WriteFileRecordRequest.Decode(pdu.AsSpan(1)),
+            what);
 
-        int byteCount = pdu[1];
-        if (pdu.Length < 2 + byteCount)
+        var fileRecords = new List<FileRecord>(decoded.Records.Length);
+        foreach (var record in decoded.Records)
         {
-            throw new ModbusIOException($"{what}声明 {byteCount} 字节，但实际只有 {pdu.Length - 2} 字节。");
-        }
-
-        var reader = new ModbusPduReader(pdu, 2, byteCount);
-        var fileRecords = new List<FileRecord>();
-        while (reader.Remaining >= 7)
-        {
-            reader.Skip(1);
-            int fileNumber = reader.ReadUInt16();
-            int recordNumber = reader.ReadUInt16();
-            int recordLength = reader.ReadUInt16();
-            var records = new Record[recordLength];
-            for (int i = 0; i < recordLength; i++)
+            var values = record.Values;
+            var items = new Record[values.Length];
+            for (int i = 0; i < items.Length; i++)
             {
-                records[i] = new Record(recordNumber + i, reader.ReadUInt16());
+                items[i] = new Record(record.StartRecord + i, values[i]);
             }
 
-            fileRecords.Add(new FileRecord(fileNumber, records));
+            fileRecords.Add(new FileRecord(record.FileNumber, items));
         }
 
         return fileRecords;

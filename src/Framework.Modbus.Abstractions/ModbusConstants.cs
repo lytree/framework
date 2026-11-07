@@ -50,6 +50,15 @@ namespace Framework.Modbus.Abstractions
 		/// <summary>FC16 单次最多写入的寄存器数量。</summary>
 		public const int MaxWriteRegisters = 123;
 
+		/// <summary>文件记录子请求的引用类型，Modbus 规范固定为 0x06。</summary>
+		public const byte FileRecordReferenceType = 0x06;
+
+		/// <summary>FC14 一次请求最多允许的文件记录子请求数（字节计数上限 245）。</summary>
+		public const int MaxReadFileRecordSubRequests = 35;
+
+		/// <summary>FC18 一次响应最多返回的 FIFO 寄存器数。</summary>
+		public const int MaxFifoQueueCount = 31;
+
 		/// <summary>ASCII 帧起始字符。</summary>
 		public const char AsciiStart = ':';
 

@@ -174,51 +174,54 @@ public static class ModbusExceptionCode
     public static string GetMessage(byte exceptionCode) => Abstractions.ModbusExceptionCode.GetMessage(exceptionCode);
 }
 
-/// <summary>FC08 Diagnostics 的子功能码常量。</summary>
+/// <summary>
+/// FC08 Diagnostics 的子功能码常量。
+/// 保留为公开兼容层，取值统一转发到协议契约层 <see cref="Abstractions.ModbusDiagnosticsSubFunction"/>。
+/// </summary>
 public static class ModbusDiagnosticsSubFunction
 {
     /// <summary>返回查询数据（回显）。</summary>
-    public const int ReturnQueryData = 0x0000;
+    public const int ReturnQueryData = Abstractions.ModbusDiagnosticsSubFunction.ReturnQueryData;
 
     /// <summary>重启通信选项。</summary>
-    public const int RestartCommunicationsOption = 0x0001;
+    public const int RestartCommunicationsOption = Abstractions.ModbusDiagnosticsSubFunction.RestartCommunicationsOption;
 
     /// <summary>返回诊断寄存器。</summary>
-    public const int ReturnDiagnosticRegister = 0x0002;
+    public const int ReturnDiagnosticRegister = Abstractions.ModbusDiagnosticsSubFunction.ReturnDiagnosticRegister;
 
     /// <summary>修改 ASCII 输入分隔符。</summary>
-    public const int ChangeAsciiInputDelimiter = 0x0003;
+    public const int ChangeAsciiInputDelimiter = Abstractions.ModbusDiagnosticsSubFunction.ChangeAsciiInputDelimiter;
 
     /// <summary>强制进入只听模式。</summary>
-    public const int ForceListenOnlyMode = 0x0004;
+    public const int ForceListenOnlyMode = Abstractions.ModbusDiagnosticsSubFunction.ForceListenOnlyMode;
 
     /// <summary>清空计数器与诊断寄存器。</summary>
-    public const int ClearCountersAndDiagnosticRegister = 0x000A;
+    public const int ClearCountersAndDiagnosticRegister = Abstractions.ModbusDiagnosticsSubFunction.ClearCountersAndDiagnosticRegister;
 
     /// <summary>返回总线消息计数。</summary>
-    public const int ReturnBusMessageCount = 0x000B;
+    public const int ReturnBusMessageCount = Abstractions.ModbusDiagnosticsSubFunction.ReturnBusMessageCount;
 
     /// <summary>返回总线通信错误计数。</summary>
-    public const int ReturnBusCommunicationErrorCount = 0x000C;
+    public const int ReturnBusCommunicationErrorCount = Abstractions.ModbusDiagnosticsSubFunction.ReturnBusCommunicationErrorCount;
 
     /// <summary>返回总线异常错误计数。</summary>
-    public const int ReturnBusExceptionErrorCount = 0x000D;
+    public const int ReturnBusExceptionErrorCount = Abstractions.ModbusDiagnosticsSubFunction.ReturnBusExceptionErrorCount;
 
     /// <summary>返回从站消息计数。</summary>
-    public const int ReturnSlaveMessageCount = 0x000E;
+    public const int ReturnSlaveMessageCount = Abstractions.ModbusDiagnosticsSubFunction.ReturnSlaveMessageCount;
 
     /// <summary>返回从站无响应计数。</summary>
-    public const int ReturnSlaveNoResponseCount = 0x000F;
+    public const int ReturnSlaveNoResponseCount = Abstractions.ModbusDiagnosticsSubFunction.ReturnSlaveNoResponseCount;
 
     /// <summary>返回从站 NAK 计数。</summary>
-    public const int ReturnSlaveNakCount = 0x0010;
+    public const int ReturnSlaveNakCount = Abstractions.ModbusDiagnosticsSubFunction.ReturnSlaveNakCount;
 
     /// <summary>返回从站忙计数。</summary>
-    public const int ReturnSlaveBusyCount = 0x0011;
+    public const int ReturnSlaveBusyCount = Abstractions.ModbusDiagnosticsSubFunction.ReturnSlaveBusyCount;
 
     /// <summary>返回总线字符溢出计数。</summary>
-    public const int ReturnBusCharacterOverrunCount = 0x0012;
+    public const int ReturnBusCharacterOverrunCount = Abstractions.ModbusDiagnosticsSubFunction.ReturnBusCharacterOverrunCount;
 
     /// <summary>清空溢出计数器与标志。</summary>
-    public const int ClearOverrunCounterAndFlag = 0x0014;
+    public const int ClearOverrunCounterAndFlag = Abstractions.ModbusDiagnosticsSubFunction.ClearOverrunCounterAndFlag;
 }

@@ -1,3 +1,5 @@
+using Abstractions = Framework.Modbus.Abstractions;
+
 namespace Framework.Modbus.Messages;
 
 /// <summary>FC0B 取通信事件计数器请求。对应 jamod 的 <c>GetCommEventCounterRequest</c>。</summary>
@@ -15,7 +17,12 @@ public class GetCommEventCounterRequest : ModbusRequest
     public override int ExpectedResponsePduLength => 5;
 
     /// <inheritdoc />
-    public override byte[] ToPdu() => new[] { FunctionCode };
+    public override byte[] ToPdu()
+    {
+        using var writer = new ModbusPduWriter();
+        PduBridge.Write(writer, new Abstractions.GetCommEventCounterRequest());
+        return writer.ToArray();
+    }
 }
 
 /// <summary>FC0B 取通信事件计数器响应。</summary>
@@ -44,22 +51,18 @@ public sealed class GetCommEventCounterResponse : ModbusResponse
     public override byte[] ToPdu()
     {
         using var writer = new ModbusPduWriter();
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(Status);
-        writer.WriteUInt16(EventCount);
+        PduBridge.Write(writer, new Abstractions.GetCommEventCounterResponse((ushort)Status, (ushort)EventCount));
         return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析响应。</summary>
     public static GetCommEventCounterResponse FromPdu(byte[] pdu)
     {
-        if (pdu.Length < 5)
-        {
-            throw new ModbusIOException("取通信事件计数器响应 PDU 长度不足（需要 5 字节）。");
-        }
-
-        var reader = new ModbusPduReader(pdu, 1);
-        return new GetCommEventCounterResponse(reader.ReadUInt16(), reader.ReadUInt16());
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.GetCommEventCounterResponse.Decode(ModbusFunctionCode.GetCommEventCounter, pdu),
+            "取通信事件计数器响应");
+        return new GetCommEventCounterResponse(decoded.Status, decoded.EventCount);
     }
 }
 
@@ -78,7 +81,12 @@ public class GetCommEventLogRequest : ModbusRequest
     public override int ExpectedResponsePduLength => -1;
 
     /// <inheritdoc />
-    public override byte[] ToPdu() => new[] { FunctionCode };
+    public override byte[] ToPdu()
+    {
+        using var writer = new ModbusPduWriter();
+        PduBridge.Write(writer, new Abstractions.GetCommEventLogRequest());
+        return writer.ToArray();
+    }
 }
 
 /// <summary>FC0C 取通信事件记录响应。</summary>
@@ -112,34 +120,23 @@ public sealed class GetCommEventLogResponse : ModbusResponse
     public override byte[] ToPdu()
     {
         using var writer = new ModbusPduWriter();
-        writer.WriteByte(FunctionCode);
-        writer.WriteByte(Events.Length + 6);
-        writer.WriteUInt16(Status);
-        writer.WriteUInt16(EventCount);
-        writer.WriteUInt16(MessageCount);
-        writer.WriteBytes(Events);
+        PduBridge.Write(
+            writer,
+            new Abstractions.GetCommEventLogResponse(
+                (ushort)Status,
+                (ushort)EventCount,
+                (ushort)MessageCount,
+                Events));
         return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析响应。</summary>
     public static GetCommEventLogResponse FromPdu(byte[] pdu)
     {
-        if (pdu.Length < 8)
-        {
-            throw new ModbusIOException("取通信事件记录响应 PDU 长度不足（至少需要 8 字节）。");
-        }
-
-        int byteCount = pdu[1];
-        if (pdu.Length < 2 + byteCount)
-        {
-            throw new ModbusIOException($"取通信事件记录响应声明 {byteCount} 字节，但实际只有 {pdu.Length - 2} 字节。");
-        }
-
-        var reader = new ModbusPduReader(pdu, 2, byteCount);
-        int status = reader.ReadUInt16();
-        int eventCount = reader.ReadUInt16();
-        int messageCount = reader.ReadUInt16();
-        var events = reader.Remaining > 0 ? reader.ReadBytes(reader.Remaining) : Array.Empty<byte>();
-        return new GetCommEventLogResponse(status, eventCount, messageCount, events);
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.GetCommEventLogResponse.Decode(ModbusFunctionCode.GetCommEventLog, pdu),
+            "取通信事件记录响应");
+        return new GetCommEventLogResponse(decoded.Status, decoded.EventCount, decoded.MessageCount, decoded.Events.ToArray());
     }
 }

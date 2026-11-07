@@ -1,3 +1,5 @@
+using Abstractions = Framework.Modbus.Abstractions;
+
 namespace Framework.Modbus.Messages;
 
 /// <summary>FC16 屏蔽写寄存器请求。对应 jamod 的 <c>MaskWriteRegisterRequest</c>。</summary>
@@ -48,21 +50,18 @@ public class MaskWriteRegisterRequest : ModbusRequest
     public override byte[] ToPdu()
     {
         using var writer = new ModbusPduWriter();
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(Reference);
-        writer.WriteUInt16(AndMask);
-        writer.WriteUInt16(OrMask);
+        PduBridge.Write(writer, new Abstractions.MaskWriteRegisterRequest((ushort)Reference, (ushort)AndMask, (ushort)OrMask));
         return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析请求。</summary>
     public static MaskWriteRegisterRequest FromPdu(byte[] pdu)
     {
-        var reader = new ModbusPduReader(pdu, 1);
-        int reference = reader.ReadUInt16();
-        int andMask = reader.ReadUInt16();
-        int orMask = reader.ReadUInt16();
-        return new MaskWriteRegisterRequest(reference, andMask, orMask);
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.MaskWriteRegisterRequest.Decode(pdu.AsSpan(1)),
+            "屏蔽写寄存器请求");
+        return new MaskWriteRegisterRequest(decoded.Address, decoded.AndMask, decoded.OrMask);
     }
 }
 
@@ -93,25 +92,17 @@ public sealed class MaskWriteRegisterResponse : ModbusResponse
     public override byte[] ToPdu()
     {
         using var writer = new ModbusPduWriter();
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(Reference);
-        writer.WriteUInt16(AndMask);
-        writer.WriteUInt16(OrMask);
+        PduBridge.Write(writer, new Abstractions.MaskWriteRegisterResponse((ushort)Reference, (ushort)AndMask, (ushort)OrMask));
         return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析响应。</summary>
     public static MaskWriteRegisterResponse FromPdu(byte[] pdu)
     {
-        if (pdu.Length < 7)
-        {
-            throw new ModbusIOException("屏蔽写寄存器响应 PDU 长度不足（需要 7 字节）。");
-        }
-
-        var reader = new ModbusPduReader(pdu, 1);
-        int reference = reader.ReadUInt16();
-        int andMask = reader.ReadUInt16();
-        int orMask = reader.ReadUInt16();
-        return new MaskWriteRegisterResponse(reference, andMask, orMask);
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.MaskWriteRegisterResponse.Decode(ModbusFunctionCode.MaskWriteRegister, pdu),
+            "屏蔽写寄存器响应");
+        return new MaskWriteRegisterResponse(decoded.Address, decoded.AndMask, decoded.OrMask);
     }
 }

@@ -1,4 +1,5 @@
 using Framework.Modbus.ProcessImage;
+using Abstractions = Framework.Modbus.Abstractions;
 
 namespace Framework.Modbus.Messages;
 
@@ -71,42 +72,43 @@ public class ReadWriteMultipleRegistersRequest : ModbusRequest
     /// <inheritdoc />
     public override byte[] ToPdu()
     {
-        var data = new byte[WriteRegisters.Length * 2];
-        for (int i = 0; i < WriteRegisters.Length; i++)
+        var writeValues = new ushort[WriteRegisters.Length];
+        for (int i = 0; i < writeValues.Length; i++)
         {
-            var bytes = WriteRegisters[i].ToBytes();
-            data[i * 2] = bytes[0];
-            data[(i * 2) + 1] = bytes[1];
+            writeValues[i] = (ushort)WriteRegisters[i].Value;
         }
 
         using var writer = new ModbusPduWriter();
-        writer.WriteByte(FunctionCode);
-        writer.WriteUInt16(ReadReference);
-        writer.WriteUInt16(ReadWordCount);
-        writer.WriteUInt16(WriteReference);
-        writer.WriteUInt16(WriteRegisters.Length);
-        writer.WriteByte(data.Length);
-        writer.WriteBytes(data);
+        PduBridge.Write(
+            writer,
+            new Abstractions.ReadWriteMultipleRegistersRequest(
+                (ushort)ReadReference,
+                (ushort)ReadWordCount,
+                (ushort)WriteReference,
+                writeValues));
         return writer.ToArray();
     }
 
     /// <summary>从 PDU 解析请求。</summary>
     public static ReadWriteMultipleRegistersRequest FromPdu(byte[] pdu)
     {
-        var reader = new ModbusPduReader(pdu, 1);
-        int readReference = reader.ReadUInt16();
-        int readWordCount = reader.ReadUInt16();
-        int writeReference = reader.ReadUInt16();
-        int writeWordCount = reader.ReadUInt16();
-        int byteCount = reader.ReadByte();
-        var data = reader.ReadBytes(byteCount);
-        var registers = new Register[writeWordCount];
-        for (int i = 0; i < writeWordCount; i++)
+        ArgumentNullException.ThrowIfNull(pdu);
+        var decoded = PduBridge.DecodeAs(
+            () => Abstractions.ReadWriteMultipleRegistersRequest.Decode(pdu.AsSpan(1)),
+            "读写多个寄存器请求");
+
+        var writeValues = decoded.WriteValues;
+        var registers = new Register[writeValues.Length];
+        for (int i = 0; i < registers.Length; i++)
         {
-            registers[i] = new SimpleRegister(data[i * 2], data[(i * 2) + 1]);
+            registers[i] = new SimpleRegister(writeValues[i]);
         }
 
-        return new ReadWriteMultipleRegistersRequest(readReference, readWordCount, writeReference, registers);
+        return new ReadWriteMultipleRegistersRequest(
+            decoded.ReadAddress,
+            decoded.ReadCount,
+            decoded.WriteAddress,
+            registers);
     }
 
     private static Register[] ToRegisters(IEnumerable<int> values)
