@@ -14,6 +14,7 @@
 | **Telnet** | `UseTelnet()` + 三个嵌套中间件 `UseBye()` / `UseEcho()` / `UseEmpty()` | Telnet 协议服务端：根据命令返回 BYE / 回显 / 空行 |
 | **TelnetProxy** | `UseXorTelnetProxy(byte[] key)` | Telnet 协议上的 XOR 代理：把 Telnet 客户端通过 XOR 流转发到上游 |
 | **TlsDetection** | `UseTlsDetection(...)` | TLS 特征识别：通过 `FakeTlsConnectionFeature` 模拟 TLS 记录，让上游把裸 TCP 误判为 TLS 流量（用于协议伪装） |
+| **Modbus** | `UseModbusTcp()` / `UseModbusRtuOverTcp()` | Modbus 从站（TCP / RTU over TCP），协议契约来自 `YLFramework.Modbus.Abstractions`，详见 [`Modbus/README.md`](Modbus/README.md) |
 
 ## 用法示例
 

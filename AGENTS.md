@@ -9,7 +9,7 @@
 
 ## Developer Commands
 ```bash
-# Build all (Release)
+# Build all（`dotnet build` 默认 Debug；Release 由 build/Build.cs 使用）
 dotnet build Framework.slnx
 
 # Build and pack all packages
@@ -36,29 +36,32 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 - 项目根目录不再保留任何 git 子模块；旧的 `packages` 子模块已移除。
 
 ## Architecture
-- **Monorepo**: 10 src packages under `src/` + 1 非打包源生成器项目（`src/Framework.DynamicApi.Generator`）+ `src/Shared/` 共享源码目录, 5 test projects under `test/`
+- **Monorepo**: `src/` 下 13 个工程 —— 12 个可打包包 + 1 个不打包工程（`src/Framework.DynamicApi.Generator` 源生成器）+ `src/Shared/` 共享源码目录, 7 test projects under `test/`
 - **Shared source**: 通用工具代码放在 `src/Shared/`，不再产出独立 `YLFramework` 程序集。需要它的包在 csproj 里用 `<Compile Include="..\Shared\...\*.cs" Link="Shared\...\%(Filename)%(Extension)" />` 直接引入源码编译，包之间**不互相 ProjectReference 核心库**。
-- **Namespace convention**: 各包命名空间保持不变（`Framework.Repository.*`、`Framework.AspNetCore.*`、`Framework.DynamicApi.*`、`Framework.SlideCaptcha.*`、`Framework.ZLogging.*`、`Framework.Charts.*`、`Framework.Mvvm.*`）；**唯一例外是 `src/Shared`——文件不声明 namespace，类型落在全局命名空间，且顶层类型一律 `internal`**（多包内联同一份源码，`public` 会导致下游 `CS0433`），扩展类按文件区分名字（`Extensions` / `ListExtensions` / `StreamExtensions` …）以免合并冲突
+- **Namespace convention**: 各包命名空间保持不变（`Framework.Repository.*`、`Framework.AspNetCore.*`、`Framework.DynamicApi.*`、`Framework.Modbus.*`、`Framework.Modbus.Abstractions.*`、`Framework.SlideCaptcha.*`、`Framework.ZLogging.*`、`Framework.Charts.*`、`Framework.Mvvm.*`）；**唯一例外是 `src/Shared`——文件不声明 namespace，类型落在全局命名空间，且顶层类型一律 `internal`**（多包内联同一份源码，`public` 会导致下游 `CS0433`），扩展类按文件区分名字（`Extensions` / `ListExtensions` / `StreamExtensions` …）以免合并冲突
 - **Solution file**: `Framework.slnx` (not .sln)
 - **Package versioning**: see "Package Versioning" section above
 - **Target frameworks**: `net10.0` only (defined inline in each csproj)
-- **Package prefix**: `YLFramework.*` (e.g., `YLFramework.AspNetCore`, `YLFramework.Repository`)
+- **Package prefix**: `YLFramework.*` (e.g., `YLFramework.AspNetCore`, `YLFramework.Repository`)；工程名与包名可以不同：`Framework.Charts` 的 `PackageId` 是 `YLFramework.Plot`
 
 ## Key Packages
 | Package | Notes |
 |---------|-------|
 | `src/Shared` | 共享源码（BCL 扩展、集合、缓冲、IO、加密、压缩、JSON、拼音、代理），被各包文件级引入 |
 | `Framework.AspNetCore` | ASP.NET Core integration |
+| `Framework.AspNetCore.Middleware` | Kestrel 连接中间件集合；Modbus TCP / RTU-over-TCP 从站位于其 `Modbus/` 子模块，扩展功能码通过可选宿主接口（异常状态 / 诊断 / 通信事件 / 标识 / 文件记录 / FIFO）按需接入 |
 | `Framework.Mvvm` | MVVM with CommunityToolkit.Mvvm |
 | `Framework.Repository` | linq2db-based repository + Mapster |
-| `Framework.Charts` | Chart generation |
-| `Framework.Modbus` | Modbus 主站（TCP / UDP / RTU / ASCII）+ 全功能码，设计参照 jamod |
+| `Framework.Charts` | Chart generation（`PackageId` 为 `YLFramework.Plot`） |
+| `Framework.Modbus` | Modbus 主站（TCP / UDP / RTU / ASCII）+ 全功能码，设计参照 jamod；协议契约来自 `Framework.Modbus.Abstractions` |
+| `Framework.Modbus.Abstractions` | Modbus 协议契约层（功能码 / 异常码 / CRC·LRC / PDU / 帧编解码），零外部 NuGet 依赖；主站包与 Middleware 从站共用同一份定义 |
 | `Framework.DynamicApi` | 编译期源生成 Minimal API 端点（零反射 / AOT），生成器随包以 `analyzers/dotnet/cs` 分发 |
 | `Framework.ZLogging` / `Framework.Logging` | 两条独立日志栈：ZLogging 为自研 ILoggerProvider + Spectre.Console（富终端、纯文本落盘）；Logging 为 Serilog 接入（CLEF 结构化落盘 + `LogProperties` / `LogTemplates` 模板约定） |
 
 ## CI / Release
 - **单包发布（推荐）**：标签 `YLFramework.Repository/v2.0.0-alpha.1` → CI 只打包并推送该包
-- **全量发布**：标签 `V2.0.0-alpha.1` → 打包并推送 `src` 下所有包
+- **全量发布**：标签 `V2.0.0-alpha.1` → 打包并推送 `src` 下所有可打包工程
+- 单包标签前缀是 csproj 的 `PackageId`，不是工程名：`Framework.Charts` 对应标签 `YLFramework.Plot/v2.0.0-alpha.1`
 - 单包发布时标签版本必须与 csproj 的 `<Version>` 一致，否则 `Pack` 直接抛错
 - 每个包按自身 csproj 的 `<Version>` 打包；构建不依赖 GitVersion，CI 里也不再安装 GitVersion.Tool
 - 本地等价命令：`dotnet run build/Build.cs -t Pack --Package=YLFramework.Repository`
@@ -97,7 +100,7 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 | `ExceptionRendering/` | 异常渲染（嵌套异常 / 类型名 / 堆栈 / AggregateException） |
 | `Concurrency/` | 并发写入 / 销毁竞争 / 队列溢出 / 作用域捕获 |
 
-TUnit 1.72.10 用法约定：
+TUnit 1.76.0 用法约定：
 - 断言全部 `await Assert.That(...).IsXxx(...)`。
 - 共享 disposable 资源（`TempDirectory`）通过 `[ClassDataSource<TempDirectory>(Shared = SharedType.PerClass)]` 注入。
 - 跨测试需要隔离时使用 `[NotInParallel]`。
