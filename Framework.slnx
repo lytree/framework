@@ -19,6 +19,7 @@
     <Project Path="src/Framework.DynamicApi/Framework.DynamicApi.csproj" />
     <Project Path="src/Framework.DynamicApi.Generator/Framework.DynamicApi.Generator.csproj" />
     <Project Path="src/Framework.SlideCaptcha/Framework.SlideCaptcha.csproj" />
+    <Project Path="src/Framework.SqlParser/Framework.SqlParser.csproj" />
   </Folder>
   <Folder Name="/src/Shared/">
     <File Path="src/Shared/README.md" />
@@ -31,5 +32,6 @@
     <Project Path="test/Framework.Modbus.Tests/Framework.Modbus.Tests.csproj" />
     <Project Path="test/Framework.ZLogging.Tests/Framework.ZLogging.Tests.csproj" />
     <Project Path="test/Framework.Tests/Framework.Tests.csproj" />
+    <Project Path="test/Framework.SqlParser.Tests/Framework.SqlParser.Tests.csproj" />
   </Folder>
 </Solution>

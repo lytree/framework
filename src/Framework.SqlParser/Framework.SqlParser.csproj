@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Version>1.0.0-alpha.1</Version>
+    <PackageId>YLFramework.SqlParser</PackageId>
+    <Description>纯 C# 的 SQL 解析引擎：词法/语法分析、统一 AST、方言配置、错误恢复与 SQL 回写。</Description>
+    <PackageTags>sql;parser;ast;sqlparser;tokenizer;dialect</PackageTags>
+  </PropertyGroup>
+
+</Project>
