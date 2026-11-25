@@ -100,7 +100,7 @@ dotnet pack src/Framework.Repository/Framework.Repository.csproj
 | `ExceptionRendering/` | 异常渲染（嵌套异常 / 类型名 / 堆栈 / AggregateException） |
 | `Concurrency/` | 并发写入 / 销毁竞争 / 队列溢出 / 作用域捕获 |
 
-TUnit 1.76.0 用法约定：
+TUnit 1.87.12 用法约定：
 - 断言全部 `await Assert.That(...).IsXxx(...)`。
 - 共享 disposable 资源（`TempDirectory`）通过 `[ClassDataSource<TempDirectory>(Shared = SharedType.PerClass)]` 注入。
 - 跨测试需要隔离时使用 `[NotInParallel]`。

@@ -13,33 +13,34 @@ csproj 内仅写 <PackageReference Include="X" /> 不写版本（Central Package
 
   <ItemGroup>
     <!-- ====== .NET 10 共享框架库（与 SDK 10.0.x 对齐） ====== -->
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.13" />
-    <PackageVersion Include="System.Text.Json" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.15" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.15" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.15" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.15" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.15" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.15" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.15" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.15" />
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.15" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.15" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.15" />
 
     <!-- ====== 系统 / 工具库 ====== -->
-    <PackageVersion Include="System.IO.Ports" Version="10.0.13" />
-    <PackageVersion Include="Mapster" Version="10.0.13" />
+    <PackageVersion Include="System.IO.Ports" Version="10.0.15" />
+    <PackageVersion Include="Mapster" Version="10.0.14" />
 
     <!-- ====== MVVM ====== -->
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 
     <!-- ====== 数据访问（linq2db） ====== -->
-    <PackageVersion Include="linq2db" Version="6.5.1" />
+    <PackageVersion Include="linq2db" Version="6.6.0" />
     <PackageVersion Include="Yitter.IdGenerator" Version="1.0.15" />
 
     <!-- ====== 日志 ====== -->
-    <PackageVersion Include="ZLogger" Version="2.5.10" />
+    <PackageVersion Include="ZLogger" Version="2.6.2" />
     <!-- Serilog 技术栈：核心 / MEL 桥接 / 配置驱动 / 控制台 / 文件 / 异步包装 / CLEF JSON 格式 -->
     <PackageVersion Include="Serilog" Version="4.4.0" />
+    <!-- 桥接与配置包跟随 .NET 10 线（11.0.0 会把 Microsoft.Extensions.* 拉到 11） -->
     <PackageVersion Include="Serilog.Extensions.Logging" Version="10.0.0" />
     <PackageVersion Include="Serilog.Settings.Configuration" Version="10.0.1" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
@@ -50,19 +51,20 @@ csproj 内仅写 <PackageReference Include="X" /> 不写版本（Central Package
     <!-- ====== 终端 UI / 图形 ====== -->
     <PackageVersion Include="Spectre.Console" Version="0.57.2" />
     <PackageVersion Include="Spectre.Console.Ansi" Version="0.57.2" />
-    <PackageVersion Include="SkiaSharp" Version="4.153.1" />
+    <PackageVersion Include="SkiaSharp" Version="4.157.0" />
     <PackageVersion Include="ScottPlot" Version="5.1.59" />
 
     <!-- ====== 图像处理（滑动验证码） ====== -->
-    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.153.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.157.0" />
 
     <!-- ====== 反向代理 ====== -->
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
 
     <!-- ====== 源生成器 ====== -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+    <!-- 必须 ≤ SDK 10.0.404 内置 Roslyn（5.9.0）；超出会在编译期报 CS9057 且分析器加载失败 -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
 
     <!-- ====== 测试 ====== -->
-    <PackageVersion Include="TUnit" Version="1.76.0" />
+    <PackageVersion Include="TUnit" Version="1.87.12" />
   </ItemGroup>
 </Project>
