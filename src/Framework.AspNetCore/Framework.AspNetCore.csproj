@@ -14,7 +14,6 @@
 
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
-		<PackageReference Include="BouncyCastle.Cryptography" />
 	</ItemGroup>
 
 	<!-- 共享源码：直接引入 src/Shared 中需要的文件编译 -->
