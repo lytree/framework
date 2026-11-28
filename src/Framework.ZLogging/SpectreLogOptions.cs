@@ -97,6 +97,12 @@ public sealed class SpectreLogOptions
     #region 文件输出
 
     /// <summary>
+    /// 文件输出格式，默认 <see cref="SpectreLogFileFormat.Text"/>。
+    /// 控制台始终走 Spectre 渲染，本项只影响落盘内容。
+    /// </summary>
+    public SpectreLogFileFormat FileFormat { get; set; } = SpectreLogFileFormat.Text;
+
+    /// <summary>
     /// 日志文件路径。为 <c>null</c> / 空白时关闭文件输出。
     /// 路径中可包含 <c>{Date}</c> 占位符，会替换为本地时间的 <c>yyyy-MM-dd</c>；
     /// 常驻进程跨零点后会自动切换到新一天的文件，无需重启。
@@ -249,6 +255,21 @@ public sealed class SpectreLogOptions
 
     /// <summary>最终生效的时间源，避免每条日志重复判空。</summary>
     internal TimeProvider Clock => TimeProvider ?? TimeProvider.System;
+}
+
+/// <summary>日志文件的输出格式。</summary>
+public enum SpectreLogFileFormat
+{
+    /// <summary>
+    /// 与 Spectre 控制台同源的纯文本：时间戳、级别、Category、消息，专用格式退化为等宽文本。
+    /// </summary>
+    Text,
+
+    /// <summary>
+    /// JSON Lines：每条日志一行 JSON，包含时间戳、级别、Category、EventId、
+    /// 消息模板、结构化属性、作用域与异常，便于结构化检索。
+    /// </summary>
+    Json
 }
 
 /// <summary>文件写入失败时抛出的诊断信息，供 <see cref="SpectreLogOptions.FileWriteErrorHandler"/> 决策。</summary>

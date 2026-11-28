@@ -37,7 +37,6 @@ csproj 内仅写 <PackageReference Include="X" /> 不写版本（Central Package
     <PackageVersion Include="Yitter.IdGenerator" Version="1.0.15" />
 
     <!-- ====== 日志 ====== -->
-    <PackageVersion Include="ZLogger" Version="2.6.2" />
     <!-- Serilog 技术栈：核心 / MEL 桥接 / 配置驱动 / 控制台 / 文件 / 异步包装 / CLEF JSON 格式 -->
     <PackageVersion Include="Serilog" Version="4.4.0" />
     <!-- 桥接与配置包跟随 .NET 10 线（11.0.0 会把 Microsoft.Extensions.* 拉到 11） -->

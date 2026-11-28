@@ -11,6 +11,7 @@
 | `SpectreConsoleLoggerProvider.cs` | `SpectreConsoleLoggerProvider` / `SpectreLogProcessor` / `SpectreLogger` | `ILoggerProvider` + `ISupportExternalScope`；后台单消费者统一处理控制台与文件双输出 |
 | `SpectreLogEntry.cs` | `SpectreLogEntry` / `SpectreMessageFormatter` | 调用线程上的结构化参数快照；消息模板解析与专用格式切分 |
 | `FileLogWriter.cs` | `FileLogWriter` | 长连接 `FileStream` + 批量写 + 按体积滚动 + 断连重连 + IO 退避重试 |
+| `JsonLogFormatter.cs` | `JsonLogFormatter` | JSON Lines 落盘：每条日志一行 JSON，含结构化属性与异常 |
 | `SpectreObjectPrinter.cs` | `SpectreObjectPrinter` | 任意对象 → 表格 / 树 / JSON / 十六进制；循环引用与深度保护 |
 | `SpectreLogFormats.cs` | 内置格式注册 | `{Value:table}`、`{Value:panel}`、`{Value:json}` 等指令的默认实现 |
 | `SpectreLoggingExtensions.cs` | `SpectreLoggingExtensions` / `SpectreOutputExtensions` | 注册扩展 + `Write` / `WriteLine` / `Tree` / `Panel` / `Progress` 等控制台输出方法 |
@@ -45,6 +46,35 @@ builder.Logging.AddSpectreFile("logs/app.log", options => options.ConsoleOutput 
 
 三个入口的差异只有两点：是否预置 `FilePath`、是否预置 `ConsoleOutput = false`。
 `configure` 委托在预置之后执行，所以任何预置都可以被覆盖。
+
+## 文件输出格式
+
+默认把日志写成与控制台同源的纯文本；把 `FileFormat` 设为 `Json` 即可切换为 JSON Lines
+（每条日志一行 JSON，便于 Elasticsearch / Loki 等按字段检索）：
+
+```csharp
+builder.Logging.AddSpectreConsoleAndFile("logs/app-{Date}.log", options =>
+{
+    options.FileFormat = SpectreLogFileFormat.Json;
+});
+```
+
+```json
+{"Timestamp":"2026-11-28T10:00:00.0000000+00:00","LogLevel":"Information","Category":"Order","EventId":42,"EventIdName":"OrderPlaced","MessageTemplate":"下单 {OrderId} 金额 {Amount}","Message":"下单 7 金额 99.5","Properties":{"OrderId":7,"Amount":99.5},"Scopes":"request-1"}
+```
+
+字段约定：
+
+| 字段 | 说明 |
+|------|------|
+| `Timestamp` | ISO 8601（带偏移量） |
+| `LogLevel` | `LogLevel` 枚举名，如 `Information` |
+| `Category` | 日志类别 |
+| `EventId` / `EventIdName` | 仅在 `EventId` 非零或有名称时出现 |
+| `MessageTemplate` / `Message` | 原始模板与渲染后的消息 |
+| `Properties` | 结构化参数，按占位符名称原样序列化 |
+| `Scopes` | 启用 `IncludeScopes` 时出现 |
+| `Exception` | 类型、消息、堆栈与内部异常链 |
 
 ## 文件写入方案
 
@@ -104,7 +134,7 @@ ANSI 颜色不会写入文件。
 | `AddSpectreFile` 默认关闭控制台 | 它预置 `ConsoleOutput = false`；双输出请用 `AddSpectreConsoleAndFile`，或在 `configure` 里改回 `true` |
 | `QueueFullMode` 的实际语义 | 生产侧用 `ChannelWriter.TryWrite`，绝不阻塞业务线程：`DropOldest` 挤掉最旧一条、`DropWrite` 丢弃新消息、`Wait` 因 `TryWrite` 不等待而等价于丢弃。不允许丢日志请调大 `QueueCapacity` |
 | `MaxRollingFiles` 含基文件 | `= 5` 表示「基文件 + 4 个 `_N` 滚动文件」；基文件永不淘汰，只有带序号的滚动文件按最后写入时间淘汰 |
-| 文件内容是纯文本 | 控制台的 ANSI 颜色不会写入文件；专用格式（表格 / 面板）在文件中退化为等宽文本 |
+| 文件内容默认是纯文本 | `FileFormat = Text` 时控制台的 ANSI 颜色不会写入文件，专用格式（表格 / 面板）退化为等宽文本；`Json` 模式下改为 JSON Lines |
 | 文件写入失败不冒泡 | 统一走 `FileWriteErrorHandler` / `InternalErrorLogger`，文件不可写时静默降级，控制台链路不受影响 |
 
 ## 性能设计
@@ -131,7 +161,8 @@ ANSI 颜色不会写入文件。
 | | `BatchSize` | `100` |
 | 控制台 | `ConsoleOutput` | `true`（`AddSpectreFile` 会预置为 `false`） |
 | | `ConsoleRenderWidth` | `0`（跟随终端） |
-| 文件 | `FilePath` | `null`（支持 `{Date}` 占位并按天自动切换） |
+| 文件 | `FileFormat` | `Text`（可改为 `Json` 输出 JSON Lines） |
+| | `FilePath` | `null`（支持 `{Date}` 占位并按天自动切换） |
 | | `FileAppend` | `true` |
 | | `FileEncoding` | 无 BOM 的 UTF-8 |
 | | `FileSizeLimitBytes` | `0`（不滚动） |

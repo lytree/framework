@@ -25,6 +25,12 @@ sealed class SpectreLogEntry
     /// <summary>与模板占位符对应的实参，已在调用线程拷贝为数组。</summary>
     public object?[] Arguments { get; init; } = [];
 
+    /// <summary>
+    /// 结构化属性的「名称 / 值」对，已在调用线程物化。
+    /// <see cref="Arguments"/> 只保留值，供文本渲染；JSON 输出需要名称，故额外保留一份。
+    /// </summary>
+    public KeyValuePair<string, object?>[] Properties { get; init; } = [];
+
     /// <summary>模板缺失时由调用方 formatter 生成的回退消息。</summary>
     public string? FormattedMessage { get; init; }
 
@@ -46,18 +52,19 @@ sealed class SpectreLogEntry
     {
         string? template = null;
         object?[] arguments;
+        KeyValuePair<string, object?>[] properties;
 
         switch (state)
         {
             // 快路径：Microsoft 的结构化日志状态都实现了 IReadOnlyList<KVP>。
             case IReadOnlyList<KeyValuePair<string, object?>> readOnly:
-                template = Extract(readOnly, out arguments!);
+                template = Extract(readOnly, out arguments!, out properties);
                 break;
 
             case IEnumerable<KeyValuePair<string, object?>> enumerable:
                 var buffer = enumerable as IReadOnlyList<KeyValuePair<string, object?>>
                              ?? enumerable.ToArray();
-                template = Extract(buffer, out arguments!);
+                template = Extract(buffer, out arguments!, out properties);
                 break;
 
             default:
@@ -82,17 +89,19 @@ sealed class SpectreLogEntry
             EventId = eventId,
             MessageTemplate = template,
             Arguments = arguments,
+            Properties = properties,
             FormattedMessage = template is null ? formatter(state, exception) : null,
             Exception = exception,
             Scopes = scopes
         };
     }
 
-    /// <summary>拆出 <c>{OriginalFormat}</c> 模板，其余键值按顺序成为实参。</summary>
-    static string? Extract(IReadOnlyList<KeyValuePair<string, object?>> properties, out object?[] arguments)
+    /// <summary>拆出 <c>{OriginalFormat}</c> 模板，其余键值按顺序成为实参与结构化属性。</summary>
+    static string? Extract(IReadOnlyList<KeyValuePair<string, object?>> properties,
+        out object?[] arguments, out KeyValuePair<string, object?>[] structured)
     {
         string? template = null;
-        List<object?>? values = null;
+        List<KeyValuePair<string, object?>>? values = null;
         foreach (var property in properties)
         {
             if (property.Key == "{OriginalFormat}")
@@ -101,10 +110,12 @@ sealed class SpectreLogEntry
                 continue;
             }
 
-            (values ??= []).Add(property.Value);
+            (values ??= []).Add(property);
         }
 
-        arguments = values?.ToArray() ?? [];
+        structured = values?.ToArray() ?? [];
+        arguments = new object?[structured.Length];
+        for (var i = 0; i < structured.Length; i++) arguments[i] = structured[i].Value;
         return template;
     }
 }

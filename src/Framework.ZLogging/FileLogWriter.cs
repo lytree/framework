@@ -104,8 +104,14 @@ sealed class FileLogWriter : IAsyncDisposable
         EnsureOpen();
     }
 
-    /// <summary>把一条日志渲染为纯文本块（含时间戳、级别、Category 与专用格式的文本化输出）。</summary>
+    /// <summary>按 <see cref="SpectreLogOptions.FileFormat"/> 把一条日志渲染为落盘文本。</summary>
     public string Format(SpectreLogEntry entry)
+        => options.FileFormat == SpectreLogFileFormat.Json
+            ? JsonLogFormatter.Format(entry, formatter)
+            : FormatText(entry);
+
+    /// <summary>把一条日志渲染为纯文本块（含时间戳、级别、Category 与专用格式的文本化输出）。</summary>
+    string FormatText(SpectreLogEntry entry)
     {
         var (message, objects) = formatter.Format(entry);
         var builder = new StringBuilder(256);
